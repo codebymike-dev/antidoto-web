@@ -132,6 +132,7 @@ const pag = (href: string) => (href === actual ? 'page' : undefined);
         <a class="idioma" href={alternateHref} hreflang={otro} aria-label={`${locale.toUpperCase()} / ${otro.toUpperCase()}: ${s.switchLangLabel}`}>
           <span class="actual-idioma">{locale.toUpperCase()}</span><span aria-hidden="true">/</span><span lang={otro}>{otro.toUpperCase()}</span>
         </a>
+        <SelloLicencia locale={locale} variante="corto" href={rutas.sgsst[locale]} class="sello-panel" />
       </nav>
       <a class="boton boton-cian cotizar" href={rutas.contacto[locale]}>{s.navQuote}</a>
     </div>
@@ -221,6 +222,8 @@ const pag = (href: string) => (href === actual ? 'page' : undefined);
   .home { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-antidote); }
   /* El sello vive en el encabezado; en pantallas medianas y móviles lo cubren el hero y el ítem SG-SST. */
   @media (max-width: 1320px) { .marca :global(.sello-nav) { display: none; } }
+  .links :global(.sello-panel) { display: none; }
+  @media (max-width: 1100px) { .links :global(.sello-panel) { display: inline-flex; align-self: flex-start; margin-top: 12px; } }
   .home :global(.logo) { display: block; height: 34px; width: auto; }
   .derecha { display: flex; align-items: center; gap: 24px; }
 
