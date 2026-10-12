@@ -107,11 +107,13 @@ const perfiles = s.inicio.paraQuien.perfiles;
     </section>
   )}
 
-  <section class="bloque bloque-mist detalle" aria-label={txt.title}>
-    <div class="wrap">
-      {Content ? <div class="prosa"><Content /></div> : <p class="pendiente">{p.linea.detallePendiente}</p>}
-    </div>
-  </section>
+  {Content && (
+    <section class="bloque bloque-mist detalle" aria-label={txt.title}>
+      <div class="wrap">
+        <div class="prosa"><Content /></div>
+      </div>
+    </section>
+  )}
 
   {soluciones.length > 0 && (
     <section class="bloque" aria-labelledby="para-t">
@@ -129,22 +131,20 @@ const perfiles = s.inicio.paraQuien.perfiles;
     </section>
   )}
 
-  <section class="bloque" aria-labelledby="casos-t">
-    <div class="wrap">
-      <div class="cab-izq">
-        <h2 id="casos-t">{p.linea.casos[0]}<span class="resaltado">{p.linea.casos[1]}</span></h2>
-      </div>
-      {casos.length > 0 ? (
+  {casos.length > 0 && (
+    <section class="bloque" aria-labelledby="casos-t">
+      <div class="wrap">
+        <div class="cab-izq">
+          <h2 id="casos-t">{p.linea.casos[0]}<span class="resaltado">{p.linea.casos[1]}</span></h2>
+        </div>
         <ul class="rejilla-tarjetas" data-entra>
           {casos.map((c) => (
             <li><TarjetaIndice href={casoPath(c, locale)} titulo={c[locale].title} texto={c[locale].lead} imagen={c.image} alt={c[locale].alt} cta={p.leerMas} /></li>
           ))}
         </ul>
-      ) : (
-        <p class="pendiente">{p.linea.casoPendiente}</p>
-      )}
-    </div>
-  </section>
+      </div>
+    </section>
+  )}
 
   {faq.length > 0 && (
     <section class="bloque bloque-mist" aria-labelledby="faq-t">
@@ -177,7 +177,6 @@ const perfiles = s.inicio.paraQuien.perfiles;
 <style>
   .hechos { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
   .hechos li { padding: 6px 12px; border-radius: 999px; background: var(--color-paper); border: 1px solid var(--color-line-soft); font-size: 14px; font-weight: 500; }
-  .detalle .pendiente { padding: 32px; }
   .herramientas { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 20px; }
   .herramientas li { display: grid; align-content: start; gap: 10px; padding: 24px; border-radius: 22px; background: var(--color-paper); border: 1px solid var(--color-line-soft); box-shadow: 0 10px 30px rgb(15 24 29 / 0.06); }
   .h-n { display: flex; align-items: center; gap: 10px; font: 400 26px/1.1 var(--font-display); }

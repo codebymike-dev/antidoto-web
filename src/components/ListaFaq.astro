@@ -1,8 +1,7 @@
 ---
-// Lista de preguntas frecuentes con <details> nativo (funciona sin JS). Las respuestas que son
-// un dato pendiente del cliente se muestran en una caja .pendiente. El FAQPage del JSON-LD lo
-// arma la página con faqSchema (src/data/schema.ts), que omite las pendientes.
-import { esPendiente } from '../data/faq';
+// Lista de preguntas frecuentes con <details> nativo (funciona sin JS). Las preguntas sin respuesta
+// ya no llegan aquí (obtenerPreguntas las omite). El FAQPage del JSON-LD lo arma la página con
+// faqSchema (src/data/schema.ts).
 
 interface Props {
   items: Array<{ clave: string; pregunta: string; respuesta: string }>;
@@ -15,7 +14,7 @@ const { items, abrirPrimera = false } = Astro.props;
   {items.map(({ clave, pregunta, respuesta }, i) => (
     <details id={`faq-${clave}`} open={abrirPrimera && i === 0}>
       <summary>{pregunta}</summary>
-      {esPendiente(respuesta) ? <p class="pendiente">{respuesta}</p> : <p>{respuesta}</p>}
+      <p>{respuesta}</p>
     </details>
   ))}
 </div>
@@ -29,6 +28,5 @@ const { items, abrirPrimera = false } = Astro.props;
   summary::after { content: ''; flex: none; width: 12px; height: 12px; border-right: 2.5px solid var(--color-deep); border-bottom: 2.5px solid var(--color-deep); transform: translateY(-3px) rotate(45deg); transition: transform var(--t-base) var(--ease-out); }
   details[open] summary::after { transform: translateY(3px) rotate(-135deg); }
   details > p { margin: 0; padding: 0 22px 20px; color: var(--color-slate); }
-  details > .pendiente { margin: 0 22px 20px; padding: 14px; justify-content: flex-start; text-align: left; }
   details:target { outline: 2px solid var(--color-antidote); outline-offset: 2px; }
 </style>

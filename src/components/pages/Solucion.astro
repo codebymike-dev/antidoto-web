@@ -1,6 +1,6 @@
 ---
 // Página de una solución por área: los retos de esa área con su respuesta (de los dolores de la
-// home), las ofertas recomendadas, los clientes del sector si los hay y un espacio para el caso.
+// home), las ofertas recomendadas y, si los hay, los clientes autorizados del sector y los casos.
 import Base from '../../layouts/Base.astro';
 import CabeceraPagina from '../CabeceraPagina.astro';
 import TarjetaIndice from '../TarjetaIndice.astro';
@@ -50,12 +50,12 @@ const migas: Array<[string, string]> = [
     <a class="boton boton-cian boton-grande" href={rutas.contacto[locale]} data-magnetico>{p.cta.cotizador}</a>
   </CabeceraPagina>
 
-  <section class="bloque" aria-labelledby="retos-t">
-    <div class="wrap">
-      <div class="cab-izq">
-        <h2 id="retos-t">{p.soluciones.retos[0]}<span class="resaltado">{p.soluciones.retos[1]}</span></h2>
-      </div>
-      {retos.length > 0 ? (
+  {retos.length > 0 && (
+    <section class="bloque" aria-labelledby="retos-t">
+      <div class="wrap">
+        <div class="cab-izq">
+          <h2 id="retos-t">{p.soluciones.retos[0]}<span class="resaltado">{p.soluciones.retos[1]}</span></h2>
+        </div>
         <ul class="retos" data-entra>
           {retos.map(([reto, respuesta]) => (
             <li>
@@ -64,11 +64,9 @@ const migas: Array<[string, string]> = [
             </li>
           ))}
         </ul>
-      ) : (
-        <p class="pendiente">{p.soluciones.educacionPendiente}</p>
-      )}
-    </div>
-  </section>
+      </div>
+    </section>
+  )}
 
   {ofertas.length > 0 && (
     <section class="bloque bloque-mist" aria-labelledby="ofertas-t">
@@ -86,23 +84,23 @@ const migas: Array<[string, string]> = [
     </section>
   )}
 
-  <section class="bloque" aria-label={p.portafolio.titulo.join('')}>
-    <div class="wrap prueba">
-      {clientes.length > 0 && (
-        <div class="clientes">
-          <p class="et">{p.soluciones.clientes}</p>
-          <p class="nombres">{clientes.join(' · ')}</p>
-        </div>
-      )}
-      {casos.length > 0 ? (
-        <ul class="rejilla-tarjetas">
-          {casos.map((c) => <li><TarjetaIndice href={casoPath(c, locale)} titulo={c[locale].title} texto={c[locale].lead} imagen={c.image} alt={c[locale].alt} cta={p.leerMas} /></li>)}
-        </ul>
-      ) : (
-        <p class="pendiente">{p.soluciones.casoPendiente}</p>
-      )}
-    </div>
-  </section>
+  {(clientes.length > 0 || casos.length > 0) && (
+    <section class="bloque" aria-label={p.portafolio.titulo.join('')}>
+      <div class="wrap prueba">
+        {clientes.length > 0 && (
+          <div class="clientes">
+            <p class="et">{p.soluciones.clientes}</p>
+            <p class="nombres">{clientes.join(' · ')}</p>
+          </div>
+        )}
+        {casos.length > 0 && (
+          <ul class="rejilla-tarjetas">
+            {casos.map((c) => <li><TarjetaIndice href={casoPath(c, locale)} titulo={c[locale].title} texto={c[locale].lead} imagen={c.image} alt={c[locale].alt} cta={p.leerMas} /></li>)}
+          </ul>
+        )}
+      </div>
+    </section>
+  )}
 
   <section class="bloque" aria-labelledby="otras-t">
     <div class="wrap">
@@ -133,5 +131,4 @@ const migas: Array<[string, string]> = [
   .clientes { padding: 22px 26px; border-radius: 20px; background: var(--color-ink); color: var(--color-paper); display: flex; flex-direction: column; gap: 6px; }
   .clientes .et { color: var(--color-glow); }
   .nombres { margin: 0; font: 400 22px/1.3 var(--font-display); }
-  .prueba .pendiente { padding: 32px; }
 </style>

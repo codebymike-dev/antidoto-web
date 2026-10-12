@@ -1,6 +1,6 @@
 ---
 // Índice del blog y de cada categoría. Las categorías sin artículos no tienen página ni chip.
-// Mientras no haya artículos publicados, una caja .pendiente.
+// Solo se construye con al menos un artículo publicado (src/pages/blog/[...indice].astro).
 import Base from '../../layouts/Base.astro';
 import CabeceraPagina from '../CabeceraPagina.astro';
 import TarjetaIndice from '../TarjetaIndice.astro';
@@ -54,17 +54,13 @@ const jsonLd = grafo(listaSchema(title, ruta, articulos.map((a) => [a[locale].ti
 
   <section class="bloque" aria-label={s.nav.blog}>
     <div class="wrap">
-      {articulos.length > 0 ? (
-        <ul class="rejilla-tarjetas" data-entra>
-          {articulos.map((a) => (
-            <li>
-              <TarjetaIndice nivel={2} href={articuloPath(a, locale)} titulo={a[locale].title} texto={a[locale].lead} etiqueta={`${p.blog.categorias[a.es.categoria]} · ${p.blog.fecha(a.fecha)}`} imagen={a.image} alt={a[locale].alt} cta={p.leerMas} />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p class="pendiente vacio">{p.blog.vacio}</p>
-      )}
+      <ul class="rejilla-tarjetas" data-entra>
+        {articulos.map((a) => (
+          <li>
+            <TarjetaIndice nivel={2} href={articuloPath(a, locale)} titulo={a[locale].title} texto={a[locale].lead} etiqueta={`${p.blog.categorias[a.es.categoria]} · ${p.blog.fecha(a.fecha)}`} imagen={a.image} alt={a[locale].alt} cta={p.leerMas} />
+          </li>
+        ))}
+      </ul>
       {articulos.length > 0 && <a class="rss" href={`${rutas.blog[locale]}rss.xml`}>{p.blog.rss}</a>}
     </div>
   </section>
@@ -77,6 +73,5 @@ const jsonLd = grafo(listaSchema(title, ruta, articulos.map((a) => [a[locale].ti
   .cats a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; background: var(--color-paper); border: 1px solid var(--color-line-input); color: var(--color-ink); text-decoration: none; font-weight: 500; font-size: 15px; }
   .cats a:hover { border-color: var(--color-deep); color: var(--color-deep); }
   .cats a[aria-current] { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-paper); }
-  .vacio { min-height: 220px; margin: 0; }
   .rss { display: inline-flex; align-items: center; min-height: 44px; margin-top: 20px; color: var(--color-deep); font-weight: 600; }
 </style>

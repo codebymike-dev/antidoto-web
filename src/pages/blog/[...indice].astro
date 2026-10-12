@@ -1,0 +1,11 @@
+---
+// El índice del blog solo existe con al menos un artículo publicado: sin artículos no hay página
+// vacía (brief del 08/10/2026: ningún bloque vacío en el sitio).
+import P from '../../components/pages/PaginaBlog.astro';
+import { obtenerArticulos } from '../../data/contenido';
+
+export async function getStaticPaths() {
+  return (await obtenerArticulos()).length ? [{ params: { indice: undefined } }] : [];
+}
+---
+<P locale="es" />

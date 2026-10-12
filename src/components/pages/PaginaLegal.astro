@@ -1,6 +1,6 @@
 ---
 // Plantilla de los textos legales (política de datos, términos y cookies): borradores con
-// noindex hasta la revisión legal. Un párrafo entre corchetes es un dato pendiente del cliente.
+// noindex hasta la revisión legal. Un párrafo entre corchetes (dato pendiente) no se publica.
 import Base from '../../layouts/Base.astro';
 import CabeceraPagina from '../CabeceraPagina.astro';
 import { t, rutas, type Locale, type Pagina } from '../../i18n/ui';
@@ -37,7 +37,7 @@ const migas: Array<[string, string]> = [
       {secciones.map((sec) => (
         <section class="parte">
           <h2>{sec.t}</h2>
-          {sec.p.map((x) => (esPendiente(x) ? <p class="pendiente">{x}</p> : <p>{x}</p>))}
+          {sec.p.filter((x) => !esPendiente(x)).map((x) => <p>{x}</p>)}
         </section>
       ))}
       {nota && <p class="nota">{nota}</p>}
@@ -55,7 +55,6 @@ const migas: Array<[string, string]> = [
   h2 { margin: 0 0 10px; font-size: 26px; line-height: 1.2; }
   .parte p { margin: 0 0 12px; color: var(--color-slate); line-height: 1.7; }
   .parte p:last-child { margin-bottom: 0; }
-  .parte .pendiente { justify-content: flex-start; text-align: left; padding: 14px; }
   .nota { margin: 24px 0 0; font-size: 14px; color: var(--color-slate); }
   .mas a { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-deep); font-weight: 600; }
 </style>

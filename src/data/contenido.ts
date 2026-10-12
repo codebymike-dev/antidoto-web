@@ -5,7 +5,7 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import { obtenerServicios } from './servicios';
 import { emparejarOfertas, type Oferta } from '../lib/ofertas';
 import { emparejarPublicaciones, type Publicacion } from '../lib/publicaciones';
-import type { TemaFaq } from './faq';
+import { esPendiente, type TemaFaq } from './faq';
 import type { Locale } from '../i18n/ui';
 import { REGALO_NOVEDADES, VIDEO_HERO } from './site';
 import { estricto } from '../lib/cms/loader';
@@ -70,11 +70,11 @@ export interface PreguntaFaq {
 
 let faq: Promise<CollectionEntry<'faq'>['data'][]> | undefined;
 
-/** Preguntas frecuentes en un idioma, por tema o solo las destacadas, en su orden. */
+/** Preguntas frecuentes en un idioma, por tema o solo las destacadas, en su orden. Las que siguen sin respuesta (entre corchetes) no se publican. */
 export async function obtenerPreguntas(locale: Locale, filtro: { tema?: TemaFaq; destacadas?: boolean } = {}): Promise<PreguntaFaq[]> {
   faq ??= getCollection('faq').then((e) => e.map((x) => x.data).sort((a, b) => a.orden - b.orden));
   return (await faq)
-    .filter((p) => (!filtro.tema || p.tema === filtro.tema) && (!filtro.destacadas || p.destacada))
+    .filter((p) => !esPendiente(p[locale][1]) && (!filtro.tema || p.tema === filtro.tema) && (!filtro.destacadas || p.destacada))
     .map((p) => ({ clave: p.clave, tema: p.tema, pregunta: p[locale][0], respuesta: p[locale][1] }));
 }
 

@@ -2,7 +2,7 @@
 // Índice completo del sitio por grupos, generado con las mismas fuentes que la nav. Lo usan el
 // mapa del sitio y la página 404.
 import { obtenerServicios, servicioPath } from '../data/servicios';
-import { obtenerOfertas, obtenerCasos, obtenerArticulos, ofertaPath, casoPath, articuloPath } from '../data/contenido';
+import { obtenerOfertas, obtenerCasos, obtenerArticulos, obtenerClientes, ofertaPath, casoPath, articuloPath } from '../data/contenido';
 import { SOLUCIONES, solucionPath } from '../data/soluciones';
 import { t, rutas, rutaPolitica, type Locale } from '../i18n/ui';
 import { tp } from '../i18n/paginas';
@@ -19,6 +19,7 @@ const servicios = await obtenerServicios();
 const ofertas = await obtenerOfertas();
 const casos = await obtenerCasos();
 const articulos = await obtenerArticulos();
+const hayClientes = (await obtenerClientes()).length > 0;
 type Enlace = { texto: string; href: string; hijos?: Enlace[] };
 const grupos: Array<{ titulo: string; enlaces: Enlace[] }> = [
   {
@@ -37,6 +38,7 @@ const grupos: Array<{ titulo: string; enlaces: Enlace[] }> = [
     enlaces: [
       { texto: p.todasSoluciones, href: rutas.soluciones[locale] },
       ...SOLUCIONES.map((sol) => ({ texto: s.inicio.paraQuien.perfiles[sol.perfil][0], href: solucionPath(sol, locale) })),
+      { texto: s.nav.sgsst, href: rutas.sgsst[locale] },
     ],
   },
   {
@@ -44,12 +46,11 @@ const grupos: Array<{ titulo: string; enlaces: Enlace[] }> = [
     enlaces: [
       { texto: p.navEmpresa, href: rutas.nosotros[locale] },
       { texto: s.nav.comoTrabajamos, href: rutas.comoTrabajamos[locale] },
-      { texto: s.nav.clientes, href: rutas.clientes[locale] },
-      {
-        texto: s.nav.portafolio,
-        href: rutas.portafolio[locale],
-        hijos: detalle && casos.length ? casos.map((c) => ({ texto: c[locale].title, href: casoPath(c, locale) })) : undefined,
-      },
+      // Clientes, portafolio y blog solo existen con contenido publicado.
+      ...(hayClientes ? [{ texto: s.nav.clientes, href: rutas.clientes[locale] }] : []),
+      ...(casos.length
+        ? [{ texto: s.nav.portafolio, href: rutas.portafolio[locale], hijos: detalle ? casos.map((c) => ({ texto: c[locale].title, href: casoPath(c, locale) })) : undefined }]
+        : []),
       { texto: s.nav.trabaja, href: rutas.trabaja[locale] },
       { texto: s.nav.contacto, href: rutas.contacto[locale] },
     ],
@@ -57,12 +58,11 @@ const grupos: Array<{ titulo: string; enlaces: Enlace[] }> = [
   {
     titulo: p.mapa.grupos.recursos,
     enlaces: [
+      { texto: s.nav.actividades, href: rutas.actividades[locale] },
       { texto: s.nav.faq, href: rutas.faq[locale] },
-      {
-        texto: s.nav.blog,
-        href: rutas.blog[locale],
-        hijos: detalle && articulos.length ? articulos.map((a) => ({ texto: a[locale].title, href: articuloPath(a, locale) })) : undefined,
-      },
+      ...(articulos.length
+        ? [{ texto: s.nav.blog, href: rutas.blog[locale], hijos: detalle ? articulos.map((a) => ({ texto: a[locale].title, href: articuloPath(a, locale) })) : undefined }]
+        : []),
     ],
   },
   {

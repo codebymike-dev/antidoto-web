@@ -71,26 +71,25 @@ const perfiles = s.inicio.paraQuien.perfiles;
     )}
   </CabeceraPagina>
 
-  <section class="bloque" aria-labelledby="incluye-t">
-    <div class="wrap dos">
-      <div class="cab-izq">
-        <h2 id="incluye-t">{p.oferta.incluye[0]}<span class="resaltado">{p.oferta.incluye[1]}</span></h2>
+  {(txt.incluye.length > 0 || Content) && (
+    <section class="bloque" aria-labelledby="incluye-t">
+      <div class="wrap dos">
+        <div class="cab-izq">
+          <h2 id="incluye-t">{p.oferta.incluye[0]}<span class="resaltado">{p.oferta.incluye[1]}</span></h2>
+        </div>
+        <div class="contenido">
+          {txt.incluye.length > 0 && (
+            <ul class="incluye" data-entra>
+              {txt.incluye.map((x) => (
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg><span>{x}</span></li>
+              ))}
+            </ul>
+          )}
+          {Content && <div class="prosa"><Content /></div>}
+        </div>
       </div>
-      <div class="contenido">
-        {txt.incluye.length > 0 ? (
-          <ul class="incluye" data-entra>
-            {txt.incluye.map((x) => (
-              <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg><span>{x}</span></li>
-            ))}
-          </ul>
-        ) : (
-          <p class="pendiente">{p.oferta.incluyePendiente}</p>
-        )}
-        {Content ? <div class="prosa"><Content /></div> : <p class="pendiente">{p.oferta.detallePendiente}</p>}
-        <p class="pendiente">{p.oferta.fotosPendiente}</p>
-      </div>
-    </div>
-  </section>
+    </section>
+  )}
 
   {soluciones.length > 0 && (
     <section class="bloque bloque-mist" aria-labelledby="para-t">
@@ -142,7 +141,6 @@ const perfiles = s.inicio.paraQuien.perfiles;
   .chip { padding: 6px 12px; border-radius: 999px; background: var(--color-paper); border: 1px solid var(--color-line-soft); color: var(--color-ink); font-weight: 500; }
   .dos { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 40px; align-items: start; }
   .contenido { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
-  .contenido .pendiente { justify-content: flex-start; text-align: left; }
   .incluye { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: 12px; }
   .incluye li { display: flex; gap: 12px; align-items: flex-start; padding: 16px 18px; border-radius: 16px; background: var(--color-mist); font-weight: 500; }
   .incluye svg { width: 20px; height: 20px; flex: none; margin-top: 2px; fill: none; stroke: var(--color-mid); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }

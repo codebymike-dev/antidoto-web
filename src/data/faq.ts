@@ -1,6 +1,7 @@
 // Preguntas frecuentes de todo el sitio, en los dos idiomas. La home muestra las destacadas;
 // /preguntas-frecuentes/ las agrupa por tema y cada línea de servicio muestra las suyas.
-// Las respuestas entre corchetes son datos que faltan del cliente: se muestran como .pendiente.
+// Las respuestas entre corchetes son datos que faltan del cliente: no se publican en ninguna parte
+// (ni en el sitio, ni en el JSON-LD, ni en el chat) hasta tener la respuesta.
 // Regla: solo hechos del brief o del sitio; nada de cifras ni promesas sin validar.
 import type { Locale } from '../i18n/ui';
 
@@ -21,8 +22,8 @@ export const FAQ: Pregunta[] = [
     clave: 'ciudades',
     tema: 'general',
     destacada: true,
-    es: ['¿En qué ciudades prestan el servicio?', 'Atendemos eventos en todo el país. [SEDE Y CIUDADES PRINCIPALES]'],
-    en: ['Which cities do you work in?', 'We serve events across the country. [MAIN OFFICE AND MAIN CITIES]'],
+    es: ['¿En qué ciudades prestan el servicio?', 'Estamos en Bogotá, en Pontevedra (atendemos con cita), y hacemos eventos en todo el país.'],
+    en: ['Which cities do you work in?', 'We are based in Bogotá (Pontevedra, by appointment) and serve events across the country.'],
   },
   {
     clave: 'idiomas',
@@ -97,8 +98,8 @@ export const FAQ: Pregunta[] = [
   {
     clave: 'ia-quien',
     tema: 'ia',
-    es: ['¿Quién dicta la capacitación en IA?', 'codebymike, aliado de Antídoto para esta línea, diseña y dicta las capacitaciones. Antídoto pone la metodología vivencial y la logística.'],
-    en: ['Who teaches the AI training?', 'codebymike, Antídoto’s partner for this line, designs and teaches the training. Antídoto brings the experiential method and the logistics.'],
+    es: ['¿Quién dicta la capacitación en IA?', 'Antídoto diseña y ofrece la capacitación, con su metodología vivencial y la logística a cargo del mismo equipo.'],
+    en: ['Who teaches the AI training?', 'Antídoto designs and delivers the training, with its experiential method and the logistics handled by the same team.'],
   },
   {
     clave: 'ia-herramienta',
@@ -121,8 +122,8 @@ export const FAQ: Pregunta[] = [
   {
     clave: 'como-cotizar',
     tema: 'cotizacion',
-    es: ['¿Cómo pido una cotización?', 'Con el cotizador del sitio: eliges el servicio, la fecha y el tamaño del grupo, y el mensaje nos llega por WhatsApp. También puedes escribirnos al correo.'],
-    en: ['How do I request a quote?', 'With the quote builder on this site: choose the service, the date and the group size, and the message reaches us on WhatsApp. You can also email us.'],
+    es: ['¿Cómo pido una cotización?', 'Con el cotizador del sitio: eliges el servicio, la fecha y el tamaño del grupo, y envías el mensaje por WhatsApp o por correo. También puedes llamarnos.'],
+    en: ['How do I request a quote?', 'With the quote builder on this site: choose the service, the date and the group size, and send the message on WhatsApp or by email. You can also call us.'],
   },
   {
     clave: 'tiempo-respuesta',
