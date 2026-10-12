@@ -1,5 +1,6 @@
 ---
-// Cierre con cotización: el botón lleva al cotizador y el teléfono llama directo.
+// Cierre con cotización: el botón lleva al cotizador y la línea de llamadas llama directo (el
+// número de WhatsApp nunca va en un enlace tel:).
 // El borde superior es oleaje: dos olas que se desplazan a distinta velocidad y en sentido
 // contrario (src/lib/motion/inicio.ts). Es un bucle: tiene botón de pausa y se detiene fuera
 // de pantalla. Sin JS o con movimiento reducido, las olas quedan quietas.
@@ -23,7 +24,7 @@ const h = s.inicio.cierre;
     </div>
     <div class="ctas">
       <a class="boton boton-tinta boton-grande" href={rutas.contacto[locale]} data-magnetico>{h.cotizar}</a>
-      <a class="boton boton-borde boton-grande" href={`tel:+${SITE.whatsapp}`}>{SITE.phoneDisplay}</a>
+      <a class="boton boton-borde boton-grande" href={`tel:+${SITE.llamadas}`}>{SITE.llamadasDisplay}</a>
     </div>
     <button class="pausa" type="button" hidden aria-pressed="false" aria-label={s.pause} title={s.pause} data-olas-pausa data-pausar={s.pause} data-reanudar={s.resume}>
       <svg class="i-pausa" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="6" width="3.2" height="12" rx="1"></rect><rect x="13.8" y="6" width="3.2" height="12" rx="1"></rect></svg>

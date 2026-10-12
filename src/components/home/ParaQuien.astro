@@ -1,5 +1,5 @@
 ---
-// Entradas por tipo de comprador, franja de aliados y espacios para caso y testimonios.
+// Entradas por tipo de comprador y franja de aliados.
 import { t, rutas, type Locale } from '../../i18n/ui';
 import { SOLUCIONES, solucionPath } from '../../data/soluciones';
 
@@ -31,11 +31,6 @@ const [aliadosTitulo, aliadosTexto, aliadosCta] = h.aliados;
       <span class="a-txt"><span class="a-t">{aliadosTitulo}</span><span class="a-d">{aliadosTexto}</span></span>
       <span class="a-cta">{aliadosCta}</span>
     </a>
-    <div id="clientes" class="pendientes">
-      <p class="pendiente">{h.caso}</p>
-      <p class="pendiente">{h.testimonio}</p>
-      <p class="pendiente">{h.testimonio}</p>
-    </div>
   </div>
 </section>
 
@@ -63,6 +58,4 @@ const [aliadosTitulo, aliadosTexto, aliadosCta] = h.aliados;
   .a-cta::after { content: '→'; margin-left: 0.35em; display: inline-block; transition: transform var(--t-base) var(--ease-out); }
   .aliados:hover .a-cta::after, .aliados:focus-visible .a-cta::after { transform: translateX(4px); }
 
-  .pendientes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 20px; }
-  .pendientes .pendiente { margin: 0; padding: 26px; border-radius: 20px; justify-content: flex-start; text-align: left; align-items: flex-start; }
 </style>

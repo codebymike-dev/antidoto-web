@@ -30,7 +30,6 @@ const api = (import.meta.env.PUBLIC_API_URL ?? '').replace(/\/$/, '');
           <h2 id="novedades-inicio-t" class="titulo-seccion">{h.titulo[0]}<span class="resaltado">{h.titulo[1]}</span></h2>
           <p class="lead">{h.lead}</p>
           {regalo && <p class="regalo">{s.novedadesRegalo(regalo)}</p>}
-          <p class="pendiente frecuencia">{h.frecuencia}</p>
           {origen === 'inicio' && <a class="archivo" href={rutaNovedades[locale]}>{s.novedadesArchivo}</a>}
         </div>
         <form data-novedades data-api={api} data-version={NOVEDADES_VERSION} data-origen={origen} novalidate aria-labelledby="novedades-inicio-t">
@@ -73,7 +72,6 @@ const api = (import.meta.env.PUBLIC_API_URL ?? '').replace(/\/$/, '');
   .lead { margin: 0; color: var(--color-slate); font-size: 17px; max-width: 34em; }
   .regalo { margin: 0; font-weight: 600; }
   .archivo { align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; color: var(--color-ink); font-weight: 600; text-underline-offset: 3px; }
-  .frecuencia { align-self: flex-start; padding: 10px 16px; border-radius: 12px; font-size: 13.5px; }
 
   form { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
   fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }

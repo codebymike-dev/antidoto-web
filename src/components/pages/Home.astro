@@ -3,6 +3,7 @@
 // La nav y el pie son los del layout; aquí van las secciones del cuerpo, en orden.
 import Base from '../../layouts/Base.astro';
 import Hero from '../home/Hero.astro';
+import FranjaLicencia from '../home/FranjaLicencia.astro';
 import ClientesCifras from '../home/ClientesCifras.astro';
 import Dolores from '../home/Dolores.astro';
 import Pasos from '../home/Pasos.astro';
@@ -27,6 +28,7 @@ const [title, description] = t(locale).seo.inicio;
 <Base locale={locale} pagina="inicio" title={title} description={description} alternates={rutas.inicio} jsonLd={organizationSchema(await obtenerServicios(), locale)} scroll="suave">
   <Hero locale={locale} />
   <Sala locale={locale} />
+  <FranjaLicencia locale={locale} />
   <ClientesCifras locale={locale} />
   <Dolores locale={locale} />
   <Pasos locale={locale} />
