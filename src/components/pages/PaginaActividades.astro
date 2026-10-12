@@ -1,0 +1,141 @@
+---
+// Entra a tu actividad (brief del 08/10/2026): reúne el acceso a los juegos de Misiones Antídoto.
+// 1. Campo del código: un formulario GET a la plataforma (`/?codigo=...`, así lo recibe
+//    ../antidoto), que funciona sin JS; el script solo pasa a mayúsculas y avisa si el formato no sirve.
+// 2. Catálogo: una tarjeta por juego (src/data/juegos.ts o el panel), solo juegos propios o
+//    genéricos, con "Cotizar este juego" (?servicio=formaciones&juego=<clave>).
+// 3. Demostración de resultados con datos de ejemplo, rotulada "Ejemplo".
+// 4. Acceso para empresas: un enlace discreto al final, fuera del pie general.
+import Base from '../../layouts/Base.astro';
+import CabeceraPagina from '../CabeceraPagina.astro';
+import ResultadosEjemplo from '../ResultadosEjemplo.astro';
+import BloqueCta from '../BloqueCta.astro';
+import { PORTAL } from '../../data/site';
+import { obtenerJuegos } from '../../data/contenido';
+import { grafo, migasSchema } from '../../data/schema';
+import { t, rutas, type Locale } from '../../i18n/ui';
+import { tp } from '../../i18n/paginas';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const s = t(locale);
+const p = tp(locale);
+const h = p.actividades;
+const [title, description] = s.seo.actividades;
+const juegos = await obtenerJuegos();
+const migas: Array<[string, string]> = [
+  [p.inicio, rutas.inicio[locale]],
+  [s.nav.actividades, rutas.actividades[locale]],
+];
+const cotizar = (clave: string) => `${rutas.contacto[locale]}?${new URLSearchParams({ servicio: 'formaciones', juego: clave })}`;
+---
+<Base locale={locale} pagina="actividades" title={title} description={description} alternates={rutas.actividades} jsonLd={grafo(migasSchema(migas))}>
+  <CabeceraPagina locale={locale} migas={migas} kicker={s.portalTitulo} titulo={h.titulo} lead={h.lead}>
+    <form slot="pie" class="codigo" action={PORTAL.url} method="get" novalidate data-codigo>
+      <label for="codigo-actividad">{h.codigo}</label>
+      <div class="fila">
+        <input id="codigo-actividad" name="codigo" type="text" required minlength="4" maxlength="32" pattern="[A-Za-z0-9-]{4,32}" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="codigo-ayuda codigo-error" />
+        <button class="boton boton-cian boton-grande" type="submit">{h.entrar}</button>
+      </div>
+      <p class="ayuda" id="codigo-ayuda">{h.codigoAyuda}</p>
+      <p class="error" id="codigo-error" role="alert" hidden data-codigo-error>{h.codigoError}</p>
+    </form>
+  </CabeceraPagina>
+
+  {juegos.length > 0 && (
+    <section class="bloque" aria-labelledby="juegos-t">
+      <div class="wrap">
+        <div class="cab-izq">
+          <h2 id="juegos-t">{h.catalogo[0]}<span class="resaltado">{h.catalogo[1]}</span></h2>
+          <p>{h.catalogoLead}</p>
+        </div>
+        <ul class="juegos" data-entra>
+          {juegos.map((j) => {
+            const x = j[locale];
+            return (
+              <li>
+                <h3>{x.title}</h3>
+                <dl>
+                  <div><dt>{h.trabaja}</dt><dd>{x.trabaja}</dd></div>
+                  {x.duracion && <div><dt>{h.duracion}</dt><dd>{x.duracion}</dd></div>}
+                  <div><dt>{h.modalidad}</dt><dd>{x.modalidad}</dd></div>
+                </dl>
+                <a class="boton boton-tinta" href={cotizar(j.clave)}>{h.cotizarJuego}</a>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  <section class="bloque bloque-mist" aria-labelledby="demo-t">
+    <div class="wrap demo">
+      <div class="cab-izq">
+        <h2 id="demo-t">{h.demo[0]}<span class="resaltado">{h.demo[1]}</span></h2>
+        <p>{h.demoLead}</p>
+      </div>
+      <ResultadosEjemplo locale={locale} id="demo-resultados-t" />
+    </div>
+  </section>
+
+  <BloqueCta locale={locale} servicio="formaciones" />
+
+  <div class="wrap empresas">
+    <p>{h.empresas} <a href={PORTAL.empresas} hreflang="es">{h.empresasEnlace}</a></p>
+  </div>
+</Base>
+
+<script>
+  // Mejora del formulario del código: mayúsculas y aviso de formato antes de salir del sitio.
+  const form = document.querySelector<HTMLFormElement>('[data-codigo]');
+  if (form) {
+    const campo = form.elements.namedItem('codigo') as HTMLInputElement;
+    const error = form.querySelector<HTMLElement>('[data-codigo-error]')!;
+    campo.addEventListener('input', () => {
+      campo.value = campo.value.toUpperCase().replace(/\s+/g, '');
+      error.hidden = true;
+      campo.removeAttribute('aria-invalid');
+    });
+    form.addEventListener('submit', (e) => {
+      campo.value = campo.value.trim().toUpperCase();
+      if (!/^[A-Z0-9-]{4,32}$/.test(campo.value)) {
+        e.preventDefault();
+        error.hidden = false;
+        campo.setAttribute('aria-invalid', 'true');
+        campo.focus();
+      }
+    });
+  }
+</script>
+
+<style>
+  .codigo { margin-top: 8px; display: grid; gap: 8px; max-width: 520px; padding: 20px; border-radius: 20px; background: var(--color-paper); border: 1px solid var(--color-line-soft); box-shadow: 0 10px 30px rgb(15 24 29 / 0.06); }
+  .codigo label { font-weight: 600; font-size: 17px; }
+  .fila { display: flex; flex-wrap: wrap; gap: 10px; }
+  .fila input { flex: 1 1 200px; min-width: 0; min-height: 52px; padding: 0 16px; border-radius: 12px; border: 1.5px solid var(--color-line-input); background: var(--color-paper); color: var(--color-ink); font: 600 20px/1 var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; }
+  .fila input:focus-visible { outline: 2px solid var(--color-deep); outline-offset: 2px; }
+  .fila input[aria-invalid='true'] { border-color: #a23a1f; }
+  .ayuda { margin: 0; font-size: 14px; color: var(--color-slate); }
+  .error { margin: 0; font-size: 14.5px; font-weight: 600; color: #a23a1f; }
+  .error[hidden] { display: none; }
+
+  .juegos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 18px; }
+  .juegos li { display: flex; flex-direction: column; gap: 14px; padding: 24px; border-radius: 22px; background: var(--color-mist); }
+  .juegos h3 { margin: 0; font: 400 26px/1.15 var(--font-display); display: flex; align-items: center; gap: 10px; }
+  .juegos h3::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--color-antidote); flex: none; }
+  .juegos dl { margin: 0; display: grid; gap: 10px; }
+  .juegos dt { font: 600 12px/1.3 var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-deep); }
+  .juegos dd { margin: 2px 0 0; color: var(--color-ink); }
+  .juegos .boton { align-self: flex-start; margin-top: auto; }
+
+  .demo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: center; }
+  .demo :global(.resultados) { justify-self: center; box-shadow: 0 20px 50px rgb(15 24 29 / 0.12); }
+  @media (max-width: 860px) { .demo { grid-template-columns: 1fr; } }
+
+  .empresas { padding-block: 8px 40px; }
+  .empresas p { margin: 0; font-size: 14.5px; color: var(--color-slate); }
+  .empresas a { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-deep); font-weight: 600; }
+</style>

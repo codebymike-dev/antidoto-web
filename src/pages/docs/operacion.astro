@@ -1,0 +1,120 @@
+---
+// Operación y traspaso (brief del 08/10/2026, sección Técnico): dónde está cada cosa, cómo se
+// publica, cómo edita Antídoto sin programador, qué claves y variables existen, cuánto cuesta cada
+// servicio y qué hacer si algo falla. Interna: noindex, fuera del sitemap y del precache.
+import Docs from '../../layouts/Docs.astro';
+
+const servicios: Array<[servicio: string, para: string, plan: string, costo: string]> = [
+  ['Vercel', 'Sitio (Astro estático) y API (función Node)', 'Hobby', 'Gratis. Sin tareas programadas: lo pendiente corre al usar el panel (api/src/pendientes.ts).'],
+  ['Turso', 'Base de datos de solicitudes, contenido del panel, conversaciones y clics', 'Gratuito', 'Gratis mientras el volumen quepa en el plan gratuito; el uso se ve en su consola.'],
+  ['Vercel Blob (privado)', 'Imágenes del contenido y archivos de entregables', 'Incluido en Hobby', 'Gratis dentro del cupo del plan; el uso se ve en el proyecto de Vercel.'],
+  ['Resend', 'Correos del sitio: avisos, enlaces de acceso y novedades', 'Gratuito', 'Gratis hasta 3.000 correos al mes y 100 al día. Necesita el dominio verificado.'],
+  ['Anthropic (API de Claude)', 'Chat con IA y facilitador del mundo pixel', 'Prepagado, por uso', 'Por uso. Tope diario en el panel (Ajustes; 1 USD por defecto) y tope mensual de la organización en la consola de Claude. Sin saldo, el chat ofrece solo WhatsApp.'],
+  ['GitHub', 'Repositorio del código y flujos de despliegue', 'Gratuito', 'Gratis.'],
+  ['Hostinger', 'Dominio antidotocolombia.com', 'Registro anual', 'Renovación anual del dominio, a nombre de María Paula.'],
+  ['Plataforma de juegos (repo antidoto)', 'Misiones Antídoto: códigos de actividad y resultados', 'Vercel Hobby y Turso', 'Gratis en esos planes. Si algún día pide un plan de pago, se informa el valor antes y lo paga Antídoto en su cuenta.'],
+];
+
+const variablesSitio: Array<[string, string]> = [
+  ['PUBLIC_API_URL', 'URL de la API. Con ella aparecen el chat, la suscripción, el paso de contacto del cotizador, el contenido del panel y la analítica. Sin ella el sitio funciona solo con WhatsApp.'],
+  ['PUBLIC_TURNSTILE_SITEKEY', 'Opcional. Clave pública de Turnstile para el chat (ver la nota de abajo).'],
+  ['CMS_ESTRICTO', 'Opcional. En 1, el build se detiene si la API no responde (en Vercel ya es así).'],
+];
+
+const variablesApi: Array<[string, string]> = [
+  ['TURSO_DATABASE_URL y TURSO_AUTH_TOKEN', 'Base de datos.'],
+  ['BLOB_READ_WRITE_TOKEN (o BLOB_STORE_ID)', 'Store privado de Blob para imágenes y archivos.'],
+  ['APP_URL, ORIGENES, SITIO_URL', 'Dirección de la API, orígenes del sitio que pueden llamarla y dirección pública del sitio.'],
+  ['RESEND_API_KEY, RESEND_WEBHOOK_SECRET, MAIL_FROM, MAIL_EQUIPO, MAIL_DIRECCION', 'Correos: clave, webhook de entregas, remitente, a quién avisar y el pie legal de las campañas.'],
+  ['ANTHROPIC_API_KEY, ASESOR_TOPE_DIARIO_USD', 'Chat con IA y su tope diario por defecto (el panel lo puede cambiar).'],
+  ['TURNSTILE_SECRET', 'Opcional. Con ella el chat exige el token de Turnstile.'],
+  ['SAL_IP', 'Sal del resumen diario de la IP (nunca se guarda la IP).'],
+  ['GITHUB_DISPATCH_TOKEN, GITHUB_REPO', 'Para que el botón Publicar del panel reconstruya el sitio. Al pasar el repositorio a la cuenta de Antídoto, GITHUB_REPO cambia al nombre nuevo.'],
+];
+
+const fallas: Array<[string, string]> = [
+  ['El sitio no carga', 'Revisar el último despliegue del proyecto del sitio en Vercel. Se puede volver al anterior con "Promote to production" sobre un despliegue que funcionaba.'],
+  ['El chat dice que no está disponible', 'Es lo esperado sin clave, con el chat apagado en Ajustes o sin presupuesto del día. Revisar Ajustes del panel, el saldo en la consola de Claude y ANTHROPIC_API_KEY. WhatsApp sigue funcionando.'],
+  ['No llegan correos', 'Revisar en Resend que el dominio siga verificado y los registros DNS, y el panel en Sistema.'],
+  ['Publiqué en el panel y no cambió el sitio', 'El botón Publicar lanza deploy.yml en GitHub Actions. Revisar ahí el último intento y que exista GITHUB_DISPATCH_TOKEN.'],
+  ['El build falla por la API', 'Con PUBLIC_API_URL, el build en Vercel se detiene si la API no responde para no despublicar contenido. Revisar que la API esté arriba y volver a desplegar.'],
+  ['Un código de actividad no entra', 'El código lo valida la plataforma de juegos (repo antidoto). El enlace directo del juego sigue sirviendo aunque el sitio falle.'],
+];
+---
+<Docs titulo="Operación y traspaso" descripcion="Dónde está cada cosa del sitio de Antídoto, cómo se publica, cómo editarlo sin programador, variables, costos y qué hacer si algo falla." ruta="/docs/operacion/">
+  <h1>Operación y traspaso</h1>
+  <p class="lead">Lo que necesita Antídoto para operar el sitio sin mensualidad de desarrollo ni de soporte: dónde vive cada pieza, cómo se cambia y qué cuesta.</p>
+
+  <h2>Dónde está cada cosa</h2>
+  <div class="caja">
+    <p><strong>Código:</strong> repositorio <code>antidoto-web</code>. El sitio está en la raíz (Astro) y la API y el panel en <code>api/</code>. La plataforma de juegos es otro repositorio (<code>antidoto</code>).</p>
+    <p><strong>Sitio:</strong> proyecto de Vercel del sitio. Cada cambio en <code>main</code> se publica solo y cada rama tiene su vista previa.</p>
+    <p><strong>API y panel:</strong> proyecto de Vercel con directorio raíz <code>api</code>. El panel está en <code>/admin/</code> de la API y el portal de clientes en <code>/portal/</code>.</p>
+    <p><strong>Datos:</strong> Turso (base de datos) y Blob privado (imágenes y archivos). Las solicitudes se exportan a CSV desde el panel (Sistema, exportaciones).</p>
+    <p><strong>Textos del sitio:</strong> <code>src/i18n/ui.ts</code> y <code>src/i18n/paginas.ts</code>; servicios y ofertas en <code>src/content/</code>; datos de la empresa, la licencia y el contacto en <code>src/data/site.ts</code>.</p>
+  </div>
+
+  <h2>Qué edita Antídoto desde el panel, sin programador</h2>
+  <div class="tabla-wrap" tabindex="0" role="region" aria-label="Contenido editable">
+    <table class="tabla">
+      <thead><tr><th>Qué</th><th>Dónde en el panel</th><th>Cómo se ve en el sitio</th></tr></thead>
+      <tbody>
+        <tr><td>Preguntas frecuentes</td><td>Contenido, Preguntas frecuentes</td><td>Página de preguntas, cada línea y la home (las destacadas). El chat también las usa. Una respuesta entera entre corchetes no se publica.</td></tr>
+        <tr><td>Juegos del catálogo</td><td>Contenido, Juegos</td><td>/actividades/. Solo juegos propios o genéricos, sin marcas de clientes.</td></tr>
+        <tr><td>Clientes con logo</td><td>Contenido, Clientes</td><td>Solo con autorización escrita. Con el primero aparecen la franja de logos de la home y la página de clientes.</td></tr>
+        <tr><td>Casos del portafolio</td><td>Contenido, Casos</td><td>Con el primero aparece el portafolio en el menú, el pie y el mapa del sitio.</td></tr>
+        <tr><td>Artículos del blog y vacantes</td><td>Contenido, Blog y Vacantes</td><td>El blog aparece con el primer artículo.</td></tr>
+        <tr><td>Chat con IA, regalo de novedades y video del hero</td><td>Ajustes</td><td>Encender o apagar el chat y su tope diario, sin desplegar.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Después de editar contenido se usa <strong>Publicar</strong> (vista previa o producción). En un par de minutos el sitio queda reconstruido.</p>
+  <p>Los textos generales de las páginas (títulos, botones, menú) y los datos de la empresa siguen en el código: cambiarlos es editar <code>src/i18n/ui.ts</code> o <code>src/data/site.ts</code> en GitHub (el lápiz de "Edit" en el navegador basta) y guardar en <code>main</code>.</p>
+
+  <h2>Costos por servicio</h2>
+  <div class="tabla-wrap" tabindex="0" role="region" aria-label="Costos por servicio">
+    <table class="tabla">
+      <thead><tr><th>Servicio</th><th>Para qué</th><th>Plan</th><th>Costo</th></tr></thead>
+      <tbody>{servicios.map(([a, b, c, d]) => <tr><td><strong>{a}</strong></td><td>{b}</td><td>{c}</td><td>{d}</td></tr>)}</tbody>
+    </table>
+  </div>
+  <p>Los cupos de los planes gratuitos cambian: confirmar en la consola de cada servicio antes de crecer el volumen.</p>
+
+  <h2>Claves y variables</h2>
+  <p>Ninguna clave va en el código. En Vercel se guardan en Settings, Environment Variables de cada proyecto.</p>
+  <h3>Sitio</h3>
+  <div class="tabla-wrap" tabindex="0" role="region" aria-label="Variables del sitio">
+    <table class="tabla"><thead><tr><th>Variable</th><th>Para qué</th></tr></thead>
+      <tbody>{variablesSitio.map(([v, d]) => <tr><td><code>{v}</code></td><td>{d}</td></tr>)}</tbody>
+    </table>
+  </div>
+  <h3>API</h3>
+  <div class="tabla-wrap" tabindex="0" role="region" aria-label="Variables de la API">
+    <table class="tabla"><thead><tr><th>Variable</th><th>Para qué</th></tr></thead>
+      <tbody>{variablesApi.map(([v, d]) => <tr><td><code>{v}</code></td><td>{d}</td></tr>)}</tbody>
+    </table>
+  </div>
+  <div class="caja">
+    <p><strong>Turnstile:</strong> el brief pide protección contra bots en el chat. El código la trae lista pero apagada: funciona con una cuenta gratuita de Cloudflare (Turnstile) y las dos claves de arriba. Sin ellas, el chat queda protegido por el límite de 60 preguntas por hora y 90 por día por visitante, el tope de 30 preguntas por conversación y el tope de gasto.</p>
+  </div>
+
+  <h2>Cómo se publica</h2>
+  <div class="caja">
+    <p><strong>Cambios de código:</strong> cada cambio en <code>main</code> publica el sitio y la API. Una rama genera una vista previa sin indexar.</p>
+    <p><strong>Cambios de contenido:</strong> botón Publicar del panel.</p>
+    <p><strong>Antes de publicar:</strong> <code>npm run check</code>, <code>npm test</code>, <code>npm run build</code> y <code>npm run verificar</code> (lo corre la integración continua en cada rama).</p>
+  </div>
+
+  <h2>Analítica</h2>
+  <p>Sin cookies y gratis: el sitio cuenta los clics en WhatsApp, las llamadas y las cotizaciones enviadas por WhatsApp o por correo, con solo el tipo, la página y el día. Se ven en el panel, en Métricas.</p>
+
+  <h2>Qué hacer si algo falla</h2>
+  <div class="tabla-wrap" tabindex="0" role="region" aria-label="Qué hacer si algo falla">
+    <table class="tabla"><thead><tr><th>Síntoma</th><th>Qué revisar</th></tr></thead>
+      <tbody>{fallas.map(([a, b]) => <tr><td><strong>{a}</strong></td><td>{b}</td></tr>)}</tbody>
+    </table>
+  </div>
+
+  <h2>Traspaso de cuentas</h2>
+  <p>Según el brief, todo lo que sostiene el sitio queda en cuentas de Antídoto creadas con el correo registrado en Cámara de Comercio, y codebymike entra como colaborador: repositorio en GitHub, proyectos de Vercel, Turso, Resend con el dominio verificado y la API de Anthropic con saldo prepagado y tope de gasto. El dominio sigue en Hostinger a nombre de María Paula. Los pasos técnicos de activación y copia de datos están en <code>api/README.md</code>.</p>
+</Docs>

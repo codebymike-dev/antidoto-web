@@ -34,12 +34,15 @@ describe('prompt y conocimiento', () => {
       expect(c).not.toMatch(/\[[^\]]*\]/);
     }
   });
-  test('el conocimiento sale de lo publicado: los cuatro servicios, los clientes y ningún precio', () => {
+  test('el conocimiento sale de lo publicado: los servicios, ningún cliente sin autorización y ningún precio', () => {
     const c = conocimiento('es');
     expect(c).toContain('Formaciones vivenciales');
     expect(c).toContain('Catering corporativo');
-    expect(c).toContain('Seguros Bolívar');
+    // Sin clientes autorizados no nombra marcas (brief del 08/10/2026).
+    expect(c).not.toContain('Seguros Bolívar');
+    expect(c).toContain('El sitio no publica nombres de clientes');
     expect(c).toContain('+57 312 556 8016');
+    expect(c).toContain('+57 322 366 0733');
     expect(extraerCifras(c)).toEqual([]);
     expect(conocimiento('en')).toContain('Experiential training');
   });
@@ -51,13 +54,20 @@ describe('prompt y conocimiento', () => {
     expect(c).toContain('¿Trabajan solo con empresas?');
     expect(conocimiento('en')).toContain('/en/solutions/health-and-safety/');
   });
-  test('las claves de los servicios son las que valida la base', () => {
-    expect([...CLAVES].sort()).toEqual([...SERVICIOS].sort());
+  test('las claves de los servicios son las que valida la base (más SG-SST, que tiene su página)', () => {
+    expect([...CLAVES, 'sgsst'].sort()).toEqual([...SERVICIOS].sort());
   });
-  test('una pregunta frecuente pendiente queda como pendiente, sin inventar', () => {
+  test('la licencia SST solo cubre sus campos: las auditorías van aparte', () => {
+    const c = conocimiento('es');
+    expect(c).toContain('Res. 36081-2026');
+    expect(c).toContain('Capacitación en seguridad y salud en el trabajo');
+    expect(c).toMatch(/NO hacen parte de la licencia/);
+    expect(c).toContain('/sg-sst/');
+  });
+  test('una pregunta frecuente sin respuesta no llega al asesor, como no llega al sitio', () => {
     expect(sinPendientes('[TIEMPO DE ENTREGA]')).toBe(null);
     expect(sinPendientes('Atendemos en todo el país. [SEDE]')).toBe('Atendemos en todo el país.');
-    expect(conocimiento('es')).toMatch(/pedido mínimo de catering\? Pendiente de confirmar/);
+    expect(conocimiento('es')).not.toMatch(/pedido mínimo de catering/);
   });
   test('el prompt no cambia entre preguntas de la misma página (caché)', () => {
     expect(systemPrompt('es', 'catering')).toBe(systemPrompt('es', 'catering'));

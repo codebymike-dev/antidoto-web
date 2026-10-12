@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { cuerpoPregunta, enlaceCotizador, leerHistorial, paginaDe, preguntasHechas, textoPlano, type Mensaje } from '../src/lib/asesor';
-import { ui } from '../src/i18n/ui';
+import { enFrase, ui } from '../src/i18n/ui';
 
 const VOSEO = /(?<!\p{L})(vos|sos|podés|querés|tenés|sentís|mirá|contame|escribí)(?!\p{L})/iu;
 
@@ -10,6 +10,15 @@ describe('chat con IA en el navegador', () => {
     expect(paginaDe('/servicios/catering-corporativo/', 'servicios', mapa)).toBe('catering');
     expect(paginaDe('/contacto/', 'contacto', mapa)).toBe('contacto');
     expect(paginaDe('/politica-de-datos/', '', mapa)).toBe('otra');
+    // Solo las páginas que la API reconoce; las demás van como 'otra' (antes la API las rechazaba).
+    expect(paginaDe('/sg-sst/', 'sgsst', mapa)).toBe('sgsst');
+    expect(paginaDe('/soluciones/', 'soluciones', mapa)).toBe('soluciones');
+    expect(paginaDe('/preguntas-frecuentes/', 'faq', mapa)).toBe('otra');
+  });
+
+  it('enFrase baja la primera letra salvo que el título empiece por una sigla', () => {
+    expect(enFrase('Catering corporativo')).toBe('catering corporativo');
+    expect(enFrase('SG-SST (seguridad y salud en el trabajo)')).toBe('SG-SST (seguridad y salud en el trabajo)');
   });
 
   it('a la API solo van rol y texto', () => {

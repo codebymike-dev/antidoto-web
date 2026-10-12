@@ -1,13 +1,15 @@
 ---
-// La empresa: fundadora, datos, licencia de SST, equipo, historia (línea de tiempo que se llena
-// con el scroll) y enlaces al resto de la sección Nosotros.
+// La empresa: fundadora, datos, licencia de SST, historia (línea de tiempo que se llena con el
+// scroll) y enlaces al resto de la sección Nosotros, con las preguntas frecuentes.
 import Base from '../../layouts/Base.astro';
 import CabeceraPagina from '../CabeceraPagina.astro';
 import TarjetaIndice from '../TarjetaIndice.astro';
 import BloqueCta from '../BloqueCta.astro';
 import { t, rutas, type Locale } from '../../i18n/ui';
 import { tp } from '../../i18n/paginas';
-import { SITE } from '../../data/site';
+import SelloLicencia from '../SelloLicencia.astro';
+import { SITE, EMPRESA, LICENCIA } from '../../data/site';
+import { obtenerCasos, obtenerClientes } from '../../data/contenido';
 import { grafo, migasSchema } from '../../data/schema';
 
 interface Props {
@@ -19,17 +21,21 @@ const p = tp(locale);
 const eq = s.inicio.equipo;
 const [title, description] = s.seo.nosotros;
 const datos = locale === 'es'
-  ? [['Formación', 'Ingeniería civil'], ['Especialización', 'Gerencia de SST'], ['Fundada', String(SITE.foundingYear)], ['Idiomas', 'Español, portugués e inglés']]
-  : [['Degree', 'Civil engineering'], ['Specialization', 'Health and safety management'], ['Founded', String(SITE.foundingYear)], ['Languages', 'Spanish, Portuguese and English']];
+  ? [['Formación', 'Ingeniería civil'], ['Especialización', 'Gerencia de SST'], ['Marca desde', String(SITE.foundingYear)], ['Sociedad', `${EMPRESA.razonSocial}, desde ${EMPRESA.constitucion}`], ['Idiomas', 'Español, portugués e inglés']]
+  : [['Degree', 'Civil engineering'], ['Specialization', 'Health and safety management'], ['Brand since', String(SITE.foundingYear)], ['Company', `${EMPRESA.razonSocial}, since ${EMPRESA.constitucion}`], ['Languages', 'Spanish, Portuguese and English']];
+const hayCasos = (await obtenerCasos()).length > 0;
+const hayClientes = (await obtenerClientes()).length > 0;
 const migas: Array<[string, string]> = [
   [p.inicio, rutas.inicio[locale]],
   [s.nav.nosotros, rutas.nosotros[locale]],
 ];
+// Clientes y portafolio solo con contenido publicado; las preguntas frecuentes viven aquí y en el pie.
 const seguir: Array<[string, string, string]> = [
   [s.nav.comoTrabajamos, p.descNav.comoTrabajamos, rutas.comoTrabajamos[locale]],
-  [s.nav.clientes, p.descNav.clientes, rutas.clientes[locale]],
-  [s.nav.portafolio, p.descNav.portafolio, rutas.portafolio[locale]],
+  ...(hayClientes ? [[s.nav.clientes, p.descNav.clientes, rutas.clientes[locale]] as [string, string, string]] : []),
+  ...(hayCasos ? [[s.nav.portafolio, p.descNav.portafolio, rutas.portafolio[locale]] as [string, string, string]] : []),
   [s.nav.trabaja, p.descNav.trabaja, rutas.trabaja[locale]],
+  [s.nav.faq, p.descNav.faq, rutas.faq[locale]],
 ];
 ---
 <Base locale={locale} pagina="nosotros" title={title} description={description} alternates={rutas.nosotros} jsonLd={grafo(migasSchema(migas))} scroll="suave">
@@ -38,7 +44,6 @@ const seguir: Array<[string, string, string]> = [
   <section class="bloque" aria-labelledby="fundadora-nombre">
     <div class="wrap bento">
       <article class="fundadora">
-        <p class="pendiente retrato">{eq.foto}</p>
         <div class="bio">
           <p class="et">{s.fundadoraKicker}</p>
           <h2 id="fundadora-nombre">{s.fundadoraNombre}</h2>
@@ -53,21 +58,12 @@ const seguir: Array<[string, string, string]> = [
           <p class="et">{p.nosotros.datosTitulo}</p>
           <dl>{datos.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
         </div>
-        <div class="licencia">
+        <a class="licencia" href={rutas.sgsst[locale]}>
           <p class="lic-t">{eq.licencia}</p>
-          <p class="pendiente">{eq.licenciaDatos}</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="bloque" aria-labelledby="equipo-t">
-    <div class="wrap">
-      <div class="cab-izq"><h2 id="equipo-t">{p.nosotros.equipo[0]}<span class="resaltado">{p.nosotros.equipo[1]}</span></h2></div>
-      <div class="equipo">
-        <p class="pendiente">{eq.integrante}</p>
-        <p class="pendiente">{eq.integrante}</p>
-        <p class="pendiente">{eq.integrante}</p>
+          <SelloLicencia locale={locale} variante="corto" />
+          <p class="lic-d">{LICENCIA.entidad[locale]}</p>
+          <span class="lic-ver">{eq.licenciaVer}</span>
+        </a>
       </div>
     </div>
   </section>
@@ -132,8 +128,7 @@ const seguir: Array<[string, string, string]> = [
 
 <style>
   .bento { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; }
-  .fundadora { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 28px; padding: 28px; border-radius: 24px; background: var(--color-paper); border: 1px solid var(--color-line-soft); box-shadow: 0 10px 30px rgb(15 24 29 / 0.05); }
-  .retrato { margin: 0; aspect-ratio: 4 / 5; padding: 16px; }
+  .fundadora { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; padding: 28px; border-radius: 24px; background: var(--color-paper); border: 1px solid var(--color-line-soft); box-shadow: 0 10px 30px rgb(15 24 29 / 0.05); }
   .bio { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
   .et { margin: 0; font: 600 12px/1.3 var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-deep); }
   .bio h2 { margin: 0; font-size: clamp(30px, 1.6vw + 18px, 42px); line-height: 1.05; }
@@ -149,11 +144,13 @@ const seguir: Array<[string, string, string]> = [
   .datos div { padding: 12px 0; border-top: 1px solid rgb(255 255 255 / 0.14); }
   dt { font-size: 13px; color: var(--color-fg-soft); }
   dd { margin: 0; font-size: 17px; }
-  .licencia { padding: 22px; border-radius: 24px; background: var(--color-mist); display: flex; flex-direction: column; gap: 12px; }
+  .licencia { padding: 22px; border-radius: 24px; background: var(--color-mist); display: flex; flex-direction: column; align-items: flex-start; gap: 10px; color: var(--color-ink); text-decoration: none; }
+  .licencia:hover { background: var(--color-glow); }
   .lic-t { margin: 0; font: 400 20px/1.2 var(--font-display); }
-  .licencia .pendiente { margin: 0; padding: 14px; }
-  .equipo { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 20px; }
-  .equipo .pendiente { margin: 0; min-height: 200px; }
+  .licencia :global(.sello) { background: var(--color-paper); }
+  .lic-d { margin: 0; font-size: 14.5px; color: var(--color-slate); }
+  .lic-ver { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-deep); font-weight: 600; }
+  .lic-ver::after { content: '→'; margin-left: 0.4em; }
 
   .linea-caja { position: relative; }
   .linea { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
@@ -171,7 +168,6 @@ const seguir: Array<[string, string, string]> = [
 
   @media (max-width: 960px) {
     .bento { grid-template-columns: 1fr; }
-    .fundadora { grid-template-columns: 160px minmax(0, 1fr); }
   }
   @media (max-width: 760px) {
     .linea { grid-template-columns: 1fr; gap: 28px; padding-left: 34px; }
@@ -180,5 +176,5 @@ const seguir: Array<[string, string, string]> = [
     .hito { padding-top: 0; }
     .nodo { left: -34px; top: 4px; }
   }
-  @media (max-width: 560px) { .fundadora { grid-template-columns: 1fr; padding: 20px; } .retrato { max-width: 200px; } }
+  @media (max-width: 560px) { .fundadora { padding: 20px; } }
 </style>

@@ -10,7 +10,7 @@ lead: "Hands-on workshops so your team uses Claude, Gemini, ChatGPT and Copilot 
 facts:
   - "Claude, Gemini, ChatGPT and Copilot"
   - "In person or by video call"
-  - "Taught by codebymike"
+  - "Designed and delivered by Antídoto"
 includes:
   - "AI fundamentals and responsible use"
   - "Clear instructions that get good results"
@@ -27,10 +27,6 @@ herramientas:
     texto: "To brainstorm, draft and handle everyday tasks with a versatile assistant."
   - nombre: "Copilot"
     texto: "For Word, Excel, Outlook and Teams if your company runs on Microsoft 365."
-aliado:
-  nombre: "codebymike"
-  url: "https://codebymike.net"
-  texto: "Antídoto offers this line in partnership with codebymike, who designs and teaches the training. Antídoto brings the experiential method, the logistics and the relationship with your company."
 alt: "Room set up for a workshop, with the welcome screen, the whiteboard and the boxes of materials"
 ---
 

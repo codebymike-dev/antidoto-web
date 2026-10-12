@@ -2,10 +2,11 @@ export interface PaginaDocs {
   ruta: string;
   titulo: string;
   resumen: string;
-  grupo: 'Planeación' | 'Análisis' | 'Contexto';
+  grupo: 'Operación' | 'Planeación' | 'Análisis' | 'Contexto';
 }
 
 export const PAGINAS_DOCS: PaginaDocs[] = [
+  { ruta: '/docs/operacion/', titulo: 'Operación y traspaso', resumen: 'Dónde está cada cosa, cómo se publica, cómo editar sin programador, variables, costos y qué hacer si algo falla.', grupo: 'Operación' },
   { ruta: '/docs/kanban/', titulo: 'Kanban de iteraciones', resumen: 'Qué se hizo en cada iteración, qué está en curso, qué sigue y qué espera al cliente.', grupo: 'Planeación' },
   { ruta: '/docs/requerimientos-funcionales/', titulo: 'Requerimientos funcionales', resumen: 'Qué debe hacer el sistema, con su estado y la evidencia en el código.', grupo: 'Análisis' },
   { ruta: '/docs/requerimientos-no-funcionales/', titulo: 'Requerimientos no funcionales', resumen: 'Rendimiento, accesibilidad, seguridad, fiabilidad y cumplimiento, con criterios medibles.', grupo: 'Análisis' },

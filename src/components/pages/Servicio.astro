@@ -1,7 +1,7 @@
 ---
 // Página de una línea de negocio: qué es, sus ofertas (cada una con su página), para qué áreas,
 // casos, preguntas frecuentes y las otras líneas. El cuerpo del Markdown del servicio, si lo
-// hay, va como texto largo; si no, una caja .pendiente lo pide al cliente.
+// hay, va como texto largo; si no, la página sigue sin ese bloque.
 import { getEntry, render } from 'astro:content';
 import { getImage } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
@@ -82,7 +82,6 @@ const perfiles = s.inicio.paraQuien.perfiles;
         {txt.aliado && (
           <div class="aliado">
             <p>{txt.aliado.texto}</p>
-            <a class="boton boton-borde" href={txt.aliado.url} target="_blank" rel="noopener">{s.aliadoEnlace(txt.aliado.nombre)}</a>
           </div>
         )}
       </div>

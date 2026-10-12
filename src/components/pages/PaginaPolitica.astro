@@ -1,10 +1,11 @@
 ---
 // Política de tratamiento de datos (Ley 1581 de 2012 y Decreto 1377 de 2013, art. 13).
-// BORRADOR: estructura y contenido según lo que hace el sitio hoy. Faltan datos del cliente
-// (razón social, NIT, domicilio) y la revisión de un abogado; por eso va con noindex y aviso.
+// BORRADOR: estructura y contenido según lo que hace el sitio hoy, con los datos de la empresa del
+// brief del 08/10/2026. Falta la revisión de un abogado; por eso va con noindex y aviso. El
+// domicilio completo solo va aquí (en el pie y el contacto va la ubicación pública).
 import PaginaLegal from './PaginaLegal.astro';
 import { rutaPolitica, type Locale } from '../../i18n/ui';
-import { SITE } from '../../data/site';
+import { SITE, EMPRESA } from '../../data/site';
 import { CONSENTIMIENTO_VERSION } from '../../data/consentimiento';
 
 interface Props {
@@ -20,14 +21,14 @@ const txt = es
       kicker: 'Datos personales',
       titulo: 'Política de tratamiento de datos',
       lead: 'Cómo tratamos los datos de quienes nos piden una cotización o nos escriben, y cómo ejercer tus derechos.',
-      borrador: 'Borrador pendiente de revisión legal y de los datos de la empresa (razón social, NIT y domicilio). No es la versión vigente.',
+      borrador: 'Borrador pendiente de revisión legal. No es la versión vigente.',
       pendiente: 'Pendiente de confirmar',
       version: 'Versión de la autorización',
       secciones: [
         {
           t: '1. Responsable del tratamiento',
           p: [
-            `Antídoto (razón social y NIT pendientes de confirmar), con domicilio en Colombia. Correo: ${SITE.email}. Teléfono y WhatsApp: ${SITE.phoneDisplay}.`,
+            `${EMPRESA.razonSocial} (marca Antídoto), NIT ${EMPRESA.nit}, con domicilio en ${EMPRESA.domicilio}. Correo: ${SITE.email}. WhatsApp: ${SITE.phoneDisplay}. Llamadas: ${SITE.llamadasDisplay}.`,
           ],
         },
         {
@@ -35,8 +36,9 @@ const txt = es
           p: [
             'Cuando pides una cotización en el sitio y nos autorizas: nombre, organización, correo, teléfono, el servicio que te interesa, fecha aproximada, número de personas, ciudad y el mensaje que armas.',
             'También guardamos la página desde la que escribiste, el sitio o campaña que te trajo, la fecha de la autorización y un resumen cifrado de tu dirección IP que cambia cada día. No guardamos tu IP.',
-            'Si no marcas la autorización, no guardamos nada: el mensaje sale de tu navegador directo a WhatsApp.',
-            'Chat con IA del sitio: guardamos la conversación (tus preguntas y las respuestas del asistente) durante 90 días, con los teléfonos y correos que escribas reemplazados antes de guardarla, junto con la página donde empezó, el idioma y el servicio del que se habló. Al cumplir 90 días se borra sola. El botón para empezar de nuevo del chat la borra en el momento. Si en la misma visita pides una cotización con la autorización marcada, la conversación queda ligada a esa solicitud.',
+            'Si no marcas la autorización, no guardamos nada: el mensaje sale de tu navegador directo a WhatsApp o a tu correo.',
+            'Medición del sitio: contamos los clics en WhatsApp, las llamadas y las cotizaciones enviadas sin cookies y sin datos personales. Solo guardamos el tipo de acción, la página y el día; nada que te identifique.',
+            'Chat con IA del sitio: las respuestas las genera un modelo de inteligencia artificial de Anthropic (Claude), que solo usa la información publicada en el sitio. Guardamos la conversación (tus preguntas y las respuestas del asistente) durante 90 días, con los teléfonos y correos que escribas reemplazados antes de guardarla, junto con la página donde empezó, el idioma y el servicio del que se habló. Al cumplir 90 días se borra sola. El botón para empezar de nuevo del chat la borra en el momento. Si en la misma visita pides una cotización con la autorización marcada, la conversación queda ligada a esa solicitud. Para evitar abusos limitamos el número de preguntas por visitante y por día y, si está activa, usamos Cloudflare Turnstile para comprobar que no seas un programa automático.',
           ],
         },
         {
@@ -44,13 +46,13 @@ const txt = es
           p: [
             'Para responder tu solicitud, preparar la cotización, hacerle seguimiento y, si trabajamos juntos, gestionar el proyecto. No enviamos publicidad con esta autorización.',
             'Las conversaciones del chat con IA sirven para mejorar la atención: saber qué preguntan las personas, corregir respuestas del asistente y, si pediste una cotización, entender lo que buscabas.',
-            'Novedades por correo: solo si lo autorizas aparte (en el cotizador o con el formulario del pie del sitio) te enviamos novedades, contenidos y propuestas. Confirmas la suscripción desde un correo que te enviamos; sin esa confirmación no te escribimos. Cada correo trae un enlace para darte de baja en un clic. Para medir qué contenidos sirven, registramos si el correo se entregó, se abrió o recibió clics.',
+            'Novedades por correo: solo si lo autorizas aparte (en el cotizador, en la sección de novedades de la página de inicio o con el formulario del pie de las demás páginas) te enviamos novedades, contenidos y propuestas. Confirmas la suscripción desde un correo que te enviamos; sin esa confirmación no te escribimos. Cada correo trae un enlace para darte de baja en un clic. Para medir qué contenidos sirven, registramos si el correo se entregó, se abrió o recibió clics.',
           ],
         },
         {
           t: '4. Quién más los procesa',
           p: [
-            'Usamos proveedores que tratan los datos por encargo nuestro y solo para estos fines: Cloudflare (alojamiento del sitio y de la base de datos), Resend (envío de correos) y Anthropic (el modelo de IA que responde en el chat, que recibe la conversación sin teléfonos ni correos). Sus servidores pueden estar fuera de Colombia, incluido Estados Unidos.',
+            'Usamos proveedores que tratan los datos por encargo nuestro y solo para estos fines: Vercel y Turso (alojamiento del sitio, de la API y de la base de datos), Resend (envío de correos) y Anthropic (el modelo de IA Claude, que responde en el chat y recibe la conversación sin teléfonos ni correos). Sus servidores pueden estar fuera de Colombia, incluido Estados Unidos.',
             'Si escribes por WhatsApp, esa conversación la trata Meta según sus propias condiciones.',
           ],
         },
@@ -87,21 +89,22 @@ const txt = es
       kicker: 'Personal data',
       titulo: 'Data processing policy',
       lead: 'How we handle the data of people who request a quote or write to us, and how to exercise your rights.',
-      borrador: 'Draft pending legal review and company details (legal name, tax ID and address). This is not the version in force.',
+      borrador: 'Draft pending legal review. This is not the version in force.',
       pendiente: 'Pending confirmation',
       version: 'Authorization version',
       secciones: [
         {
           t: '1. Data controller',
-          p: [`Antídoto (legal name and tax ID pending confirmation), based in Colombia. Email: ${SITE.email}. Phone and WhatsApp: ${SITE.phoneDisplay}.`],
+          p: [`${EMPRESA.razonSocial} (Antídoto brand), tax ID (NIT) ${EMPRESA.nit}, registered address ${EMPRESA.domicilio}, Colombia. Email: ${SITE.email}. WhatsApp: ${SITE.phoneDisplay}. Calls: ${SITE.llamadasDisplay}.`],
         },
         {
           t: '2. What data we process',
           p: [
             'When you request a quote on the site and authorize us: name, organization, email, phone, the service you are interested in, approximate date, number of people, city and the message you build.',
             'We also store the page you wrote from, the site or campaign that brought you, the date of your authorization and a hashed summary of your IP address that changes every day. We do not store your IP.',
-            'If you do not tick the authorization, we store nothing: the message goes from your browser straight to WhatsApp.',
-            'AI chat on the site: we keep the conversation (your questions and the assistant\'s answers) for 90 days, with any phone numbers and emails you write replaced before it is stored, along with the page where it started, the language and the service discussed. After 90 days it is deleted automatically. The chat\'s start over button deletes it right away. If during the same visit you request a quote with the authorization ticked, the conversation is linked to that request.',
+            'If you do not tick the authorization, we store nothing: the message goes from your browser straight to WhatsApp or to your email.',
+            'Site analytics: we count WhatsApp clicks, calls and sent quote requests without cookies or personal data. We only keep the type of action, the page and the day; nothing that identifies you.',
+            'AI chat on the site: answers are generated by an artificial intelligence model from Anthropic (Claude), which only uses the information published on the site. We keep the conversation (your questions and the assistant\'s answers) for 90 days, with any phone numbers and emails you write replaced before it is stored, along with the page where it started, the language and the service discussed. After 90 days it is deleted automatically. The chat\'s start over button deletes it right away. If during the same visit you request a quote with the authorization ticked, the conversation is linked to that request. To prevent abuse we limit the number of questions per visitor per day and, when it is enabled, we use Cloudflare Turnstile to check that you are not an automated program.',
           ],
         },
         {
@@ -109,13 +112,13 @@ const txt = es
           p: [
             'To answer your request, prepare the quote, follow up and, if we work together, manage the project. We do not send marketing under this authorization.',
             'AI chat conversations help us improve our service: learning what people ask, correcting the assistant\'s answers and, if you requested a quote, understanding what you were looking for.',
-            'News by email: only if you authorize it separately (in the quote builder or with the form in the site footer) do we send you news, content and offers. You confirm the subscription from an email we send you; without that confirmation we do not write to you. Every email has a one-click unsubscribe link. To learn which content is useful, we record whether the email was delivered, opened or clicked.',
+            'News by email: only if you authorize it separately (in the quote builder, in the news section of the home page or with the form in the footer of the other pages) do we send you news, content and offers. You confirm the subscription from an email we send you; without that confirmation we do not write to you. Every email has a one-click unsubscribe link. To learn which content is useful, we record whether the email was delivered, opened or clicked.',
           ],
         },
         {
           t: '4. Who else processes it',
           p: [
-            'We use providers that process data on our behalf and only for these purposes: Cloudflare (hosting for the site and the database), Resend (email delivery) and Anthropic (the AI model that answers in the chat, which receives the conversation without phone numbers or emails). Their servers may be outside Colombia, including the United States.',
+            'We use providers that process data on our behalf and only for these purposes: Vercel and Turso (hosting for the site, the API and the database), Resend (email delivery) and Anthropic (the Claude AI model, which answers in the chat and receives the conversation without phone numbers or emails). Their servers may be outside Colombia, including the United States.',
             'If you write on WhatsApp, Meta handles that conversation under its own terms.',
           ],
         },

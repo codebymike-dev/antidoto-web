@@ -1,0 +1,140 @@
+---
+// SG-SST (brief del 08/10/2026): la licencia en Seguridad y Salud en el Trabajo a la vista y en su
+// propia página, con ítem en el menú. De arriba abajo: cabecera con el sello grande y "Cotizar
+// SG-SST"; los cinco campos de acción que cubre la licencia (el único bloque con sello); los
+// sistemas de gestión y auditorías, SIN sello (la licencia no los cubre y Antídoto no certifica);
+// cómo trabajamos con la evidencia por actividad; y el cierre con el cotizador y WhatsApp.
+import Base from '../../layouts/Base.astro';
+import CabeceraPagina from '../CabeceraPagina.astro';
+import SelloLicencia from '../SelloLicencia.astro';
+import BloqueCta from '../BloqueCta.astro';
+import WhatsappIcon from '../WhatsappIcon.astro';
+import { LICENCIA, waLink } from '../../data/site';
+import { grafo, migasSchema, sgsstSchema } from '../../data/schema';
+import { t, rutas, type Locale } from '../../i18n/ui';
+import { tp } from '../../i18n/paginas';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const s = t(locale);
+const p = tp(locale);
+const g = s.sgsst;
+const [title, description] = s.seo.sgsst;
+const migas: Array<[string, string]> = [
+  [p.inicio, rutas.inicio[locale]],
+  [s.nav.sgsst, rutas.sgsst[locale]],
+];
+const cotizar = `${rutas.contacto[locale]}?servicio=sgsst`;
+// Un ícono por campo de acción, en el orden de la resolución.
+const ICONOS = [
+  // Seguridad industrial: casco.
+  'M4 16h16M5 16a7 7 0 0 1 14 0M12 9V5M9 6.5 12 5l3 1.5M3 19h18',
+  // Investigación del accidente: lupa.
+  'M10.5 17a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13zM15.5 15.5 21 21M8 10.5h5',
+  // Investigación técnica: matraz.
+  'M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3M7.5 15h9',
+  // Capacitación: pizarra.
+  'M3 4h18v12H3zM8 20l4-4 4 4M7 9h6M7 12h10',
+  // Sistema de gestión: lista con chulos.
+  'M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2',
+];
+---
+<Base locale={locale} pagina="sgsst" title={title} description={description} alternates={rutas.sgsst} jsonLd={grafo(sgsstSchema(locale), migasSchema(migas))} waMessage={g.wa} scroll="suave">
+  <CabeceraPagina locale={locale} migas={migas} titulo={g.titulo} lead={g.lead}>
+    <a class="boton boton-cian boton-grande" href={cotizar} data-magnetico>{g.cotizar}</a>
+    <a class="boton boton-borde boton-grande" href={waLink(g.wa)} target="_blank" rel="noopener"><WhatsappIcon />WhatsApp</a>
+    <div slot="pie" class="sello-grande"><SelloLicencia locale={locale} /></div>
+  </CabeceraPagina>
+
+  <section class="bloque" aria-labelledby="cubierto-t">
+    <div class="wrap">
+      <div class="cab-izq cab-sello">
+        <h2 id="cubierto-t">{g.cubierto[0]}<span class="resaltado">{g.cubierto[1]}</span></h2>
+        <p>{g.cubiertoLead}</p>
+        <SelloLicencia locale={locale} variante="corto" />
+      </div>
+      <ul class="campos" data-entra>
+        {LICENCIA.campos[locale].map((campo, i) => (
+          <li>
+            <span class="icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d={ICONOS[i]}></path></svg></span>
+            <h3>{campo}</h3>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="bloque bloque-mist" aria-labelledby="sistemas-t">
+    <div class="wrap">
+      <div class="cab-izq">
+        <h2 id="sistemas-t">{g.sistemas[0]}<span class="resaltado">{g.sistemas[1]}</span></h2>
+        <p>{g.sistemasLead}</p>
+      </div>
+      <ul class="auditorias" data-entra>
+        {g.auditorias.map(([titulo, texto]) => (
+          <li>
+            <h3>{titulo}</h3>
+            <p>{texto}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="bloque" aria-labelledby="como-t">
+    <div class="wrap">
+      <div class="cab-izq">
+        <h2 id="como-t">{g.como[0]}<span class="resaltado">{g.como[1]}</span></h2>
+        <p>{g.comoLead}</p>
+      </div>
+      <ol class="pasos" data-entra>
+        {s.inicio.pasos.items.map(([titulo, texto], i) => (
+          <li>
+            <span class="n" aria-hidden="true">{i + 1}</span>
+            <h3>{titulo}</h3>
+            <p>{texto}</p>
+          </li>
+        ))}
+      </ol>
+      <div class="evidencia">
+        <span class="icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7zM14 3v5h5M10 13l2 2 4-4"></path></svg></span>
+        <p><strong>{g.evidencia[0]}</strong><span>{g.evidencia[1]}</span></p>
+      </div>
+      <a class="ver-todo" href={rutas.comoTrabajamos[locale]}>{s.nav.comoTrabajamos}</a>
+    </div>
+  </section>
+
+  <BloqueCta locale={locale} servicio="sgsst" mensaje={g.wa} />
+</Base>
+
+<style>
+  .sello-grande { margin-top: 8px; }
+  .sello-grande :global(.sello) { font-size: 15.5px; padding: 10px 20px 10px 12px; }
+  .sello-grande :global(.sello svg) { width: 30px; height: 30px; }
+
+  .cab-sello { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+  .campos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); gap: 16px; }
+  .campos li { display: flex; flex-direction: column; gap: 14px; padding: 22px; border-radius: 20px; background: var(--color-mist); }
+  .icono { width: 48px; height: 48px; border-radius: 50%; background: var(--color-antidote); display: grid; place-items: center; flex: none; }
+  .icono svg { width: 24px; height: 24px; fill: none; stroke: var(--color-ink); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .campos h3 { margin: 0; font: 400 20px/1.25 var(--font-display); }
+
+  .auditorias { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 16px; }
+  .auditorias li { display: flex; flex-direction: column; gap: 8px; padding: 22px; border-radius: 20px; background: var(--color-paper); border: 1px solid var(--color-line-soft); }
+  .auditorias h3 { margin: 0; font: 400 20px/1.25 var(--font-display); }
+  .auditorias h3::before { content: ''; display: inline-block; width: 8px; height: 8px; margin-right: 10px; vertical-align: middle; border-radius: 50%; background: var(--color-mid); }
+  .auditorias p { margin: 0; color: var(--color-slate); font-size: 15.5px; }
+
+  .pasos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 16px; }
+  .pasos li { display: flex; flex-direction: column; gap: 8px; padding: 22px; border-radius: 20px; background: var(--color-paper); border: 1px solid var(--color-line-soft); }
+  .n { font: 400 40px/1 var(--font-accent); color: var(--color-deep); }
+  .pasos h3 { margin: 0; font-size: 21px; line-height: 1.2; }
+  .pasos p { margin: 0; color: var(--color-slate); font-size: 15.5px; }
+  .evidencia { margin-top: 16px; display: flex; align-items: center; gap: 16px; padding: 20px 22px; border-radius: 20px; background: var(--color-ink); color: var(--color-paper); }
+  .evidencia p { margin: 0; display: flex; flex-direction: column; gap: 2px; }
+  .evidencia strong { font-weight: 600; }
+  .evidencia span:not(.icono) { color: var(--color-fg-soft); }
+  .ver-todo { margin-top: 20px; }
+</style>

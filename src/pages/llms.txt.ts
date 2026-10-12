@@ -3,9 +3,9 @@
 import type { APIRoute } from 'astro';
 import { obtenerServicios } from '../data/servicios';
 import { llmsTxt } from '../lib/llms';
-import { obtenerClientes, obtenerOfertas, obtenerPreguntas } from '../data/contenido';
+import { obtenerCasos, obtenerClientes, obtenerOfertas, obtenerPreguntas } from '../data/contenido';
 
 export const GET: APIRoute = async () =>
-  new Response(llmsTxt(await obtenerServicios(), (await obtenerClientes()).map((c) => c.nombre), { ofertas: await obtenerOfertas(), faq: await obtenerPreguntas('es') }), {
+  new Response(llmsTxt(await obtenerServicios(), (await obtenerClientes()).map((c) => c.nombre), { ofertas: await obtenerOfertas(), faq: await obtenerPreguntas('es'), hayCasos: (await obtenerCasos()).length > 0 }), {
     headers: { 'Content-Type': 'text/plain; charset=utf-8' },
   });

@@ -39,9 +39,9 @@ const CHISPA_CHICA = 'M18.5 2.5C18.8 4 19.3 5.2 21.5 5.5 19.3 5.8 18.8 7 18.5 8.
     data-mensaje={mensaje ?? t(locale).waDefault}
     data-cotizador={rutas.contacto[locale]}
   >
-    <!-- Burbuja doble, como la de codebymike.net (pedido de Mike, 03/10/2026): el verde y el logo
-         dicen WhatsApp; el círculo de tinta con la chispa cian dice que adentro hay un asistente con
-         IA. Abre un menú con las dos opciones, WhatsApp primero. -->
+    {/* Burbuja doble (pedido del dueño, 03/10/2026): el verde y el logo dicen WhatsApp; el círculo
+         de tinta con la chispa cian dice que adentro hay un asistente con IA. Abre un menú con las
+         dos opciones, WhatsApp primero. Va en un comentario JSX para que no salga en el HTML. */}
     <button class="fab" type="button" aria-label={a.menu} aria-expanded="false" aria-controls="asesor-menu" data-fab>
       <svg class="fab-wa" viewBox="0 0 24 24" aria-hidden="true"><path d={WA_GLOBO} /><path d={WA_TELEFONO} /></svg>
       <span class="fab-etiqueta">{a.etiqueta}</span>

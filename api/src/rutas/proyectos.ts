@@ -325,6 +325,7 @@ const SERVICIO_NOMBRE: Record<ServicioId, string> = {
   catering: 'Catering',
   diseno: 'Diseño de productos',
   ia: 'Capacitación en IA',
+  sgsst: 'SG-SST',
 };
 
 async function verProyecto(c: Ctx, id: string): Promise<Response> {

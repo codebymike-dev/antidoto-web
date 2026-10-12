@@ -11,6 +11,7 @@ export const PLANTILLAS: Record<ServicioId, readonly string[]> = {
   catering: ['Menú y cantidades', 'Confirmación de detalles', 'Servicio del evento', 'Cierre'],
   diseno: ['Brief', 'Propuestas de diseño', 'Ajustes', 'Producción', 'Entrega'],
   ia: ['Diagnóstico de necesidades', 'Programa a la medida', 'Sesiones', 'Seguimiento y cierre'],
+  sgsst: ['Diagnóstico inicial', 'Plan de trabajo', 'Ejecución', 'Evidencias e informe', 'Cierre'],
 };
 
 /** Código legible del proyecto: P-2026-007. */

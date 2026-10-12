@@ -10,7 +10,7 @@ lead: "Talleres prácticos para que tu equipo use Claude, Gemini, ChatGPT y Copi
 facts:
   - "Claude, Gemini, ChatGPT y Copilot"
   - "Presencial o por videollamada"
-  - "Dictada por codebymike"
+  - "Antídoto diseña y ofrece la capacitación"
 includes:
   - "Fundamentos y uso responsable de la IA"
   - "Instrucciones claras que dan buenos resultados"
@@ -27,10 +27,6 @@ herramientas:
     texto: "Para idear, redactar y resolver tareas del día a día con un asistente versátil."
   - nombre: "Copilot"
     texto: "Para Word, Excel, Outlook y Teams si tu empresa trabaja con Microsoft 365."
-aliado:
-  nombre: "codebymike"
-  url: "https://codebymike.net"
-  texto: "Antídoto ofrece esta línea en alianza con codebymike, que diseña y dicta las capacitaciones. Antídoto pone la metodología vivencial, la logística y la relación con tu empresa."
 alt: "Sala lista para un taller, con la pantalla de bienvenida, el tablero y las cajas de material"
 ---
 

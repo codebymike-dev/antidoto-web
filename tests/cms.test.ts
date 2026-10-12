@@ -31,6 +31,11 @@ describe('contenido del panel para las colecciones', () => {
     expect(c[0]!.data).toMatchObject({ nombre: 'Acme', color: true, logo: `../medios/${IMG}.webp` });
   });
 
+  it('un juego es una sola entrada con los dos idiomas; sin duración no la inventa', () => {
+    const j = convertir('juego', base({ orden: 1 }, { es: { title: 'Detecta', trabaja: 'Riesgos', modalidad: 'Celular' }, en: { title: 'Spot', trabaja: 'Risks', modalidad: 'Phone', duracion: '20 min' } }), medios);
+    expect(j).toEqual([{ id: 'una', data: { clave: 'una', orden: 1, es: { title: 'Detecta', trabaja: 'Riesgos', modalidad: 'Celular' }, en: { title: 'Spot', trabaja: 'Risks', duracion: '20 min', modalidad: 'Phone' } } }]);
+  });
+
   it('una vacante cerrada no sale', () => {
     const v = (cierre: string) => convertir('vacante', base({ modalidad: 'remota', vinculo: 'completo', cierre }, { es: { title: 'T', slug: 't', lead: 'L', cuerpo: 'C' }, en: { title: 'T', slug: 't', lead: 'L', cuerpo: 'C' } }), medios, '2026-10-06');
     expect(v('2026-10-05')).toEqual([]);
