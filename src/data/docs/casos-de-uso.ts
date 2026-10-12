@@ -5,7 +5,7 @@ export const ACTORES = [
   { nombre: 'Equipo de Antídoto', descripcion: 'Quien atiende los leads desde la bandeja (rol equipo).' },
   { nombre: 'Administrador', descripcion: 'Equipo con permisos para gestionar usuarios, suprimir datos y enviar campañas (rol admin).' },
   { nombre: 'Suscriptor', descripcion: 'Persona que autorizó recibir novedades por correo.' },
-  { nombre: 'Sistema', descripcion: 'Procesos automáticos: cron de seguimiento, envío por lotes, service worker.' },
+  { nombre: 'Sistema', descripcion: 'Procesos automáticos: lo pendiente al usar el panel (seguimiento, envío por lotes), service worker.' },
 ] as const;
 
 export const CASOS_DE_USO: CasoDeUso[] = [
@@ -184,14 +184,14 @@ export const CASOS_DE_USO: CasoDeUso[] = [
     actor: 'Sistema',
     objetivo: 'Que ningún lead se quede olvidado.',
     precondiciones: ['Existe un lead en estado "nuevo".'],
-    disparador: 'El cron horario encuentra un lead en "nuevo" por más de HORAS_SEGUIMIENTO (24 por defecto).',
+    disparador: 'Al usar el panel, la revisión de pendientes (como mucho cada 5 minutos) encuentra un lead en "nuevo" por más de HORAS_SEGUIMIENTO (24 por defecto).',
     flujoPrincipal: [
       'El sistema busca los leads en "nuevo" fuera de plazo y sin aviso previo.',
       'El sistema envía un correo al equipo.',
       'El sistema marca el aviso como enviado.',
     ],
     flujosAlternos: [
-      { id: 'A1', condicion: 'El lead cambia de estado antes de la hora del cron.', pasos: ['El sistema no avisa.'] },
+      { id: 'A1', condicion: 'El lead cambia de estado antes de la siguiente revisión.', pasos: ['El sistema no avisa.'] },
     ],
     postcondiciones: ['Cada lead genera un solo aviso.', 'Se limpian enlaces y sesiones vencidos.'],
     reglas: ['El aviso es único por lead.'],
@@ -211,7 +211,7 @@ export const CASOS_DE_USO: CasoDeUso[] = [
       'La persona ve la vista previa del correo real y envía una prueba a su correo.',
       'La persona pulsa enviar; el sistema pide confirmar el número de destinatarios.',
       'El sistema envía el primer lote de 100 al instante.',
-      'El cron de cada 5 minutos envía el resto, reclamando cada lote de forma atómica.',
+      'El sistema envía el resto enseguida, lote tras lote, reclamando cada uno de forma atómica.',
       'El webhook de Resend registra entregas, aperturas, clics, rebotes y quejas.',
     ],
     flujosAlternos: [

@@ -3,7 +3,7 @@
 import { describe, test, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { drizzle } from 'drizzle-orm/d1';
 import { crearEntorno } from './entorno';
-import trabajador, { manejar } from '../src/index';
+import { manejar } from '../src/index';
 import { procesarEnvios, POR_LOTE } from '../src/marketing/envios';
 import { convertir, renderizar, personalizar } from '../src/marketing/render';
 import { firmaValida } from '../src/marketing/webhook';
@@ -305,13 +305,6 @@ describe('campañas', () => {
     fallasLote = [429];
     const r = await admin(`/admin/api/campanas/${campana.id}/enviar`, { method: 'POST', body: JSON.stringify({ destinatarios: 231 }) });
     expect(((await r.json()) as { campana: { estado: string } }).campana.estado).toBe('enviando');
-    expect(lotes).toHaveLength(0);
-
-    // El cron de la hora en punto no manda lotes: eso lo hace solo el de cada 5 minutos.
-    const tareas: Promise<unknown>[] = [];
-    const ctx = { waitUntil: (p: Promise<unknown>) => tareas.push(p), passThroughOnException() {} } as unknown as ExecutionContext;
-    await trabajador.scheduled!({ cron: '0 * * * *', scheduledTime: Date.now(), type: 'scheduled', noRetry() {} } as ScheduledController, env, ctx);
-    await Promise.all(tareas);
     expect(lotes).toHaveLength(0);
 
     const res = await procesarEnvios(env, drizzle(env.DB));

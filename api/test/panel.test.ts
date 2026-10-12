@@ -91,3 +91,16 @@ describe('inicio y buscador', () => {
     expect(c.resultados.filter((x) => x.tipo === 'lead')).toHaveLength(0);
   });
 });
+
+describe('pendientes sin tareas programadas', () => {
+  test('usar el panel corre lo pendiente como mucho una vez cada 5 minutos', async () => {
+    const admin = await p.entrarComo('pendientes@antidoto.co', 'admin');
+    await p.env.DB.exec("DELETE FROM configuracion WHERE clave = 'sistema.pendientes'; DELETE FROM limites WHERE clave LIKE 'pendientes:%';");
+    await p.llamar('/admin/api/yo', { headers: { cookie: admin } });
+    const primera = await p.env.DB.prepare("select actualizado from configuracion where clave = 'sistema.pendientes'").first<number>('actualizado');
+    expect(primera).toEqual(expect.any(Number));
+    await p.llamar('/admin/api/yo', { headers: { cookie: admin } });
+    const segunda = await p.env.DB.prepare("select actualizado from configuracion where clave = 'sistema.pendientes'").first<number>('actualizado');
+    expect(segunda).toBe(primera);
+  });
+});

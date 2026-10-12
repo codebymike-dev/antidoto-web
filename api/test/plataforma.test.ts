@@ -69,17 +69,6 @@ describe('API en Vercel', () => {
     expect(entornoVercel({ TURSO_DATABASE_URL: 'libsql://x.turso.io' }).SUBIDA).toBeUndefined();
     expect(() => entornoVercel({})).toThrow('TURSO_DATABASE_URL');
   });
-
-  it('los crons piden el secreto de Vercel Cron', async () => {
-    const antes = { ...process.env };
-    process.env.CRON_SECRET = 'secreto';
-    try {
-      expect((await manejarVercel(new Request('https://api.x/cron/cinco'))).status).toBe(401);
-      expect((await manejarVercel(new Request('https://api.x/cron/hora', { headers: { authorization: 'Bearer otro' } }))).status).toBe(401);
-    } finally {
-      process.env = antes;
-    }
-  });
 });
 
 describe('Panel desde el disco', () => {

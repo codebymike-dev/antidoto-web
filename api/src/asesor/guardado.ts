@@ -141,7 +141,7 @@ export async function borrarConversacion(db: DrizzleD1Database, id: string): Pro
   return (borradas as { id: string }[]).length > 0;
 }
 
-/** Borra lo vencido (cron horario). Con subconsultas: D1 acepta hasta 100 parámetros por consulta. */
+/** Borra lo vencido (revisión de pendientes, src/pendientes.ts). Con subconsultas: D1 acepta hasta 100 parámetros por consulta. */
 export async function limpiarConversaciones(db: DrizzleD1Database, t: number): Promise<number> {
   const vencidas = sql`(select ${conversaciones.id} from ${conversaciones} where ${conversaciones.expira} < ${t})`;
   const [, , borradas] = await db.batch([

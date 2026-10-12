@@ -7,7 +7,7 @@ export interface Env {
   MAIL_FROM: string;
   MAIL_EQUIPO: string;
   HORAS_SEGUIMIENTO: string;
-  /** URL pública del Worker; si falta se toma de la petición. El cron la necesita para los enlaces. */
+  /** URL pública del Worker; si falta se toma de la petición. Los correos que salen fuera de una petición la necesitan para los enlaces. */
   APP_URL?: string;
   /** Sin esta clave los correos no salen (se registran en el log) y todo lo demás sigue. */
   RESEND_API_KEY?: string;

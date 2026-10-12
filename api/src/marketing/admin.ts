@@ -1,6 +1,7 @@
 // API de email marketing para la bandeja: contactos (con importación), campañas (vista previa,
 // prueba, audiencia, envío, programación, prueba A/B y duplicado), plantillas, correos automáticos
 // y métricas de la lista. Todo pasa por una sesión válida (ver index.ts).
+import { enviarTodo } from '../pendientes';
 import { and, desc, eq, gte, inArray, isNull, like, lte, or, sql, type SQL } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import {
@@ -23,7 +24,7 @@ import type { Env } from '../env';
 import { enviar } from '../correo';
 import { renderizar } from './render';
 import { suscribir, darDeBaja, EMAIL } from './suscripciones';
-import { procesarEnvios, iniciarEnvio } from './envios';
+import { iniciarEnvio } from './envios';
 import { enlaceWeb } from './enlaces';
 import { automatico, renderAutomatico, esClave, localeDeClave, CLAVES_AUTOMATICOS } from './automaticos';
 import { ahora, uuid, json, token, DIA } from '../util';
@@ -338,8 +339,9 @@ export async function enviarCampana(id: string, req: Request, env: Env, db: Driz
 
   if (!(await iniciarEnvio(env, c, appUrl))) return json({ error: 'estado' }, 409);
 
-  // El primer lote sale ya; el resto lo toma el cron cada 5 minutos.
-  diferir(procesarEnvios(env, db).catch((e) => console.error('[envios]', e)));
+  // Sale entera ahora, lote tras lote, después de responder (sin tareas programadas). Lo que quede
+  // (por ejemplo, si Resend limita) sale la próxima vez que alguien use el panel.
+  diferir(enviarTodo(env, db).catch((e) => console.error('[envios]', e)));
   return verCampana(id, db);
 }
 
@@ -363,7 +365,8 @@ export async function programarCampana(id: string, req: Request, env: Env, db: D
   if (!env.RESEND_API_KEY) return json({ error: 'resend' }, 503);
   const d = (await req.json().catch(() => ({}))) as { fecha?: unknown };
   const fecha = Number(d.fecha);
-  // Al menos 5 minutos en el futuro (el cron pasa cada 5) y como mucho a un año.
+  // Al menos 5 minutos en el futuro y como mucho a un año. Sale la primera vez que alguien use el
+  // panel después de esa hora (src/pendientes.ts).
   if (!Number.isFinite(fecha) || fecha < ahora() + 5 * 60_000 || fecha > ahora() + 365 * DIA) return json({ errores: ['fecha'] }, 422);
   if (!(await contarAudiencia(db, c))) return json({ error: 'audiencia' }, 422);
   await db.update(campanas).set({ estado: 'programada', programada: fecha, baseUrl: appUrl, actualizada: ahora() }).where(and(eq(campanas.id, id), eq(campanas.estado, 'borrador')));
@@ -452,7 +455,7 @@ export async function probarAutomatico(clave: string, env: Env, db: DrizzleD1Dat
 export const MAX_IMPORTACION = 1000;
 
 /**
- * Importa contactos como invitaciones: quedan pendientes y el cron les manda la invitación por
+ * Importa contactos como invitaciones: quedan pendientes y la revisión de pendientes les manda la invitación por
  * lotes. Nadie queda suscrito sin confirmar, y quien ya estaba (en cualquier estado) no se toca:
  * así no se reinvita a quien se dio de baja o se quejó.
  */

@@ -298,7 +298,7 @@ function Editor({ c, audiencia, alGuardar }: { c: TCampana | null; audiencia: nu
               </div>
               {puede('marketing.enviar') && (
                 <div class="programar">
-                  <Campo etiqueta="O programar el envío">
+                  <Campo etiqueta="O programar el envío" ayuda="Sale la primera vez que alguien use el panel después de esa hora.">
                     <input type="datetime-local" value={cuando} min={paraInput(Date.now() + 10 * 60_000)} onInput={(e) => setCuando((e.target as HTMLInputElement).value)} />
                   </Campo>
                   <Boton disabled={!audiencia} onClick={programar}>
@@ -330,7 +330,7 @@ function Programada({ d, alCambiar }: { d: DetalleCampana; alCambiar: () => void
     <div class="editor-campana">
       <Tarjeta titulo="Programada">
         <p class="audiencia">
-          Sale el {fecha(c.programada, true)} a {cuenta(d.audiencia, 'contacto activo', 'contactos activos')} (se cuentan de nuevo al salir).
+          Sale desde el {fecha(c.programada, true)}, la primera vez que alguien use el panel después de esa hora, a {cuenta(d.audiencia, 'contacto activo', 'contactos activos')} (se cuentan de nuevo al salir).
         </p>
         {c.asuntoB && (
           <p class="suave">
@@ -393,7 +393,7 @@ function Resultados({ d, alCambiar }: { d: DetalleCampana; alCambiar: () => void
           </Boton>
         )}
       </div>
-      {c.estado === 'enviando' && <Aviso tono="info">Salen lotes de 100 cada 5 minutos. Esta página se actualiza sola.</Aviso>}
+      {c.estado === 'enviando' && <Aviso tono="info">Está saliendo por lotes de 100. Esta página se actualiza sola.</Aviso>}
       <Cifras>
         <Cifra etiqueta="Enviados" valor={`${st.enviados || 0} de ${st.destinatarios || 0}`} nota={st.pendientes ? `${st.pendientes} en cola` : st.fallidos ? `${st.fallidos} fallidos` : undefined} />
         <Cifra etiqueta="Entregados" valor={pct(st.entregados, st.enviados)} nota={cuenta(st.entregados, 'correo', 'correos')} />

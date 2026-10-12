@@ -1,4 +1,4 @@
-// Estado del sistema para el panel: servicios configurados, última corrida de cada cron, último
+// Estado del sistema para el panel: servicios configurados, última revisión de pendientes, último
 // despliegue pedido, gasto del chat y tamaño de las tablas. Sin secretos: solo si están o no.
 import { desc, eq, sql } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
@@ -8,17 +8,17 @@ import { configurada } from '../publicacion';
 import { ahora, json } from '../util';
 import { sinPermiso, type Ctx } from './contexto';
 
-export type Cron = 'cinco' | 'hora';
+const CLAVE_REVISION = 'sistema.pendientes';
 
-/** Anota la última corrida de un cron (falla abierto: es solo para el panel). */
-export async function anotarCron(db: DrizzleD1Database, cron: Cron, resumen: Record<string, number>, error?: string): Promise<void> {
-  const clave = `sistema.cron.${cron}`;
-  const valor = { t: ahora(), resumen, ...(error ? { error: error.slice(0, 300) } : {}) };
+/** Anota la última revisión de pendientes (src/pendientes.ts). Falla abierto: es solo para el panel. */
+export async function anotarRevision(db: DrizzleD1Database, resumen: Record<string, number>): Promise<void> {
+  const clave = CLAVE_REVISION;
+  const valor = { t: ahora(), resumen };
   await db
     .insert(configuracion)
     .values({ clave, valor, actualizado: valor.t, autor: null })
     .onConflictDoUpdate({ target: configuracion.clave, set: { valor, actualizado: valor.t } })
-    .catch((e) => console.error('[sistema] no se pudo anotar el cron', e));
+    .catch((e) => console.error('[sistema] no se pudo anotar la revisión', e));
 }
 
 const TABLAS = ['leads', 'contactos', 'campanas', 'envios', 'conversaciones', 'conversacion_mensajes', 'contenido', 'medios', 'organizaciones', 'proyectos', 'entregable_archivos', 'usuarios', 'usuarios_cliente', 'auditoria'] as const;
@@ -28,8 +28,8 @@ export async function rutasSistema(c: Ctx): Promise<Response | null> {
   const no = sinPermiso(c, 'sistema.ver');
   if (no) return no;
   const { db, env } = c;
-  const [crones, [ultima], hoy, asesor, conteos] = await Promise.all([
-    db.select().from(configuracion).where(sql`${configuracion.clave} like 'sistema.cron.%'`),
+  const [[revision], [ultima], hoy, asesor, conteos] = await Promise.all([
+    db.select().from(configuracion).where(eq(configuracion.clave, CLAVE_REVISION)),
     db.select().from(publicaciones).orderBy(desc(publicaciones.solicitada)).limit(1),
     db.select().from(gastoAsesor).where(eq(gastoAsesor.dia, hoyBogota())),
     ajustesAsesor(db, env.ASESOR_TOPE_DIARIO_USD).catch(() => null),
@@ -47,7 +47,7 @@ export async function rutasSistema(c: Ctx): Promise<Response | null> {
       panel: !!env.ASSETS,
     },
     entorno: env.ENTORNO,
-    crones: Object.fromEntries(crones.map((x) => [x.clave.replace('sistema.cron.', ''), x.valor])),
+    revision: revision?.valor ?? null,
     ultimaPublicacion: ultima ?? null,
     asesor: asesor ? { ...asesor, gastoHoy: hoy[0]?.usd ?? 0 } : null,
     tablas: Object.fromEntries(conteos),

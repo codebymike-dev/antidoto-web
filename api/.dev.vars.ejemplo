@@ -7,7 +7,7 @@ ENTORNO=local
 # Orígenes que pueden enviar leads. Con ENTORNO=local cualquier localhost ya se acepta.
 ORIGENES=http://localhost:4321
 
-# URL pública del Worker, para los enlaces de los correos (acceso, baja, seguimiento del cron).
+# URL pública del Worker, para los enlaces de los correos (acceso, baja, seguimiento).
 APP_URL=http://localhost:8787
 
 # Remitentes y destino de los avisos. Con una clave real de Resend, el remitente

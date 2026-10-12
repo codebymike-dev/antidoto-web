@@ -5,7 +5,7 @@ Worker de Cloudflare con base D1 (SQLite), Drizzle y dos buckets R2. Guarda las 
 ## Qué hace
 
 - **Leads:** `POST /v1/leads` recibe lo que arma el cotizador de `/contacto/`, solo si la persona marca la autorización de datos. Valida los campos y tiene trampa para bots, tiempo mínimo y límite de 5 envíos por IP y hora. Guarda el lead, la prueba del consentimiento (versión, texto, fecha y hash de IP) y avisa por correo al equipo y a quien pidió la cotización. Si la persona habló con el chat en la misma visita, el lead queda ligado a esa conversación.
-- **Seguimiento:** un cron horario avisa una vez por lead cuando sigue en "nuevo" después de `HORAS_SEGUIMIENTO` (24 por defecto), limpia enlaces y sesiones vencidos y borra las conversaciones de más de 90 días.
+- **Seguimiento:** sin tareas programadas. Cuando alguien usa el panel (como mucho cada 5 minutos, `src/pendientes.ts`) se avisa una vez por lead cuando sigue en "nuevo" después de `HORAS_SEGUIMIENTO` (24 por defecto), limpia enlaces y sesiones vencidos y borra las conversaciones de más de 90 días.
 - **Ley 1581:** supresión de datos desde el panel (solo admin). Borra lo personal del lead, revoca la autorización, suprime su suscripción, su conversación del chat y su contacto en las organizaciones, y conserva solo servicio, fechas y estado para las métricas.
 
 Si la API falla o no está configurada, el cotizador sigue abriendo WhatsApp igual (fail-open).
@@ -20,7 +20,7 @@ Preact y Vite en `admin/` (sin router ni librerías de estado: unos 15 KB gzip d
 - **Ajustes** (`src/configuracion.ts`): encender o apagar el chat, su tope diario, el regalo por suscribirse y el video del hero (estos dos los lee el build del sitio en `GET /v1/ajustes`).
 - **Pantallas:** Inicio (lo que pide atención según el rol), Solicitudes, Conversaciones, Proyectos, Organizaciones, Campañas, Contactos, Contenido, Métricas, Equipo, Ajustes, Auditoría y Sistema. Ctrl+K busca en todo lo que el rol puede ver.
 - **Exportaciones:** solicitudes, contactos, conversaciones (sin el texto) y proyectos, en CSV protegido contra fórmulas.
-- **Sistema** (`src/rutas/sistema.ts`): qué servicios están configurados (sin mostrar secretos), última corrida de cada cron, última publicación y filas por tabla.
+- **Sistema** (`src/rutas/sistema.ts`): qué servicios están configurados (sin mostrar secretos), última revisión de pendientes, última publicación y filas por tabla.
 
 ### Contenido del sitio
 
@@ -29,7 +29,7 @@ El equipo publica artículos del blog, casos, vacantes, preguntas frecuentes y c
 - **Borrador y copia publicada:** guardar deja un borrador (puede ir incompleto) y la versión anterior en el historial (las últimas 20, restaurables). Publicar exige todo en los dos idiomas y una dirección que no use otra entrada, y guarda una foto aparte: editar algo publicado no cambia el sitio hasta volver a publicarlo. Lo que alguna vez salió en el sitio se archiva, no se borra.
 - **Imágenes:** PNG, JPEG o WebP de hasta 4 MB (el tope de cuerpo de una función de Vercel), validadas por sus primeros bytes (nunca SVG), en el bucket `MEDIOS` (`src/archivos.ts`). Se sirven en `/v1/medios/<id>`.
 - **Lectura pública:** `GET /v1/contenido?tipo=` devuelve solo lo publicado, con las URL de sus imágenes. El build del sitio lo lee con el cargador de `../src/lib/cms/`, que baja las imágenes para que `astro:assets` las optimice.
-- **Publicar el sitio** (`src/publicacion.ts`): el sitio es estático, así que publicar es volver a construirlo. La API dispara el workflow de GitHub (`preview.yml`, o `deploy.yml` para producción, solo admin), que construye el sitio y lo publica en Vercel. Varios pedidos en 2 minutos se juntan en uno y el cron reintenta los que fallen. Necesita `GITHUB_DISPATCH_TOKEN` y `GITHUB_REPO`.
+- **Publicar el sitio** (`src/publicacion.ts`): el sitio es estático, así que publicar es volver a construirlo. La API dispara el workflow de GitHub (`preview.yml`, o `deploy.yml` para producción, solo admin), que construye el sitio y lo publica en Vercel. Varios pedidos en 2 minutos se juntan en uno y los que fallen se reintentan al usar el panel. Necesita `GITHUB_DISPATCH_TOKEN` y `GITHUB_REPO`.
 
 ### Proyectos y portal de clientes
 
@@ -48,7 +48,7 @@ El equipo publica artículos del blog, casos, vacantes, preguntas frecuentes y c
   - Prueba a tu correo.
   - Al enviar se pide confirmar el número de destinatarios, y se rechaza si cambió mientras tanto.
 - **Envío:**
-  - Lotes de 100 con la API de lotes de Resend: el primero sale al instante y el resto con un cron cada 5 minutos.
+  - Lotes de 100 con la API de lotes de Resend: salen todos al pulsar Enviar, uno tras otro. Lo que no alcance a salir (por ejemplo, si Resend limita) sale la próxima vez que alguien use el panel.
   - Reclamar cada lote es atómico, así que nadie recibe dos veces.
   - Si Resend está limitado o caído, se reintenta hasta 3 veces.
   - Quien se da de baja antes de que salga su lote no recibe nada.
@@ -63,7 +63,7 @@ El equipo publica artículos del blog, casos, vacantes, preguntas frecuentes y c
 - **Correos automáticos** (panel > Campañas > Correos automáticos):
   - Bienvenida al confirmar, editable en español e inglés, con vista previa y prueba. `{{sitio}}` es la URL del sitio. Si hay regalo (una guía), su enlace va aquí y su nombre en `REGALO_NOVEDADES` del sitio.
   - Un solo recordatorio a quien se suscribió en el sitio y no confirmó en 48 horas (no a los invitados).
-- **Importar CSV** (panel > Contactos): cada persona nueva queda pendiente y recibe una invitación; el cron las manda por lotes. Quien ya estaba, incluido quien se dio de baja, no se toca.
+- **Importar CSV** (panel > Contactos): cada persona nueva queda pendiente y recibe una invitación; salen por lotes cuando alguien usa el panel. Quien ya estaba, incluido quien se dio de baja, no se toca.
 - **Campañas avanzadas:** programar el envío, prueba A/B de asunto (una muestra se parte en A y B; pasadas las horas elegidas el resto recibe la de más clics, o más aperturas), plantillas y duplicar.
 - **Archivo público:** las campañas marcadas como públicas se listan en `/novedades/` del sitio (`GET /v1/novedades`). Cada correo tiene versión web (`/v1/novedades/<id>`), que es también el "Ver en el navegador" del correo.
 - **Métricas de la lista** (panel > Métricas): altas, confirmaciones y bajas por semana, activos y en pausa, confirmación por origen (home, pie, cotizador, importados...) y apertura de las campañas. La ficha de cada lead dice si está suscrito y qué abrió.
@@ -77,7 +77,7 @@ Un asistente en todas las páginas indexables del sitio (`src/components/Asesor.
 - **Sin precios:** Antídoto no publica tarifas, así que no hay herramienta de cálculo y la guardia de cifras (`guardia.ts`) rechaza cualquier cifra de dinero. Con una cifra hay un reintento; si insiste, sale un texto de respaldo que manda a WhatsApp.
 - **Herramientas:** `preparar_whatsapp` (el servidor arma el mensaje en primera persona; si el modelo cuela una cifra o un dato de contacto, ese campo se descarta) y `pedir_contacto` (enlace al cotizador con `?servicio=`, donde la persona deja sus datos con autorización).
 - **Historial:** lo guarda el navegador en `sessionStorage` y lo reenvía; el servidor solo toma texto, con roles alternados y largos acotados. Teléfonos y correos se tapan antes de llegar al modelo.
-- **Conversaciones guardadas** (`guardado.ts`, panel > Conversaciones): el sitio manda un id de conversación de la pestaña (UUID v4) y el origen (burbuja o facilitador). Cada pregunta guarda solo su turno (pregunta y respuesta, con teléfonos y correos tapados, herramientas, respaldo, tokens y costo) con un índice único, así que un reintento no duplica y un historial alterado no reescribe lo guardado. El tope de 30 preguntas lo cuenta el servidor. Guardar falla abierto. Se borran a los 90 días (cron horario); el visitante las borra con "empezar de nuevo" (`POST /v1/asesor/borrar`) y admin desde el panel. Si en la misma visita la persona cotiza con la autorización marcada, el lead queda ligado a su conversación. Los contadores del día (`gasto_asesor`) no llevan datos personales y sobreviven al borrado. Los temas de cada pregunta se clasifican por palabras clave (`temas.ts`), sin modelo.
+- **Conversaciones guardadas** (`guardado.ts`, panel > Conversaciones): el sitio manda un id de conversación de la pestaña (UUID v4) y el origen (burbuja o facilitador). Cada pregunta guarda solo su turno (pregunta y respuesta, con teléfonos y correos tapados, herramientas, respaldo, tokens y costo) con un índice único, así que un reintento no duplica y un historial alterado no reescribe lo guardado. El tope de 30 preguntas lo cuenta el servidor. Guardar falla abierto. Se borran a los 90 días (al usar el panel, `src/pendientes.ts`); el visitante las borra con "empezar de nuevo" (`POST /v1/asesor/borrar`) y admin desde el panel. Si en la misma visita la persona cotiza con la autorización marcada, el lead queda ligado a su conversación. Los contadores del día (`gasto_asesor`) no llevan datos personales y sobreviven al borrado. Los temas de cada pregunta se clasifican por palabras clave (`temas.ts`), sin modelo.
 - **Lo publicado en el panel:** las preguntas frecuentes y los clientes publicados desde el panel se suman a lo empaquetado (`publicado.ts`, 5 minutos en memoria); una pregunta del panel con la misma clave reemplaza a la del sitio.
 - **Costo:** tope diario en USD (el de panel > Ajustes o, si no hay, `ASESOR_TOPE_DIARIO_USD`, 1 por defecto) en la tabla `gasto_asesor`, por día de Bogotá. **Falla cerrado:** sin clave, apagado desde Ajustes o si no se puede leer el gasto, el chat no responde y ofrece solo WhatsApp. Además, 60 preguntas por IP y hora, 30 por conversación, 700 tokens por respuesta y 4 llamadas al modelo por pregunta. El prompt mide unos 2.300 tokens, por debajo del mínimo de caché de Haiku: cada pregunta cuesta unos US$0,005.
 - **Aviso al equipo:** cuando el asesor prepara WhatsApp o lleva al cotizador, sale un correo a `MAIL_EQUIPO` con el resumen (sin datos personales), máximo 2 por IP y hora.
@@ -105,15 +105,15 @@ Para el chat con IA, agrega `ANTHROPIC_API_KEY` a `.dev.vars`. Para probarlo sin
 
 ## Producción (Vercel)
 
-La API corre en Vercel desde el 08/10/2026: una función Node (Fluid Compute) con Turso (libSQL) como base y un store **privado** de Vercel Blob para imágenes y archivos. El código es el mismo del Worker: `src/plataforma/` arma el mismo `Env` con adaptadores (D1 sobre libSQL, R2 sobre Blob, `ASSETS` sobre el disco) y `scripts/vercel-build.mjs` empaqueta todo con la Build Output API, con las rutas y los crons (`/cron/cinco` y `/cron/hora`, protegidos con `CRON_SECRET`). `npm run test:libsql` corre todas las pruebas sobre libSQL.
+La API corre en Vercel desde el 08/10/2026: una función Node (Fluid Compute) con Turso (libSQL) como base y un store **privado** de Vercel Blob para imágenes y archivos. El código es el mismo del Worker: `src/plataforma/` arma el mismo `Env` con adaptadores (D1 sobre libSQL, R2 sobre Blob, `ASSETS` sobre el disco) y `scripts/vercel-build.mjs` empaqueta todo con la Build Output API, con las rutas sin tareas programadas. `npm run test:libsql` corre todas las pruebas sobre libSQL.
 
 Diferencias con Cloudflare: una función de Vercel no recibe cuerpos de más de 4,5 MB, así que las imágenes del contenido van hasta 4 MB y los archivos de entregables suben directo del navegador a Blob con una URL firmada para una sola clave (`src/plataforma/subida-blob.ts`) y después se registran. La IP sale de `x-real-ip`, que pone Vercel.
 
 1. **Proyecto:** en Vercel, importa este repositorio como un proyecto nuevo (por ejemplo `antidoto-api`) con *Root Directory* `api` y deja activado *Include files outside the root directory* (el build lee textos del sitio). `api/vercel.json` fija el build y se salta los commits que no tocan la API.
 2. **Base:** crea una base en Turso (Marketplace de Vercel: `vercel integration add turso`, o en turso.tech) y pon `TURSO_DATABASE_URL` y `TURSO_AUTH_TOKEN` **solo en Production**: las vistas previas no deben escribir en la base real. El build de producción aplica las migraciones (`npm run turso:migrar`).
 3. **Archivos:** crea un store de Blob **privado** (`vercel blob create-store antidoto --access private`) y conéctalo al proyecto (queda `BLOB_STORE_ID` o `BLOB_READ_WRITE_TOKEN`). Sin él, el panel no sube imágenes ni archivos.
-4. **Variables:** `CRON_SECRET` (texto aleatorio largo), `APP_URL` (URL pública de la API), `SAL_IP`, `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, `ANTHROPIC_API_KEY` y `GITHUB_DISPATCH_TOKEN`. Los valores fijos de `wrangler.toml` (`[vars]`) son los de `VARS` en `src/plataforma/vercel.ts` (una prueba los mantiene iguales); una variable de Vercel con el mismo nombre los reemplaza.
-5. **Crons:** el de cada 5 minutos (lotes de campañas) exige el plan Pro de Vercel. En Hobby el despliegue falla por ese cron.
+4. **Variables:** `APP_URL` (URL pública de la API), `SAL_IP`, `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, `ANTHROPIC_API_KEY` y `GITHUB_DISPATCH_TOKEN`. Los valores fijos de `wrangler.toml` (`[vars]`) son los de `VARS` en `src/plataforma/vercel.ts` (una prueba los mantiene iguales); una variable de Vercel con el mismo nombre los reemplaza.
+5. **Sin tareas programadas:** la API no usa Vercel Cron. Lo que antes corría solo (campañas programadas, lotes pendientes, invitaciones, avisos de solicitudes sin respuesta, recordatorios y borrado de conversaciones vencidas) corre cuando alguien usa el panel, como mucho cada 5 minutos (`src/pendientes.ts`). Todo funciona en el plan gratis de Vercel.
 6. **Copiar los datos de Cloudflare (una sola vez, antes de cambiar `PUBLIC_API_URL`):** con wrangler autenticado y la base de Turso **vacía**, `node scripts/turso-copiar-d1.mjs` (vuelca D1 y lo carga en Turso, con `d1_migrations`) y después `node scripts/blob-copiar-r2.mjs` (copia los objetos de R2 a `medios/` y `archivos/` en Blob; se puede repetir). Desde ahí no se escribe más en la API de Cloudflare: los leads nuevos llegarían a la base vieja.
 7. **Conectar el sitio:** pon la URL de la API (lo ideal, `api.antidotocolombia.com` como dominio del proyecto) en `PUBLIC_API_URL` del proyecto de Vercel del sitio y en la variable de GitHub, y redespliega el sitio. Revisa también `ORIGENES` si el sitio sale por otro dominio.
 8. **Apagar Cloudflare:** cuando todo funcione en Vercel, borra los secrets `CLOUDFLARE_API_TOKEN` y `CLOUDFLARE_ACCOUNT_ID` de GitHub (los workflows de Cloudflare se omiten solos) y elimina el Worker, D1 y R2.
@@ -130,7 +130,7 @@ Lo que sigue igual en las dos plataformas:
 - **Correo:** crea una cuenta en Resend, verifica el dominio `antidotocolombia.com` (los registros DNS van donde quede el DNS del dominio) y guarda la clave como `RESEND_API_KEY`. Si el remitente va a ser otro, cambia `MAIL_FROM`.
   - **DMARC:** Resend crea SPF y DKIM, pero Gmail y Yahoo exigen además un registro DMARC a quien envía en volumen. Empieza con `_dmarc.antidotocolombia.com TXT "v=DMARC1; p=none; rua=mailto:<correo>"` y súbelo a `quarantine` cuando los informes salgan limpios.
   - **Subdominio para campañas (recomendado):** verifica también un subdominio (por ejemplo `news.antidotocolombia.com`) y usa `MAIL_FROM_NOVEDADES = "Antídoto <novedades@news.antidotocolombia.com>"`. Así la reputación de las campañas no afecta los enlaces de acceso ni los avisos de leads, y el seguimiento de clics (que reescribe enlaces) no toca los correos de acceso.
-  - **Plan:** el plan gratis de Resend permite 100 correos al día. Con una lista de más de 100 personas hace falta el plan Pro.
+  - **Plan:** el plan gratis de Resend permite 100 correos al día. Una campaña a más personas sale en partes: lo que Resend no acepte ese día sale la próxima vez que alguien use el panel.
   - **Pie legal:** pon la razón social y el domicilio en `MAIL_DIRECCION`. Sin ella, las campañas dicen solo "Antídoto · Estudio creativo empresarial · Colombia".
   - **Sitio:** `SITIO_URL` es el sitio al que redirigen confirmar, baja y preferencias.
 - **Sal de IP:** un texto aleatorio largo en `SAL_IP` (por ejemplo `openssl rand -base64 32`).
@@ -144,7 +144,7 @@ El Worker sigue desplegándose con `.github/workflows/api.yml` (D1, R2 y secrets
 
 ## Estructura
 
-- `src/index.ts`: rutas públicas, acceso y cron; las del panel van por módulos en `src/rutas/` (cada uno exige su permiso).
+- `src/index.ts`: rutas públicas y acceso; las del panel van por módulos en `src/rutas/` (cada uno exige su permiso).
 - `src/panel.ts`: archivos del panel y del portal (binding `ASSETS`) con su CSP.
 - `src/plataforma/`: la API en Vercel (adaptadores de D1, R2 y `ASSETS`, subida directa a Blob, función Node). `scripts/vercel-build.mjs` la empaqueta; `scripts/turso-*.mjs` y `scripts/blob-copiar-r2.mjs` migran la base y los archivos.
 - `src/leads.ts` y `src/validar.ts`: alta y validación de leads.
@@ -155,7 +155,7 @@ El Worker sigue desplegándose con `.github/workflows/api.yml` (D1, R2 y secrets
 - `src/rutas/`: `leads`, `marketing`, `equipo` (cuenta, ajustes, auditoría), `inicio` (resumen y buscador), `conversaciones`, `contenido`, `proyectos`, `accesos` (portal), `sistema` y `exportar`.
 - `src/contenido/`: esquemas del contenido editable y lecturas públicas para el build. `src/archivos.ts`: validación de imágenes. `src/publicacion.ts`: publicar el sitio.
 - `src/proyectos/plantillas.ts`: etapas por línea.
-- `src/seguimiento.ts`: cron de leads sin respuesta.
+- `src/seguimiento.ts`: aviso de leads sin respuesta. `src/pendientes.ts`: lo pendiente que corre al usar el panel.
 - `src/correo.ts`: Resend y plantillas.
 - `src/marketing/`: suscripciones, confirmación, baja y preferencias (`suscripciones.ts`), enlaces de los correos (`enlaces.ts`), formato de campañas (`render.ts`), motor de envío con programación y prueba A/B (`envios.ts`), bienvenida, recordatorio e invitaciones (`automaticos.ts`), archivo público (`publico.ts`), webhook de Resend (`webhook.ts`) y API del panel (`admin.ts`).
 - `src/asesor/`: chat con IA. Prompt (`prompt.ts`), conocimiento (`conocimiento.ts` y lo publicado en el panel en `publicado.ts`), herramientas, bucle con el modelo inyectado (`bucle.ts`), guardia de cifras, costo y tope diario (`costo.ts`, `presupuesto.ts`), conversaciones guardadas (`guardado.ts`), temas (`temas.ts`), llamada a la API de Claude con `fetch` (`motor.ts`) y ruta (`ruta.ts`).

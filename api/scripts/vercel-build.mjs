@@ -1,6 +1,6 @@
 // Build de la API para Vercel con la Build Output API (v3): una sola función Node con todo el
-// código empaquetado por esbuild, los archivos del panel (dist-admin/) a su lado, las rutas y los
-// crons. Vercel publica .vercel/output tal cual. Lo corre `npm run vercel-build` (vercel.json),
+// código empaquetado por esbuild, los archivos del panel (dist-admin/) a su lado y las rutas. Sin
+// tareas programadas (src/pendientes.ts). Vercel publica .vercel/output tal cual. Lo corre `npm run vercel-build` (vercel.json),
 // después de construir el panel y el conocimiento del asesor.
 import { build } from 'esbuild';
 import { execFileSync } from 'node:child_process';
@@ -55,11 +55,6 @@ writeFileSync(
         { handle: 'filesystem' },
         // Todo lo demás va a la función, con la ruta original en __ruta (src/plataforma/entrada-node.ts).
         { src: '^/(.*)$', dest: '/index?__ruta=$1' },
-      ],
-      // Los mismos crons de wrangler.toml. Cada 5 minutos exige el plan Pro de Vercel.
-      crons: [
-        { path: '/cron/cinco', schedule: '*/5 * * * *' },
-        { path: '/cron/hora', schedule: '0 * * * *' },
       ],
     },
     null,

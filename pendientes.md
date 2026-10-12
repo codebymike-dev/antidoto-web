@@ -70,7 +70,7 @@ Estado al 03/10/2026: el código está completo y probado (suscripción con dobl
 - [ ] Recomendado: subdominio solo para campañas (por ejemplo `news.antidotocolombia.com`), verificado en Resend, y `MAIL_FROM_NOVEDADES` apuntando a él. Separa la reputación de las campañas de la de los correos de acceso y avisos de leads.
 - [ ] Webhook de Resend hacia `<URL de la API>/v1/resend/webhook` con `email.delivered`, `email.opened`, `email.clicked`, `email.bounced` y `email.complained`, y su secreto como `RESEND_WEBHOOK_SECRET`. Sin él no hay métricas de campañas ni bajas automáticas por rebote o queja.
 - [ ] Activar en Resend el seguimiento de aperturas y clics del dominio de campañas (sin eso la prueba A/B no tiene con qué decidir).
-- [ ] Plan Pro de Resend cuando la lista pase de unas 100 personas: el gratis permite 100 correos al día.
+- [ ] Límite de Resend: el plan gratis permite 100 correos al día; una campaña más grande sale en partes.
 
 ### Datos del cliente (tarjeta K-54 en /docs/)
 

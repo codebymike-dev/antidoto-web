@@ -251,7 +251,7 @@ export const campanas = sqliteTable('campanas', {
   terminada: integer('terminada'),
   /** URL pública de la API al enviar: con ella se arman los enlaces de baja. */
   baseUrl: text('base_url'),
-  /** Fecha programada de envío (estado "programada"); el cron la arranca a su hora. */
+  /** Fecha programada de envío (estado "programada"); sale la primera vez que alguien usa el panel después de esa hora. */
   programada: integer('programada'),
   /** Aparece en el archivo público de novedades del sitio una vez enviada. */
   publica: integer('publica', { mode: 'boolean' }).notNull().default(false),

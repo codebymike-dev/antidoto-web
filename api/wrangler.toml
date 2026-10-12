@@ -32,9 +32,6 @@ bucket_name = "antidoto-medios"
 binding = "ARCHIVOS"
 bucket_name = "antidoto-archivos"
 
-# Cada 5 minutos salen los lotes de campañas; cada hora, además, el aviso de leads sin respuesta.
-[triggers]
-crons = ["*/5 * * * *", "0 * * * *"]
 
 [vars]
 # "local" acepta orígenes localhost y cookies sin Secure; se cambia en .dev.vars.

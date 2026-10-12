@@ -4,7 +4,7 @@
 //   hay un regalo (una guía, por ejemplo), su enlace va en el cuerpo de la bienvenida.
 // - Recordatorio: uno solo, a quien se suscribió en el sitio y no confirmó en 48 horas. A los
 //   invitados por el equipo no: ellos no pidieron nada.
-// - Invitaciones de contactos importados: salen por lotes con el cron, no al importar.
+// - Invitaciones de contactos importados: salen por lotes cuando alguien usa el panel, no al importar.
 import { and, eq, gt, inArray, isNull, lt, notInArray } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import { automaticos, contactos, INVITADOS, type Automatico, type Contacto } from '../db/schema';

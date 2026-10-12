@@ -5,7 +5,7 @@ import { join } from 'node:path';
 // Cliente web (HTTP): sin binarios nativos; basta para Turso (libsql:// o https://).
 import { createClient } from '@libsql/client/web';
 import { waitUntil } from '@vercel/functions';
-import { cronCinco, cronHora, manejar } from '../index';
+import { manejar } from '../index';
 import type { Env } from '../env';
 import { json } from '../util';
 import { assetsDesdeDisco } from './assets-fs';
@@ -73,18 +73,8 @@ export function conIpDeVercel(req: Request): Request {
   return new Request(req, { headers: h, duplex: 'half' } as RequestInit);
 }
 
-const CRONS: Record<string, (env: Env) => Promise<void>> = { '/cron/cinco': cronCinco, '/cron/hora': cronHora };
-
 export async function manejarVercel(req: Request): Promise<Response> {
   try {
-    const cron = CRONS[new URL(req.url).pathname];
-    if (cron) {
-      // Vercel Cron manda Authorization: Bearer <CRON_SECRET>. Sin el secreto, nadie corre los crons.
-      const secreto = process.env.CRON_SECRET;
-      if (!secreto || req.headers.get('authorization') !== `Bearer ${secreto}`) return json({ error: 'no autorizado' }, 401);
-      await cron(entornoVercel());
-      return json({ ok: true });
-    }
     return await manejar(conIpDeVercel(req), entornoVercel(), (p) => waitUntil(p));
   } catch (e) {
     console.error('[api] error sin manejar', e);

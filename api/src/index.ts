@@ -24,12 +24,9 @@ import type { Env } from './env';
 import { crearLead } from './leads';
 import { origenPermitido, cabecerasCors } from './cors';
 import { pedirEnlace, paginaEntrar, entrar, sesionActual, mismoOrigen } from './auth';
-import { seguimiento } from './seguimiento';
 import { crearSuscripcion, confirmar, baja, preferencias, datosPreferencias } from './marketing/suscripciones';
 import { listarPublicas, verPublica } from './marketing/publico';
-import { recordatorios, invitaciones } from './marketing/automaticos';
 import { webhookResend } from './marketing/webhook';
-import { procesarEnvios, arrancarProgramadas, decidirPruebas } from './marketing/envios';
 import type { Ctx, Modulo } from './rutas/contexto';
 import { rutasLeads } from './rutas/leads';
 import { rutasMarketing } from './rutas/marketing';
@@ -39,14 +36,13 @@ import { rutasConversaciones } from './rutas/conversaciones';
 import { rutasContenido } from './rutas/contenido';
 import { rutasProyectos } from './rutas/proyectos';
 import { contenidoPublicado, servirMedio, ajustesSitio } from './contenido/publico';
-import { reintentarPublicaciones } from './publicacion';
 import { rutaAsesor, rutaBorrar } from './asesor/ruta';
-import { limpiarConversaciones } from './asesor/guardado';
 import { esRutaPanel, esRutaPortal, servirPanel } from './panel';
 import { pedirEnlaceCliente, paginaEntrarCliente, entrarCliente, sesionCliente } from './portal/auth';
 import { rutasPortal } from './portal/rutas';
 import { rutasAccesos } from './rutas/accesos';
-import { rutasSistema, anotarCron } from './rutas/sistema';
+import { rutasSistema } from './rutas/sistema';
+import { pendientesSiToca } from './pendientes';
 import { rutasExportar } from './rutas/exportar';
 import { json } from './util';
 
@@ -133,6 +129,8 @@ export async function manejar(req: Request, env: Env, diferir: (p: Promise<unkno
     const sesion = await sesionActual(req, db);
     if (!sesion) return json({ error: 'sesion' }, 401);
     const ctx: Ctx = { req, url, ruta, metodo, env, db, sesion, appUrl, diferir };
+    // Sin tareas programadas: lo pendiente corre cuando alguien usa el panel (src/pendientes.ts).
+    diferir(pendientesSiToca(env, db, appUrl).catch((e) => console.error('[pendientes]', e)));
     for (const modulo of MODULOS) {
       const res = await modulo(ctx);
       if (res) return res;
@@ -140,35 +138,6 @@ export async function manejar(req: Request, env: Env, diferir: (p: Promise<unkno
   }
 
   return json({ error: 'no existe' }, 404);
-}
-
-// Crons: en Cloudflare los dispara `scheduled` (wrangler.toml); en Vercel, /cron/<nombre> (vercel.json).
-// A la hora en punto se disparan los dos. Los lotes salen solo con el de cada 5 minutos:
-// dos corridas a la vez se pisan con el límite de Resend (2 por segundo) y gastan intentos.
-export async function cronCinco(env: Env): Promise<void> {
-  const db = drizzle(env.DB);
-  const appUrl = (env.APP_URL ?? '').replace(/\/$/, '');
-  // Primero arrancan las programadas y se deciden las pruebas A/B: así sus envíos salen en esta misma corrida.
-  const arrancadas = await arrancarProgramadas(env, db);
-  const decididas = await decidirPruebas(env, db);
-  const r = await procesarEnvios(env, db);
-  const inv = await invitaciones(env, db, appUrl);
-  const pub = await reintentarPublicaciones(db, env).catch((e) => (console.error('[publicacion] reintentos', e), 0));
-  await anotarCron(db, 'cinco', { programadas: arrancadas, pruebasAb: decididas, enviados: r.enviados, fallidos: r.fallidos, invitaciones: inv, publicaciones: pub });
-  if (arrancadas + decididas + r.enviados + r.fallidos + inv)
-    console.log(`[envios] ${arrancadas} programadas arrancadas, ${decididas} pruebas A/B decididas, ${r.enviados} enviados, ${r.fallidos} fallidos, ${inv} invitaciones`);
-}
-
-export async function cronHora(env: Env): Promise<void> {
-  const db = drizzle(env.DB);
-  const appUrl = (env.APP_URL ?? '').replace(/\/$/, '');
-  const [s, rec, borradas] = await Promise.all([
-    seguimiento(env, db).catch((e) => (console.error('[seguimiento]', e), { avisados: -1 })),
-    recordatorios(env, db, appUrl).catch((e) => (console.error('[recordatorios]', e), -1)),
-    limpiarConversaciones(db, Date.now()).catch((e) => (console.error('[asesor] limpieza de conversaciones', e), -1)),
-  ]);
-  if (s.avisados || rec || borradas) console.log(`[hora] ${s.avisados} leads avisados, ${rec} recordatorios, ${borradas} conversaciones vencidas borradas`);
-  await anotarCron(db, 'hora', { leadsAvisados: s.avisados, recordatorios: rec, conversacionesBorradas: borradas });
 }
 
 export default {
@@ -179,9 +148,5 @@ export default {
       console.error('[api] error sin manejar', e);
       return json({ ok: false, error: 'interno' }, 500);
     }
-  },
-  async scheduled(evento, env, ctx) {
-    if (evento.cron === '*/5 * * * *') ctx.waitUntil(cronCinco(env));
-    if (evento.cron === '0 * * * *') ctx.waitUntil(cronHora(env));
   },
 } satisfies ExportedHandler<Env>;

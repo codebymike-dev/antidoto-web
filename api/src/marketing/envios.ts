@@ -1,10 +1,10 @@
 // Motor de envío de campañas. Al enviar una campaña se crea una fila "pendiente" por contacto;
-// el cron (cada 5 minutos) y el propio clic de enviar reclaman lotes y los mandan con la API de
+// el clic de enviar y la revisión de pendientes (src/pendientes.ts) reclaman lotes y los mandan con la API de
 // lotes de Resend (hasta 100 correos por llamada). Reclamar es un UPDATE condicional con un id de
 // lote, así dos ejecuciones a la vez nunca mandan el mismo correo.
 //
 // Prueba A/B de asunto: al arrancar, una muestra de la audiencia se parte en dos mitades (asunto A
-// y asunto B) y el resto queda "en espera". Pasadas las horas de la prueba, el cron elige la
+// y asunto B) y el resto queda "en espera". Pasadas las horas de la prueba, la revisión de pendientes elige la
 // variante con más clics (o aperturas, si no hay clics) y el resto recibe esa.
 import { and, eq, inArray, lt, sql } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
@@ -15,7 +15,7 @@ import type { Env } from '../env';
 import { ahora, uuid, HORA } from '../util';
 
 export const POR_LOTE = 100;
-/** Lotes por ejecución: con el límite de Resend (2 por segundo) y el tiempo de un cron, sobra. */
+/** Lotes por vuelta de procesarEnvios: con el límite de Resend (2 por segundo), sobra. */
 export const LOTES_POR_CORRIDA = 5;
 const MAX_INTENTOS = 3;
 /** Pausa entre lotes de una corrida: Resend acepta 2 llamadas por segundo. */

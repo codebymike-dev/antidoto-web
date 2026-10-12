@@ -1,4 +1,4 @@
-// Estado del sistema: qué servicios están configurados, cuándo corrieron los crons, el último
+// Estado del sistema: qué servicios están configurados, la última revisión de pendientes, el último
 // despliegue pedido desde el panel, el gasto del chat y el tamaño de cada tabla.
 import { useDatos } from '../api';
 import { fechaLarga, hace, numero, usd } from '../formato';
@@ -8,7 +8,7 @@ import { TablaDatos, Medidor } from '../ui/graficas';
 interface Estado {
   servicios: Record<string, boolean>;
   entorno: string;
-  crones: Record<string, { t: number; resumen: Record<string, number>; error?: string }>;
+  revision: { t: number; resumen: Record<string, number> } | null;
   ultimaPublicacion: { solicitada: number; destino: string; estado: string; autor: string; runUrl: string | null; error: string | null } | null;
   asesor: { tope: number; activo: boolean; gastoHoy: number } | null;
   tablas: Record<string, number>;
@@ -23,7 +23,6 @@ const SERVICIOS: [string, string, string][] = [
   ['publicacion', 'Publicar desde el panel', 'GITHUB_DISPATCH_TOKEN y GITHUB_REPO.'],
   ['salIp', 'Sal del hash de IP', 'SAL_IP: sin ella el hash es menos privado.'],
 ];
-const CRONES: Record<string, [string, number]> = { cinco: ['Envíos y publicaciones (cada 5 minutos)', 5 * 60_000], hora: ['Seguimiento, recordatorios y limpieza (cada hora)', 60 * 60_000] };
 const TABLAS: Record<string, string> = {
   leads: 'Solicitudes',
   contactos: 'Contactos de novedades',
@@ -64,25 +63,19 @@ export default function Sistema() {
           </ul>
         </Tarjeta>
         <div class="columna-lateral">
-          <Tarjeta titulo="Tareas programadas">
-            <ul class="lista-simple">
-              {Object.entries(CRONES).map(([k, [nombre, cada]]) => {
-                const c = s.crones[k];
-                const atrasado = !c || Date.now() - c.t > cada * 3;
-                return (
-                  <li>
-                    <span>
-                      <strong>{nombre}</strong>
-                      <span class="fila-sub">
-                        {c ? `Última corrida ${hace(c.t)}: ${Object.entries(c.resumen).map(([x, n]) => `${x} ${n}`).join(', ')}` : 'Todavía no ha corrido.'}
-                        {c?.error ? ` Error: ${c.error}` : ''}
-                      </span>
-                    </span>
-                    <Insignia tono={atrasado ? 'alerta' : 'exito'}>{atrasado ? 'Revisar' : 'Al día'}</Insignia>
-                  </li>
-                );
-              })}
-            </ul>
+          <Tarjeta titulo="Pendientes">
+            <p class="suave texto-chico">
+              No hay tareas programadas. Cuando alguien usa el panel, como mucho cada 5 minutos, salen las campañas programadas y los lotes que falten, las invitaciones, los avisos de
+              solicitudes sin respuesta y los recordatorios, y se borran las conversaciones vencidas.
+            </p>
+            <p class="suave texto-chico">
+              {s.revision
+                ? `Última revisión ${hace(s.revision.t)}: ${Object.entries(s.revision.resumen)
+                    .filter(([, n]) => n)
+                    .map(([x, n]) => `${x} ${n}`)
+                    .join(', ') || 'nada pendiente'}.`
+                : 'Todavía no se ha revisado.'}
+            </p>
           </Tarjeta>
           <Tarjeta titulo="Última publicación del sitio">
             {s.ultimaPublicacion ? (
