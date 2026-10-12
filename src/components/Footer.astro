@@ -2,9 +2,9 @@
 import Logo from './Logo.astro';
 import { t, rutas, rutaPolitica, type Locale } from '../i18n/ui';
 import { NOVEDADES, NOVEDADES_VERSION } from '../data/consentimiento';
-import { SITE, PORTAL, waLink } from '../data/site';
+import { SITE, EMPRESA, waLink } from '../data/site';
 import { obtenerServicios, servicioPath } from '../data/servicios';
-import { obtenerArticulos } from '../data/contenido';
+import { obtenerArticulos, obtenerCasos, obtenerClientes } from '../data/contenido';
 import { SOLUCIONES, solucionPath } from '../data/soluciones';
 import { tp } from '../i18n/paginas';
 
@@ -18,6 +18,8 @@ const s = t(locale);
 const p = tp(locale);
 const SERVICIOS = await obtenerServicios();
 const hayBlog = (await obtenerArticulos()).length > 0;
+const hayCasos = (await obtenerCasos()).length > 0;
+const hayClientes = (await obtenerClientes()).length > 0;
 const year = new Date().getFullYear();
 // La suscripción solo aparece si el build trae la API (ver api/README.md).
 const api = (import.meta.env.PUBLIC_API_URL ?? '').replace(/\/$/, '');
@@ -47,6 +49,7 @@ const api = (import.meta.env.PUBLIC_API_URL ?? '').replace(/\/$/, '');
         <p class="titulo" id="pie-servicios">{s.footerServicios}</p>
         <ul>
           {SERVICIOS.map((sv) => <li><a href={servicioPath(sv, locale)}>{sv[locale].title}</a></li>)}
+          <li><a href={rutas.sgsst[locale]}>{s.nav.sgsst}</a></li>
           <li><a href={rutas.servicios[locale]}>{p.todosServicios}</a></li>
         </ul>
       </nav>
@@ -59,8 +62,8 @@ const api = (import.meta.env.PUBLIC_API_URL ?? '').replace(/\/$/, '');
         <ul>
           <li><a href={rutas.nosotros[locale]}>{p.navEmpresa}</a></li>
           <li><a href={rutas.comoTrabajamos[locale]}>{s.nav.comoTrabajamos}</a></li>
-          <li><a href={rutas.portafolio[locale]}>{s.nav.portafolio}</a></li>
-          <li><a href={rutas.clientes[locale]}>{s.nav.clientes}</a></li>
+          {hayCasos && <li><a href={rutas.portafolio[locale]}>{s.nav.portafolio}</a></li>}
+          {hayClientes && <li><a href={rutas.clientes[locale]}>{s.nav.clientes}</a></li>}
           <li><a href={rutas.trabaja[locale]}>{s.nav.trabaja}</a></li>
           <li><a href={rutas.faq[locale]}>{s.nav.faq}</a></li>
           {hayBlog && <li><a href={rutas.blog[locale]}>{s.nav.blog}</a></li>}
@@ -70,28 +73,28 @@ const api = (import.meta.env.PUBLIC_API_URL ?? '').replace(/\/$/, '');
         <p class="titulo">{s.nav.contacto}</p>
         <ul>
           <li><a href={waLink(s.waDefault)} target="_blank" rel="noopener">WhatsApp {SITE.phoneDisplay}</a></li>
+          <li><a href={`tel:+${SITE.llamadas}`}>{s.canales.telefono} {SITE.llamadasDisplay}</a></li>
           <li><a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
+          <li class="ubicacion">{EMPRESA.ubicacion[locale]}</li>
           <li><a href={SITE.instagram} target="_blank" rel="noopener">Instagram</a></li>
           <li><a href={SITE.linkedin} target="_blank" rel="noopener">LinkedIn</a></li>
         </ul>
         <nav class="portal" aria-labelledby="pie-portal">
           <p class="titulo" id="pie-portal">{s.portalTitulo}</p>
           <ul>
-            <li><a href={PORTAL.url} hreflang="es">{s.portalParticipante}</a></li>
-            <li><a href={PORTAL.empresas} hreflang="es">{s.portalEmpresa}</a></li>
+            <li><a href={rutas.actividades[locale]}>{s.portalParticipante}</a></li>
           </ul>
         </nav>
       </div>
     </div>
     <div class="base">
       <div class="legal">
-        <span>© {year} Antídoto. {s.footerDerechos}</span>
+        <span>© {year} {EMPRESA.razonSocial} · NIT {EMPRESA.nit}. {s.footerDerechos}</span>
         <a class="politica" href={rutaPolitica[locale]}>{s.footerPolitica}</a>
         <a class="politica" href={rutas.terminos[locale]}>{s.nav.terminos}</a>
         <a class="politica" href={rutas.cookies[locale]}>{s.nav.cookies}</a>
         <a class="politica" href={rutas.mapa[locale]}>{s.nav.mapa}</a>
       </div>
-      <p class="credito">{s.footerCredito} <a href="https://codebymike.net" target="_blank" rel="noopener">codebymike<span aria-hidden="true"> ↗</span></a></p>
     </div>
   </div>
 </footer>
@@ -121,9 +124,7 @@ const api = (import.meta.env.PUBLIC_API_URL ?? '').replace(/\/$/, '');
   .politica { color: var(--color-fg-soft); display: inline-flex; align-items: center; min-height: 44px; }
   .politica:hover { color: var(--color-antidote); }
   .legal { display: flex; flex-wrap: wrap; align-items: center; column-gap: 20px; }
-  .credito { margin: 0; color: var(--color-fg-muted); }
-  .credito a { color: var(--color-fg-soft); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
-  .credito a:hover { color: var(--color-antidote); }
+  .ubicacion { display: flex; align-items: center; min-height: 44px; }
 
   .novedades { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin-top: 8px; max-width: 30em; }
   .novedades[hidden] { display: none; }
