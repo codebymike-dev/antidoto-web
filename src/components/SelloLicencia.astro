@@ -1,0 +1,41 @@
+---
+// Sello de la licencia en Seguridad y Salud en el Trabajo, con el número de resolución y la entidad
+// (src/data/site.ts, LICENCIA). Va en el encabezado, en la franja de la home y en /sg-sst/.
+// Regla del brief: solo junto a lo que cubre la licencia, nunca junto a PESV, RUC, ISO,
+// audiovisual, catering ni IA.
+//   corto: "Licencia SST · Res. 36081-2026" (encabezado y hero).
+//   largo: además, la entidad que la expide.
+// Con `href` es un enlace (a /sg-sst/); sin él, un texto.
+import { LICENCIA } from '../data/site';
+import { tp } from '../i18n/paginas';
+import type { Locale } from '../i18n/ui';
+
+interface Props {
+  locale: Locale;
+  variante?: 'corto' | 'largo';
+  href?: string;
+  /** Sobre fondo oscuro. */
+  oscuro?: boolean;
+  class?: string;
+}
+const { locale, variante = 'largo', href, oscuro = false, class: clase } = Astro.props;
+const partes = [tp(locale).sgsst.sello, `Res. ${LICENCIA.resolucion}`, ...(variante === 'largo' ? [LICENCIA.entidad[locale]] : [])];
+const Tag = href ? 'a' : 'p';
+---
+<Tag class:list={['sello', variante, { oscuro }, clase]} href={href}>
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"></path><path d="M9 12l2 2 4-4"></path></svg>
+  <span>{partes.map((x, i) => (i ? <><span class="punto" aria-hidden="true"> · </span>{x}</> : x))}</span>
+</Tag>
+
+<style>
+  .sello { margin: 0; display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 16px 6px 10px; border-radius: 999px; background: var(--color-mist); color: var(--color-ink); font: 600 14px/1.3 var(--font-sans); text-decoration: none; box-sizing: border-box; }
+  .sello svg { width: 24px; height: 24px; flex: none; fill: none; stroke: var(--color-deep); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  .punto { color: var(--color-slate); }
+  .corto { font-size: 13px; padding-right: 14px; }
+  .oscuro { background: rgb(255 255 255 / 0.1); color: var(--color-paper); }
+  .oscuro svg { stroke: var(--color-antidote); }
+  .oscuro .punto { color: var(--color-fg-soft); }
+  a.sello:hover { background: var(--color-glow); color: var(--color-ink); }
+  a.sello:hover svg { stroke: var(--color-ink); }
+  a.sello:hover .punto { color: var(--color-ink); }
+</style>
