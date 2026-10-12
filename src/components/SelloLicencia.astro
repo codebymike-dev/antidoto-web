@@ -7,8 +7,7 @@
 //   largo: además, la entidad que la expide.
 // Con `href` es un enlace (a /sg-sst/); sin él, un texto.
 import { LICENCIA } from '../data/site';
-import { tp } from '../i18n/paginas';
-import type { Locale } from '../i18n/ui';
+import { t, type Locale } from '../i18n/ui';
 
 interface Props {
   locale: Locale;
@@ -19,7 +18,7 @@ interface Props {
   class?: string;
 }
 const { locale, variante = 'largo', href, oscuro = false, class: clase } = Astro.props;
-const partes = [tp(locale).sgsst.sello, `Res. ${LICENCIA.resolucion}`, ...(variante === 'largo' ? [LICENCIA.entidad[locale]] : [])];
+const partes = [t(locale).sgsst.sello, `Res. ${LICENCIA.resolucion}`, ...(variante === 'largo' ? [LICENCIA.entidad[locale]] : [])];
 const Tag = href ? 'a' : 'p';
 ---
 <Tag class:list={['sello', variante, { oscuro }, clase]} href={href}>

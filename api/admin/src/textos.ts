@@ -15,6 +15,7 @@ export const SERVICIOS: Record<ServicioId, string> = {
   catering: 'Catering corporativo',
   diseno: 'Diseño de productos',
   ia: 'Capacitación en IA',
+  sgsst: 'SG-SST',
 };
 
 export const ROLES: Record<Rol, { nombre: string; descripcion: string }> = {

@@ -1,6 +1,7 @@
-// Métricas: embudo de solicitudes y lista de novedades. El periodo va arriba y manda sobre todo
+// Métricas: embudo de solicitudes, clics del sitio (WhatsApp, cotizaciones y llamadas, contados sin
+// cookies) y lista de novedades. El periodo va arriba y manda sobre todo
 // lo de solicitudes; la lista de novedades se mide siempre por semanas.
-import { ESTADOS as LISTA_ESTADOS } from '@api/dominio';
+import { ESTADOS as LISTA_ESTADOS, TIPOS_CLIC, type TipoClic } from '@api/dominio';
 import { useDatos } from '../api';
 import { ponerQuery, useUbicacion } from '../ruteo';
 import { usePuede } from '../sesion';
@@ -9,6 +10,13 @@ import { fecha, mes, pesos, pct, numero } from '../formato';
 import type { MetricasLeads, MetricasMarketing } from '../tipos';
 import { Cabecera, Cifra, Cifras, FalloCarga, Tarjeta, Cargando } from '../ui/base';
 import { Barras, Columnas } from '../ui/graficas';
+
+const CLICS: Record<TipoClic, string> = {
+  whatsapp: 'WhatsApp',
+  cotizacion_whatsapp: 'Cotizaciones por WhatsApp',
+  cotizacion_correo: 'Cotizaciones por correo',
+  llamada: 'Llamadas',
+};
 
 const PERIODOS = [
   { dias: 30, texto: 'Últimos 30 días' },
@@ -67,6 +75,19 @@ export default function Metricas() {
               <Columnas titulo="Solicitudes" puntos={m.datos.porMes.map((x) => ({ etiqueta: mes(x.clave), n: x.n }))} />
             </Tarjeta>
           </div>
+          <h2 class="titulo-bloque">Clics del sitio</h2>
+          <Cifras>
+            {TIPOS_CLIC.map((tipo) => (
+              <Cifra etiqueta={CLICS[tipo]} valor={numero(m.datos!.clics.porTipo.find((c) => c.clave === tipo)?.n ?? 0)} nota={`en ${dias} días`} />
+            ))}
+          </Cifras>
+          <Tarjeta titulo="Páginas con más clics">
+            {m.datos.clics.porPagina.length ? (
+              <Barras filas={m.datos.clics.porPagina.map((p) => ({ etiqueta: p.clave, n: p.n }))} />
+            ) : (
+              <p class="suave">Todavía no hay clics registrados. Se cuentan sin cookies ni datos personales: solo el tipo, la página y el día.</p>
+            )}
+          </Tarjeta>
         </div>
       )}
 

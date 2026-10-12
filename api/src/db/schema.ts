@@ -2,7 +2,7 @@
 // el historial de cada lead y el acceso del equipo al admin con enlace mágico.
 // Fechas en milisegundos desde epoch (UTC). Los ids son UUID generados en el Worker.
 import { sqliteTable, text, integer, real, index, uniqueIndex, primaryKey } from 'drizzle-orm/sqlite-core';
-import { ESTADOS, SERVICIOS, ROLES, ESTADOS_CONTACTO, ESTADOS_CAMPANA } from '../dominio';
+import { ESTADOS, SERVICIOS, ROLES, ESTADOS_CONTACTO, ESTADOS_CAMPANA, TIPOS_CLIC } from '../dominio';
 
 export { ESTADOS, SERVICIOS, ROLES, ESTADOS_CONTACTO, ESTADOS_CAMPANA };
 import type { ServicioId } from '../dominio';
@@ -141,6 +141,21 @@ export const limites = sqliteTable(
     n: integer('n').notNull(),
   },
   (t) => [primaryKey({ columns: [t.clave, t.ventana] })],
+);
+
+// Analítica propia del sitio, sin cookies: un contador por día (Bogotá), tipo de clic y ruta de la
+// página. Nada que identifique a la persona: ni IP, ni id, ni hora exacta.
+export const clics = sqliteTable(
+  'clics',
+  {
+    /** AAAA-MM-DD en Bogotá. */
+    dia: text('dia').notNull(),
+    tipo: text('tipo', { enum: TIPOS_CLIC }).notNull(),
+    /** Ruta de la página, sin consulta ni ancla. */
+    pagina: text('pagina').notNull(),
+    n: integer('n').notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.dia, t.tipo, t.pagina] })],
 );
 
 // Bitácora de auditoría del panel: quién hizo qué y cuándo. El detalle nunca lleva datos

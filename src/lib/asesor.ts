@@ -19,9 +19,12 @@ export interface Mensaje {
   contacto?: { servicio: string | null } | null;
 }
 
+/** Páginas que la API reconoce (api/src/asesor/prompt.ts, PAGINAS); las demás van como 'otra'. */
+const PAGINAS_API = ['inicio', 'servicios', 'soluciones', 'sgsst', 'actividades', 'clientes', 'nosotros', 'contacto'];
+
 /** Página para la API: la clave del servicio si la ruta es una página de servicio. */
 export function paginaDe(ruta: string, pagina: string | undefined, servicios: Record<string, string>): string {
-  return servicios[ruta] ?? (pagina || 'otra');
+  return servicios[ruta] ?? (pagina && PAGINAS_API.includes(pagina) ? pagina : 'otra');
 }
 
 /** Cuerpo de una pregunta: solo rol y texto de cada mensaje. Lo demás es de la interfaz. */

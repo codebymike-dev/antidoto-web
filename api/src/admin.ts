@@ -2,7 +2,7 @@
 // además el mismo origen (ver index.ts). Cada cambio queda en lead_eventos con su autor.
 import { and, desc, eq, gte, isNull, like, or, sql, type SQL } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
-import { leads, eventos, consentimientos, usuarios, contactos, conversaciones, contactosCliente, ESTADOS, SERVICIOS, ROLES, type Estado, type Lead } from './db/schema';
+import { leads, clics, eventos, consentimientos, usuarios, contactos, conversaciones, contactosCliente, ESTADOS, SERVICIOS, ROLES, type Estado, type Lead } from './db/schema';
 import { borrarConversacion } from './asesor/guardado';
 import { suprimir, suscripcionDeLead } from './marketing/admin';
 import type { Sesion } from './auth';
@@ -162,7 +162,10 @@ export async function metricas(url: URL, db: DrizzleD1Database): Promise<Respons
   const origen = sql<string>`coalesce(${leads.utmSource}, ${leads.referente}, 'directo')`;
   const mes = sql<string>`strftime('%Y-%m', ${leads.creado} / 1000, 'unixepoch', '-5 hours')`;
 
-  const [porEstado, porServicio, porOrigen, porMes, tiempos] = await Promise.all([
+  // Clics del sitio (analítica sin cookies, src/clics.ts) en el mismo periodo.
+  const desdeDia = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date(desde));
+  const enRango = gte(clics.dia, desdeDia);
+  const [porEstado, porServicio, porOrigen, porMes, tiempos, clicsPorTipo, clicsPorPagina] = await Promise.all([
     db.select({ clave: leads.estado, n: sql<number>`count(*)` }).from(leads).where(rango).groupBy(leads.estado),
     db
       .select({
@@ -180,6 +183,8 @@ export async function metricas(url: URL, db: DrizzleD1Database): Promise<Respons
       .select({ ms: sql<number>`${leads.primeraRespuesta} - ${leads.creado}` })
       .from(leads)
       .where(and(rango, sql`${leads.primeraRespuesta} is not null`)),
+    db.select({ clave: clics.tipo, n: sql<number>`sum(${clics.n})` }).from(clics).where(enRango).groupBy(clics.tipo),
+    db.select({ clave: clics.pagina, n: sql<number>`sum(${clics.n})` }).from(clics).where(enRango).groupBy(clics.pagina).orderBy(desc(sql`sum(${clics.n})`)).limit(10),
   ]);
 
   const cuenta = Object.fromEntries(ESTADOS.map((e) => [e, 0])) as Record<Estado, number>;
@@ -195,6 +200,7 @@ export async function metricas(url: URL, db: DrizzleD1Database): Promise<Respons
     porServicio,
     porOrigen,
     porMes,
+    clics: { porTipo: clicsPorTipo, porPagina: clicsPorPagina },
   });
 }
 

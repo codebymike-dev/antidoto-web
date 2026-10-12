@@ -49,6 +49,7 @@ export const NOMBRE_SERVICIO: Record<Lead['servicio'], { es: string; en: string 
   catering: { es: 'Catering corporativo', en: 'Corporate catering' },
   diseno: { es: 'Diseño de productos y experiencias', en: 'Product and experience design' },
   ia: { es: 'Capacitación en IA para el trabajo', en: 'AI training for work' },
+  sgsst: { es: 'SG-SST (seguridad y salud en el trabajo)', en: 'Occupational health and safety (SG-SST)' },
 };
 
 /** Marco común: tinta sobre blanco, con el cian de marca solo en el acento. */

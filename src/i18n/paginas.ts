@@ -135,27 +135,6 @@ export const paginas = {
       otra: ['¿Tienes otra pregunta?', 'Escríbenos por WhatsApp o por correo.'],
     },
 
-    sgsst: {
-      titulo: ['Seguridad y salud en el trabajo, ', 'con licencia'],
-      lead: 'Capacitamos, investigamos y diseñamos el Sistema de Gestión de la Seguridad y Salud en el Trabajo de tu empresa con licencia en SST.',
-      cotizar: 'Cotizar SG-SST',
-      sello: 'Licencia SST',
-      cubierto: ['Cubierto por ', 'la licencia'],
-      cubiertoLead: 'Los cinco campos de acción de la licencia, con el nombre que tienen en la resolución.',
-      sistemas: ['Sistemas de gestión ', 'y auditorías'],
-      sistemasLead: 'También acompañamos otros sistemas de gestión de tu empresa. Estos servicios no hacen parte de la licencia en SST.',
-      auditorias: [
-        ['Auditoría interna del SG-SST', 'Revisión del Sistema de Gestión de la Seguridad y Salud en el Trabajo de tu empresa.'],
-        ['Diseño, implementación y auditoría del PESV', 'Plan Estratégico de Seguridad Vial.'],
-        ['Preparación y auditoría interna para RUC', 'Para empresas contratistas que deben cumplir el RUC.'],
-        ['Implementación, auditoría interna y acompañamiento a la certificación ISO', 'ISO 9001, 14001 y 45001. La certificación la otorga el organismo certificador.'],
-      ],
-      como: ['Cómo ', 'trabajamos'],
-      comoLead: 'Los mismos tres pasos de todos nuestros proyectos, con evidencia de cada actividad.',
-      evidencia: ['Evidencia por actividad', 'Cada actividad deja registro de asistencia, evaluación y certificado.'],
-      wa: 'Hola Antídoto, quiero cotizar un servicio de SG-SST.',
-    },
-
     actividades: {
       titulo: ['Entra a tu ', 'actividad'],
       lead: 'Si tu empresa te dio un código, escríbelo aquí para entrar al juego. Más abajo están los juegos de Misiones Antídoto.',
@@ -353,27 +332,6 @@ export const paginas = {
       indice: 'Topics',
       todas: 'See all questions',
       otra: ['Have another question?', 'Message us on WhatsApp or by email.'],
-    },
-
-    sgsst: {
-      titulo: ['Occupational health and safety, ', 'licensed'],
-      lead: 'We train, investigate and design your company’s Occupational Health and Safety Management System (SG-SST) under an occupational health and safety license.',
-      cotizar: 'Get an OHS quote',
-      sello: 'OHS license',
-      cubierto: ['Covered by ', 'the license'],
-      cubiertoLead: 'The five fields of practice of the license, as named in the resolution.',
-      sistemas: ['Management systems ', 'and audits'],
-      sistemasLead: 'We also support other management systems at your company. These services are not part of the health and safety license.',
-      auditorias: [
-        ['Internal audit of the OHS management system (SG-SST)', 'A review of your company’s Occupational Health and Safety Management System.'],
-        ['Design, implementation and audit of the PESV', 'Road Safety Strategic Plan (Plan Estratégico de Seguridad Vial).'],
-        ['Preparation and internal audit for RUC', 'For contractor companies that must comply with RUC.'],
-        ['Implementation, internal audit and support toward ISO certification', 'ISO 9001, 14001 and 45001. Certification is granted by the certification body.'],
-      ],
-      como: ['How we ', 'work'],
-      comoLead: 'The same three steps as all our projects, with evidence for every activity.',
-      evidencia: ['Evidence for every activity', 'Every activity leaves a record of attendance, assessment and certificate.'],
-      wa: 'Hi Antídoto, I would like a quote for an occupational health and safety service.',
     },
 
     actividades: {

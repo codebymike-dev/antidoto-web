@@ -3,6 +3,7 @@
 //   POST /v1/suscripciones          público (solo orígenes del sitio): suscripción a novedades
 //   GET|POST /v1/asesor             público (solo orígenes del sitio): chat con IA (src/asesor/)
 //   POST /v1/asesor/borrar          público (solo orígenes del sitio): el visitante borra su conversación
+//   POST /v1/clic                   público (solo orígenes del sitio): cuenta un clic, sin cookies (src/clics.ts)
 //   GET|POST /v1/suscripcion/confirmar|baja|preferencias?t=   por token: el GET lleva a la página
 //                                   del sitio y el POST hace la acción (la baja de un clic, también)
 //   GET  /v1/suscripcion/datos?t=   público (solo orígenes del sitio): datos para la página de preferencias
@@ -22,6 +23,7 @@
 import { drizzle } from 'drizzle-orm/d1';
 import type { Env } from './env';
 import { crearLead } from './leads';
+import { registrarClic } from './clics';
 import { origenPermitido, cabecerasCors } from './cors';
 import { pedirEnlace, paginaEntrar, entrar, sesionActual, mismoOrigen } from './auth';
 import { crearSuscripcion, confirmar, baja, preferencias, datosPreferencias } from './marketing/suscripciones';
@@ -63,6 +65,15 @@ export async function manejar(req: Request, env: Env, diferir: (p: Promise<unkno
     if (metodo === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
     if (metodo !== 'POST') return json({ ok: false }, 405, cors);
     return ruta === '/v1/leads' ? crearLead(req, env, db, appUrl, diferir, cors) : crearSuscripcion(req, env, db, appUrl, cors, diferir);
+  }
+
+  if (ruta === '/v1/clic') {
+    const origen = req.headers.get('origin');
+    if (!origenPermitido(origen, env, env.ENTORNO === 'local')) return json({ ok: false, error: 'origen' }, 403);
+    const cors = cabecerasCors(origen!);
+    if (metodo === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
+    if (metodo !== 'POST') return json({ ok: false }, 405, cors);
+    return registrarClic(req, env, db, cors);
   }
 
   if (ruta === '/v1/asesor' || ruta === '/v1/asesor/borrar') {

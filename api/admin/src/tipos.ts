@@ -49,6 +49,7 @@ export interface MetricasLeads {
   porServicio: { clave: string; n: number; ganados: number; valorGanado: number }[];
   porOrigen: { clave: string; n: number }[];
   porMes: { clave: string; n: number }[];
+  clics: { porTipo: { clave: string; n: number }[]; porPagina: { clave: string; n: number }[] };
 }
 
 export interface MetricasMarketing {

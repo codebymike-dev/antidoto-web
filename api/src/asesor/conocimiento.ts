@@ -4,15 +4,18 @@
 // de los textos de src/i18n/ui.ts, los mismos diccionarios que pintan la página. Si el asesor leyera de otra
 // fuente, tarde o temprano diría algo distinto de lo que dice la página que tiene detrás.
 //
-// Lo que el cliente todavía no ha entregado aparece en el sitio entre corchetes ("[PEDIDO
-// MÍNIMO]"). Eso no entra: el asesor solo sabe que está pendiente y lo manda a WhatsApp.
+// Lo que el cliente todavía no ha entregado va entre corchetes ("[PEDIDO MÍNIMO]") y el sitio no
+// lo publica. Eso no entra: una pregunta sin respuesta no llega al asesor.
+//
+// La licencia en SST solo cubre sus cinco campos de acción: el asesor no la asocia a las
+// auditorías de PESV, RUC o ISO ni a las demás líneas, igual que la página /sg-sst/.
 //
 // Antídoto no publica precios: cada propuesta se arma a la medida. Por eso no hay tarifario
 // ni calcular_precio, y la guardia de cifras no deja pasar ninguna cifra de dinero.
 //
 // Módulo PURO.
 import type { Locale } from '../../../src/i18n/ui';
-import { SERVICIOS_PUBLICOS, CLIENTES_PUBLICOS, FAQ_PUBLICA, SOLUCIONES_PUBLICAS, UI as ui, RUTAS as rutas, SITE } from './publico.gen';
+import { SERVICIOS_PUBLICOS, CLIENTES_PUBLICOS, FAQ_PUBLICA, SOLUCIONES_PUBLICAS, UI as ui, RUTAS as rutas, SITE, LICENCIA } from './publico.gen';
 
 export type Clave = (typeof SERVICIOS_PUBLICOS)[number]['clave'];
 export const CLAVES = SERVICIOS_PUBLICOS.map((s) => s.clave) as readonly Clave[];
@@ -40,8 +43,8 @@ export function conocimiento(locale: Locale, extra?: Extra): string {
   const i = s.inicio;
   const es = locale === 'es';
   const L = es
-    ? { servicios: 'Servicios', incluye: 'Incluye', datos: 'Datos', pagina: 'Página', ofertas: 'Programas y ofertas', para: 'para', recomendadas: 'Ofertas recomendadas', perfiles: 'Para quién (soluciones por área)', pasos: 'Cómo trabajamos', actividades: 'Actividades digitales', faq: 'Preguntas frecuentes', pend: 'Pendiente de confirmar: el equipo lo responde por WhatsApp.', clientes: 'Clientes publicados en el sitio', cifras: 'Cifras publicadas', fundadora: 'Fundadora', historia: 'Historia', contacto: 'Contacto', aliados: 'Aliados' }
-    : { servicios: 'Services', incluye: 'Includes', datos: 'Facts', pagina: 'Page', ofertas: 'Programs and offers', para: 'for', recomendadas: 'Recommended offers', perfiles: 'Who it is for (solutions by area)', pasos: 'How we work', actividades: 'Digital activities', faq: 'FAQ', pend: 'Not confirmed yet: the team answers this on WhatsApp.', clientes: 'Clients published on the site', cifras: 'Published figures', fundadora: 'Founder', historia: 'History', contacto: 'Contact', aliados: 'Partners' };
+    ? { servicios: 'Servicios', incluye: 'Incluye', datos: 'Datos', pagina: 'Página', ofertas: 'Programas y ofertas', para: 'para', recomendadas: 'Ofertas recomendadas', perfiles: 'Para quién (soluciones por área)', pasos: 'Cómo trabajamos', actividades: 'Actividades digitales', faq: 'Preguntas frecuentes', pend: 'Pendiente de confirmar: el equipo lo responde por WhatsApp.', clientes: 'Clientes publicados en el sitio', sinClientes: 'El sitio no publica nombres de clientes. No nombres ninguno.', cifras: 'Cifras publicadas', fundadora: 'Fundadora', historia: 'Historia', contacto: 'Contacto', aliados: 'Aliados', sgsst: 'SG-SST y licencia en Seguridad y Salud en el Trabajo', cubre: 'La licencia cubre solo estos campos de acción', noCubre: 'Sistemas de gestión y auditorías (NO hacen parte de la licencia; nunca digas que Antídoto certifica: la certificación ISO la otorga el organismo certificador)', juegos: 'Juegos (Misiones Antídoto): los participantes entran con el código de su actividad en' }
+    : { servicios: 'Services', incluye: 'Includes', datos: 'Facts', pagina: 'Page', ofertas: 'Programs and offers', para: 'for', recomendadas: 'Recommended offers', perfiles: 'Who it is for (solutions by area)', pasos: 'How we work', actividades: 'Digital activities', faq: 'FAQ', pend: 'Not confirmed yet: the team answers this on WhatsApp.', clientes: 'Clients published on the site', sinClientes: 'The site does not publish client names. Do not name any.', cifras: 'Published figures', fundadora: 'Founder', historia: 'History', contacto: 'Contact', aliados: 'Partners', sgsst: 'OHS (SG-SST) and occupational health and safety license', cubre: 'The license only covers these fields of practice', noCubre: 'Management systems and audits (NOT part of the license; never say Antídoto certifies: ISO certification is granted by the certification body)', juegos: 'Games (Misiones Antídoto): participants join with their activity code at' };
 
   const lista = (xs: readonly string[]) => xs.map(sinPendientes).filter(Boolean).map((x) => `- ${x}`).join('\n');
   const base = `${SITE.url}${rutas.servicios[locale]}`;
@@ -87,9 +90,12 @@ export function conocimiento(locale: Locale, extra?: Extra): string {
   const delPanel = new Map((extra?.faq ?? []).map((q) => [q.clave, q]));
   const preguntas = [...FAQ_PUBLICA.filter((q) => !delPanel.has(q.clave)), ...delPanel.values()];
   const clientes = [...new Set([...CLIENTES_PUBLICOS, ...(extra?.clientes ?? [])])];
+  // Una respuesta que es entera un dato pendiente no se publica en el sitio: tampoco llega aquí.
   const faq = preguntas.map((q) => q[locale])
-    .map(([p, r]) => `- ${p} ${sinPendientes(r) ?? L.pend}${sinPendientes(r) && TIENE_PENDIENTE.test(r) ? ` (${L.pend})` : ''}`)
+    .filter(([, r]) => sinPendientes(r))
+    .map(([p, r]) => `- ${p} ${sinPendientes(r)}${TIENE_PENDIENTE.test(r) ? ` (${L.pend})` : ''}`)
     .join('\n');
+  const sg = s.sgsst;
 
   return `## ${es ? 'Quién es Antídoto' : 'Who Antídoto is'}
 ${s.nosotrosLead}
@@ -101,9 +107,19 @@ ${i.insignia}.
 ## ${L.servicios}
 ${servicios}
 
+## ${L.sgsst}
+${sg.lead} ${L.pagina}: ${SITE.url}${rutas.sgsst[locale]}
+${sg.sello} · Res. ${LICENCIA.resolucion} · ${LICENCIA.entidad[locale]}.
+${L.cubre}:
+${lista(LICENCIA.campos[locale])}
+${L.noCubre}:
+${sg.auditorias.map(([t, d]) => `- ${t}: ${d}`).join('\n')}
+${sg.evidencia[0]}: ${sg.evidencia[1]}
+
 ## ${L.actividades}
 ${i.actividades.lead}
 ${lista(i.actividades.puntos)}
+${L.juegos} ${SITE.url}${rutas.actividades[locale]}
 
 ## ${L.perfiles}
 ${soluciones}
@@ -122,12 +138,12 @@ ${s.fundadoraNombre}, ${s.fundadoraCargo}. ${s.fundadoraBio}
 ${s.historia.map(([a, t, d]) => `- ${a}: ${t}. ${d}`).join('\n')}
 
 ## ${L.clientes}
-${clientes.join(', ')}.
+${clientes.length ? `${clientes.join(', ')}.` : L.sinClientes}
 
 ## ${L.faq}
 ${L.pagina}: ${SITE.url}${rutas.faq[locale]}
 ${faq}
 
 ## ${L.contacto}
-${es ? 'WhatsApp y teléfono' : 'WhatsApp and phone'}: ${SITE.phoneDisplay}. ${es ? 'Correo' : 'Email'}: ${SITE.email}. ${es ? 'Cotizador' : 'Quote form'}: ${SITE.url}${rutas.contacto[locale]}`;
+${es ? 'WhatsApp (solo mensajes)' : 'WhatsApp (messages only)'}: ${SITE.phoneDisplay}. ${es ? 'Llamadas' : 'Calls'}: ${SITE.llamadasDisplay}. ${es ? 'Correo' : 'Email'}: ${SITE.email}. ${es ? 'Dónde' : 'Where'}: ${SITE.ubicacion[locale]}. ${es ? 'Cotizador' : 'Quote form'}: ${SITE.url}${rutas.contacto[locale]}`;
 }

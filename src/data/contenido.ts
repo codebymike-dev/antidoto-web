@@ -92,6 +92,15 @@ export function obtenerClientes(): Promise<Cliente[]> {
   return clientes;
 }
 
+export type Juego = CollectionEntry<'juegos'>['data'];
+let juegos: Promise<Juego[]> | undefined;
+
+/** Catálogo de juegos de /actividades/ (lo local más lo publicado en el panel), en su orden. */
+export function obtenerJuegos(): Promise<Juego[]> {
+  juegos ??= getCollection('juegos').then((e) => e.map((x) => x.data).sort((a, b) => a.orden - b.orden));
+  return juegos;
+}
+
 export type Vacante = CollectionEntry<'vacantes'>;
 let vacantes: Promise<Vacante[]> | undefined;
 

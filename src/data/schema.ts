@@ -1,8 +1,8 @@
 // Datos estructurados (auditoria/01-auditoria-tecnica.md §1): la organización en la home y,
 // en cada página de servicio, el Service y sus migas. Sin imports de Astro: se prueban en tests/.
-import { SITE } from './site';
+import { SITE, EMPRESA } from './site';
 import { servicioPath, type Servicio } from '../lib/servicios';
-import { t, type Locale } from '../i18n/ui';
+import { t, rutas, type Locale } from '../i18n/ui';
 
 const ORG_ID = `${SITE.url}/#org`;
 const absoluta = (ruta: string) => new URL(ruta, SITE.url).href;
@@ -21,12 +21,16 @@ export function organizationSchema(servicios: Servicio[], locale: Locale) {
     '@type': 'ProfessionalService',
     '@id': ORG_ID,
     name: SITE.name,
+    legalName: EMPRESA.razonSocial,
+    taxID: EMPRESA.nit,
     url: `${SITE.url}/`,
     logo: `${SITE.url}/logo-512.png`,
     image: `${SITE.url}/og/antidoto-og.jpg`,
     description: t(locale).seo.inicio[1],
-    telephone: SITE.phoneDisplay,
+    telephone: SITE.llamadasDisplay,
     email: SITE.email,
+    // Solo la ciudad: el domicilio completo va únicamente en la política de datos.
+    address: { '@type': 'PostalAddress', addressLocality: EMPRESA.ciudad, addressRegion: 'Bogotá D.C.', addressCountry: 'CO' },
     foundingDate: String(SITE.foundingYear),
     founder: { '@type': 'Person', name: 'María Paula Ramos', jobTitle: txt.cargo },
     areaServed: { '@type': 'Country', name: 'Colombia' },
@@ -56,6 +60,22 @@ export function servicioSchema(servicio: Servicio, locale: Locale, imagen: strin
     image: absoluta(imagen),
     inLanguage: t(locale).htmlLang,
     areaServed: { '@type': 'Country', name: 'Colombia' },
+    provider: { '@type': 'ProfessionalService', '@id': ORG_ID, name: SITE.name, url: `${SITE.url}/` },
+  };
+}
+
+/** SG-SST (/sg-sst/): no es una línea de src/content/servicios/, tiene su propia página. */
+export function sgsstSchema(locale: Locale) {
+  const txt = t(locale);
+  const url = absoluta(rutas.sgsst[locale]);
+  return {
+    '@type': 'Service',
+    '@id': `${url}#servicio`,
+    name: txt.sgsst.servicio,
+    description: txt.seo.sgsst[1],
+    url,
+    inLanguage: txt.htmlLang,
+    areaServed: [{ '@type': 'City', name: EMPRESA.ciudad }, { '@type': 'Country', name: 'Colombia' }],
     provider: { '@type': 'ProfessionalService', '@id': ORG_ID, name: SITE.name, url: `${SITE.url}/` },
   };
 }

@@ -4,7 +4,15 @@
 export const ESTADOS = ['nuevo', 'contactado', 'cotizado', 'ganado', 'perdido'] as const;
 export type Estado = (typeof ESTADOS)[number];
 
-export const SERVICIOS = ['formaciones', 'audiovisual', 'catering', 'diseno', 'ia'] as const;
+/**
+ * Clics que cuenta la analítica propia del sitio, sin cookies ni datos personales (POST /v1/clic):
+ * WhatsApp en cualquier parte, cotizaciones enviadas por WhatsApp o por correo y llamadas.
+ */
+export const TIPOS_CLIC = ['whatsapp', 'cotizacion_whatsapp', 'cotizacion_correo', 'llamada'] as const;
+export type TipoClic = (typeof TIPOS_CLIC)[number];
+
+/** Líneas del sitio más SG-SST (página propia /sg-sst/, no es una línea de src/content/servicios/). */
+export const SERVICIOS = ['formaciones', 'audiovisual', 'catering', 'diseno', 'ia', 'sgsst'] as const;
 export type ServicioId = (typeof SERVICIOS)[number];
 
 /**

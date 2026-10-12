@@ -71,6 +71,13 @@
       "when": 1791294798075,
       "tag": "0009_portal",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1791825230798,
+      "tag": "0010_clics",
+      "breakpoints": true
     }
   ]
 }

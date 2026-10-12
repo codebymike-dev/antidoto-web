@@ -3,8 +3,8 @@
 
 export const LOCALES = ['es', 'en'] as const;
 
-/** Baja solo la primera letra, para meter un título en una frase sin romper siglas como IA o AI. */
-export const enFrase = (s: string): string => s.charAt(0).toLowerCase() + s.slice(1);
+/** Baja solo la primera letra, para meter un título en una frase sin romper siglas como IA o AI. Si empieza por una sigla (SG-SST), lo deja igual. */
+export const enFrase = (s: string): string => (/^[A-ZÁÉÍÓÚÑ]{2}/.test(s) ? s : s.charAt(0).toLowerCase() + s.slice(1));
 export type Locale = (typeof LOCALES)[number];
 
 /** Páginas del sitio y su ruta en cada idioma. */
@@ -124,6 +124,29 @@ export const ui = {
       facilitador: { campo: 'Pregúntale al facilitador', placeholder: 'Pregúntale algo al facilitador', enviar: 'Preguntar', pensando: 'Déjame pensar', seguir: 'Seguir en el chat' },
     },
 
+    // Página /sg-sst/ (PaginaSgsst.astro). Aquí y no en paginas.ts: el asesor de la API también la lee.
+    sgsst: {
+      titulo: ['Seguridad y salud en el trabajo, ', 'con licencia'],
+      lead: 'Capacitamos, investigamos y diseñamos el Sistema de Gestión de la Seguridad y Salud en el Trabajo de tu empresa con licencia en SST.',
+      cotizar: 'Cotizar SG-SST',
+      sello: 'Licencia SST',
+      servicio: 'SG-SST (seguridad y salud en el trabajo)',
+      cubierto: ['Cubierto por ', 'la licencia'],
+      cubiertoLead: 'Los cinco campos de acción de la licencia, con el nombre que tienen en la resolución.',
+      sistemas: ['Sistemas de gestión ', 'y auditorías'],
+      sistemasLead: 'También acompañamos otros sistemas de gestión de tu empresa. Estos servicios no hacen parte de la licencia en SST.',
+      auditorias: [
+        ['Auditoría interna del SG-SST', 'Revisión del Sistema de Gestión de la Seguridad y Salud en el Trabajo de tu empresa.'],
+        ['Diseño, implementación y auditoría del PESV', 'Plan Estratégico de Seguridad Vial.'],
+        ['Preparación y auditoría interna para RUC', 'Para empresas contratistas que deben cumplir el RUC.'],
+        ['Implementación, auditoría interna y acompañamiento a la certificación ISO', 'ISO 9001, 14001 y 45001. La certificación la otorga el organismo certificador.'],
+      ],
+      como: ['Cómo ', 'trabajamos'],
+      comoLead: 'Los mismos tres pasos de todos nuestros proyectos, con evidencia de cada actividad.',
+      evidencia: ['Evidencia por actividad', 'Cada actividad deja registro de asistencia, evaluación y certificado.'],
+      wa: 'Hola Antídoto, quiero cotizar un servicio de SG-SST.',
+    },
+
     estado: 'Atendiendo',
     ubicacion: 'Bogotá, Colombia',
     idiomas: 'ES · PT · EN',
@@ -219,10 +242,11 @@ export const ui = {
         correo: 'Abrimos tu correo con el mensaje. Envíalo desde allí para que nos llegue.',
       },
       resumenLead: 'Revisa el mensaje y elige cómo enviarlo: por WhatsApp o por correo. Se abre con el texto listo.',
-      mensaje: (d: { servicio: string; oferta?: string; fecha: string; personas: string; ciudad: string; tipo: string }) =>
+      mensaje: (d: { servicio: string; oferta?: string; juego?: string; fecha: string; personas: string; ciudad: string; tipo: string }) =>
         [
           `Hola Antídoto, quiero cotizar ${enFrase(d.servicio)}.`,
           d.oferta && `Oferta: ${d.oferta}.`,
+          d.juego && `Juego: ${d.juego}.`,
           d.tipo && `Organización: ${d.tipo}.`,
           d.fecha && `Fecha aproximada: ${d.fecha}.`,
           d.personas && `Personas: ${d.personas}.`,
@@ -590,6 +614,28 @@ export const ui = {
       facilitador: { campo: 'Ask the facilitator', placeholder: 'Ask the facilitator anything', enviar: 'Ask', pensando: 'Let me think', seguir: 'Continue in the chat' },
     },
 
+    sgsst: {
+      titulo: ['Occupational health and safety, ', 'licensed'],
+      lead: 'We train, investigate and design your company’s Occupational Health and Safety Management System (SG-SST) under an occupational health and safety license.',
+      cotizar: 'Get an OHS quote',
+      sello: 'OHS license',
+      servicio: 'Occupational health and safety (SG-SST)',
+      cubierto: ['Covered by ', 'the license'],
+      cubiertoLead: 'The five fields of practice of the license, as named in the resolution.',
+      sistemas: ['Management systems ', 'and audits'],
+      sistemasLead: 'We also support other management systems at your company. These services are not part of the health and safety license.',
+      auditorias: [
+        ['Internal audit of the OHS management system (SG-SST)', 'A review of your company’s Occupational Health and Safety Management System.'],
+        ['Design, implementation and audit of the PESV', 'Road Safety Strategic Plan (Plan Estratégico de Seguridad Vial).'],
+        ['Preparation and internal audit for RUC', 'For contractor companies that must comply with RUC.'],
+        ['Implementation, internal audit and support toward ISO certification', 'ISO 9001, 14001 and 45001. Certification is granted by the certification body.'],
+      ],
+      como: ['How we ', 'work'],
+      comoLead: 'The same three steps as all our projects, with evidence for every activity.',
+      evidencia: ['Evidence for every activity', 'Every activity leaves a record of attendance, assessment and certificate.'],
+      wa: 'Hi Antídoto, I would like a quote for an occupational health and safety service.',
+    },
+
     estado: 'Available',
     ubicacion: 'Bogotá, Colombia',
     idiomas: 'ES · PT · EN',
@@ -685,10 +731,11 @@ export const ui = {
         correo: 'We opened your email with the message. Send it from there so it reaches us.',
       },
       resumenLead: 'Check the message and choose how to send it: on WhatsApp or by email. It opens with the text ready.',
-      mensaje: (d: { servicio: string; oferta?: string; fecha: string; personas: string; ciudad: string; tipo: string }) =>
+      mensaje: (d: { servicio: string; oferta?: string; juego?: string; fecha: string; personas: string; ciudad: string; tipo: string }) =>
         [
           `Hi Antídoto, I would like a quote for ${enFrase(d.servicio)}.`,
           d.oferta && `Offer: ${d.oferta}.`,
+          d.juego && `Game: ${d.juego}.`,
           d.tipo && `Organization: ${d.tipo}.`,
           d.fecha && `Approximate date: ${d.fecha}.`,
           d.personas && `People: ${d.personas}.`,

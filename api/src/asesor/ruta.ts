@@ -1,6 +1,6 @@
 // Rutas del chat con IA del sitio:
 //   GET  /v1/asesor          ¿está disponible? (clave configurada, encendido y presupuesto del día)
-//   POST /v1/asesor          una pregunta: { locale, pagina, mensajes, conversacion?, origen? } -> respuesta revisada
+//   POST /v1/asesor          una pregunta: { locale, pagina, mensajes, conversacion?, origen?, turnstile? } -> respuesta revisada
 //   POST /v1/asesor/borrar   { conversacion }: el visitante borra su conversación guardada
 // Las dos solo desde los orígenes del sitio. El POST va en text/plain, como los leads, para no
 // pagar el preflight de CORS en cada pregunta.
@@ -9,7 +9,8 @@ import type { Env } from '../env';
 import type { ServicioId } from '../db/schema';
 import { enviar, correoInteresAsesor } from '../correo';
 import { dentroDelLimite } from '../limite';
-import { ahora, hashIp, json } from '../util';
+import { verificarTurnstile } from '../turnstile';
+import { ahora, DIA, hashIp, json } from '../util';
 import { atender, validarEntrada, UUID_V4 } from './bucle';
 import { MAX_PREGUNTAS } from './prompt';
 import { borrarConversacion, guardarTurno, previaDe, type Previa } from './guardado';
@@ -20,6 +21,8 @@ import { ajustesAsesor, presupuestoRestante, sumarGasto } from './presupuesto';
 
 /** Preguntas por IP y hora. Una conversación larga son unas 10; esto deja margen sin dejar abusar. */
 export const PREGUNTAS_POR_HORA = 60;
+/** Preguntas por visitante (IP) y día: unas tres conversaciones completas. */
+export const PREGUNTAS_POR_DIA = 90;
 /** Avisos al equipo por IP y hora: la misma persona preparando WhatsApp varias veces avisa una o dos. */
 export const AVISOS_POR_HORA = 2;
 const MAX_CUERPO = 64 * 1024;
@@ -55,6 +58,13 @@ export async function rutaAsesor(
   } catch {
     return json({ ok: false, error: 'json' }, 400, cabeceras);
   }
+  // El token de Turnstile viaja con la pregunta pero no es parte de ella.
+  let turnstile: unknown;
+  if (datos && typeof datos === 'object' && !Array.isArray(datos) && 'turnstile' in datos) {
+    const { turnstile: token, ...resto } = datos as Record<string, unknown>;
+    turnstile = token;
+    datos = resto;
+  }
   const entrada = validarEntrada(datos);
   if ('error' in entrada) return json({ ok: false, error: entrada.error }, entrada.error === 'limite' ? 429 : 422, cabeceras);
 
@@ -62,6 +72,15 @@ export async function rutaAsesor(
   const ipHash = await hashIp(req.headers.get('cf-connecting-ip'), env.SAL_IP, t);
   if (!(await dentroDelLimite(db, `asesor:${ipHash ?? 'sin-ip'}`, PREGUNTAS_POR_HORA, t))) {
     return json({ ok: false, error: 'limite' }, 429, cabeceras);
+  }
+  if (!(await dentroDelLimite(db, `asesor-dia:${ipHash ?? 'sin-ip'}`, PREGUNTAS_POR_DIA, t, DIA))) {
+    return json({ ok: false, error: 'limite' }, 429, cabeceras);
+  }
+  // Protección contra bots: solo con TURNSTILE_SECRET. Si Cloudflare no contesta, sigue con los
+  // límites de arriba (que un caído de Turnstile no apague el chat).
+  if (env.TURNSTILE_SECRET) {
+    const humano = await verificarTurnstile(env.TURNSTILE_SECRET, turnstile, req.headers.get('cf-connecting-ip'));
+    if (humano === false) return json({ ok: false, error: 'verificacion' }, 403, cabeceras);
   }
   // Con la conversación guardada, el tope de preguntas lo cuenta el servidor (el navegador podría
   // mandar menos historial). Si la base no responde, sigue: guardar falla abierto.
