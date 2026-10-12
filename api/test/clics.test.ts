@@ -11,7 +11,7 @@ import { DIA, HORA } from '../src/util';
 const SITIO = 'https://antidotocolombia.com';
 const VERIFICAR = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
-const p = prepararPruebas(async (url, init) => {
+const p = prepararPruebas((url, init) => {
   if (url !== VERIFICAR) return null;
   const token = (init?.body as FormData).get('response');
   return Response.json({ success: token === 'bueno' });
