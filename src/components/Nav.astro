@@ -1,19 +1,20 @@
 ---
-// Barra de navegación del sitio multipágina: logo, cinco secciones con sus páginas, selector de
-// idioma y botón Cotizar. No es fija y no enlaza a anclas de la home: cada entrada lleva a una
-// página real. Servicios, Soluciones, Nosotros y Recursos tienen submenú (patrón disclosure:
-// el texto es un enlace al índice y un botón aparte abre el panel). Servicios abre un mega menú
-// con todas las líneas y sus ofertas.
+// Barra de navegación del sitio multipágina: logo con el sello de la licencia SST, Servicios,
+// Soluciones, SG-SST y Nosotros, "Entrar a mi actividad", selector de idioma y botón Cotizar
+// (brief del 08/10/2026). No es fija y no enlaza a anclas de la home: cada entrada lleva a una
+// página real. Servicios, Soluciones y Nosotros tienen submenú (patrón disclosure: el texto es un
+// enlace al índice y un botón aparte abre el panel). Servicios abre un mega menú con todas las
+// líneas y sus ofertas. Las preguntas frecuentes van en Nosotros y en el pie.
 // Sin JS: en escritorio los paneles se abren con hover y foco (CSS); en móvil el panel queda
 // abierto como lista. Con JS: clic o puntero abren, Esc cierra y devuelve el foco, y bajo
 // 1100 px todo va en el panel del botón Menú, con los submenús como acordeones.
 // Tiene view-transition-name propio: es igual en todas las páginas y no se funde al navegar.
 import Logo from './Logo.astro';
-import { PORTAL } from '../data/site';
+import SelloLicencia from './SelloLicencia.astro';
 import { t, rutas, otroIdioma, type Locale, type Pagina } from '../i18n/ui';
 import { tp } from '../i18n/paginas';
 import { obtenerServicios, servicioPath } from '../data/servicios';
-import { obtenerOfertas, obtenerArticulos, ofertaPath } from '../data/contenido';
+import { obtenerOfertas, obtenerClientes, obtenerCasos, ofertaPath } from '../data/contenido';
 import { SOLUCIONES, solucionPath } from '../data/soluciones';
 
 interface Props {
@@ -32,7 +33,8 @@ const actual = Astro.url.pathname;
 
 const servicios = await obtenerServicios();
 const ofertas = await obtenerOfertas();
-const hayBlog = (await obtenerArticulos()).length > 0;
+const hayClientes = (await obtenerClientes()).length > 0;
+const hayCasos = (await obtenerCasos()).length > 0;
 const perfiles = s.inicio.paraQuien.perfiles;
 
 type Enlace = { href: string; texto: string; desc?: string };
@@ -47,27 +49,20 @@ const items: Item[] = [
     secciones: ['soluciones'],
     sub: SOLUCIONES.map((sol) => ({ href: solucionPath(sol, locale), texto: perfiles[sol.perfil][0], desc: perfiles[sol.perfil][1] })),
   },
-  { id: 'portafolio', href: rutas.portafolio[locale], texto: s.nav.portafolio, secciones: ['portafolio'] },
+  { id: 'sgsst', href: rutas.sgsst[locale], texto: s.nav.sgsst, secciones: ['sgsst'] },
   {
     id: 'nosotros',
     href: rutas.nosotros[locale],
     texto: s.nav.nosotros,
-    secciones: ['nosotros', 'comoTrabajamos', 'clientes', 'trabaja'],
+    secciones: ['nosotros', 'comoTrabajamos', 'clientes', 'portafolio', 'trabaja', 'faq', 'blog'],
     sub: [
       { href: rutas.nosotros[locale], texto: p.navEmpresa, desc: p.descNav.nosotros },
       { href: rutas.comoTrabajamos[locale], texto: s.nav.comoTrabajamos, desc: p.descNav.comoTrabajamos },
-      { href: rutas.clientes[locale], texto: s.nav.clientes, desc: p.descNav.clientes },
+      // Clientes y portafolio solo existen con contenido autorizado (ver src/pages/clientes/).
+      ...(hayCasos ? [{ href: rutas.portafolio[locale], texto: s.nav.portafolio, desc: p.descNav.portafolio }] : []),
+      ...(hayClientes ? [{ href: rutas.clientes[locale], texto: s.nav.clientes, desc: p.descNav.clientes }] : []),
       { href: rutas.trabaja[locale], texto: s.nav.trabaja, desc: p.descNav.trabaja },
-    ],
-  },
-  {
-    id: 'recursos',
-    href: rutas.faq[locale],
-    texto: p.navRecursos,
-    secciones: ['faq', 'blog'],
-    sub: [
       { href: rutas.faq[locale], texto: s.nav.faq, desc: p.descNav.faq },
-      ...(hayBlog ? [{ href: rutas.blog[locale], texto: s.nav.blog, desc: p.descNav.blog }] : []),
     ],
   },
 ];
@@ -76,7 +71,10 @@ const pag = (href: string) => (href === actual ? 'page' : undefined);
 ---
 <header class="nav" data-nav>
   <div class="barra wrap">
-    <a href={home} class="home" aria-label={s.homeLabel}><Logo class="logo" /></a>
+    <div class="marca">
+      <a href={home} class="home" aria-label={s.homeLabel}><Logo class="logo" /></a>
+      <SelloLicencia locale={locale} variante="corto" href={rutas.sgsst[locale]} class="sello-nav" />
+    </div>
     <div class="derecha">
       <!-- Antes del panel en el DOM: al abrirlo, el siguiente Tab entra a los enlaces. A la vista
            queda a la derecha de Cotizar (order). -->
@@ -128,8 +126,8 @@ const pag = (href: string) => (href === actual ? 'page' : undefined);
             </li>
           ))}
         </ul>
-        <!-- Plataforma de misiones (otro sitio, solo en español): para quien ya tiene un código. -->
-        <a class="mision" href={PORTAL.url} hreflang="es" aria-label={s.portalNavLabel}>{s.portalNav}<span class="sale" aria-hidden="true">↗</span></a>
+        <!-- Para quien ya tiene el código de una actividad: lleva a /actividades/, separado de Cotizar. -->
+        <a class="mision" href={rutas.actividades[locale]} aria-current={pag(rutas.actividades[locale])}>{s.nav.actividades}</a>
         <!-- El nombre accesible empieza por lo que se ve (WCAG 2.5.3), para quien navega con la voz. -->
         <a class="idioma" href={alternateHref} hreflang={otro} aria-label={`${locale.toUpperCase()} / ${otro.toUpperCase()}: ${s.switchLangLabel}`}>
           <span class="actual-idioma">{locale.toUpperCase()}</span><span aria-hidden="true">/</span><span lang={otro}>{otro.toUpperCase()}</span>
@@ -219,7 +217,10 @@ const pag = (href: string) => (href === actual ? 'page' : undefined);
 <style>
   .nav { position: relative; z-index: 40; background: var(--color-paper); border-bottom: 1px solid var(--color-line-soft); padding-top: env(safe-area-inset-top, 0px); view-transition-name: nav; }
   .barra { padding-block: 14px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .marca { display: flex; align-items: center; gap: 14px; min-width: 0; }
   .home { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-antidote); }
+  /* El sello vive en el encabezado; en pantallas medianas y móviles lo cubren el hero y el ítem SG-SST. */
+  @media (max-width: 1320px) { .marca :global(.sello-nav) { display: none; } }
   .home :global(.logo) { display: block; height: 34px; width: auto; }
   .derecha { display: flex; align-items: center; gap: 24px; }
 
@@ -265,7 +266,7 @@ const pag = (href: string) => (href === actual ? 'page' : undefined);
   .idioma .actual-idioma { color: var(--color-deep); }
   .mision { display: inline-flex; align-items: center; min-height: 44px; white-space: nowrap; text-decoration: none; font-size: 15px; font-weight: 500; color: var(--color-slate); }
   .mision:hover { color: var(--color-deep); }
-  .mision .sale { margin-left: 0.3em; font-size: 0.85em; }
+  .mision[aria-current] { color: var(--color-deep); }
   .cotizar { font-size: 16px; padding: 0 22px; }
   .nav :focus-visible { outline-color: var(--color-deep); }
 

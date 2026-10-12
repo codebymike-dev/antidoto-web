@@ -65,10 +65,11 @@ const resto = await Promise.all(
 
   <div class="wrap rejilla">
     <div class="texto">
-      <p class="insignia" data-hero-entra>
+      <a class="insignia" href={rutas.sgsst[locale]} data-hero-entra>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"></path><path d="M9 12l2 2 4-4"></path></svg>
         <span>{h.insignia}</span>
-      </p>
+        <span class="res">{h.insigniaSello}</span>
+      </a>
       <h1 id="hero-t">{h.titulo[0]}<span class="resaltado">{h.titulo[1]}</span></h1>
       <p class="lead" data-hero-entra>{h.lead}</p>
       <div class="acciones" data-hero-entra>
@@ -95,9 +96,9 @@ const resto = await Promise.all(
         <span class="monograma" aria-hidden="true">MP</span>
         <p><strong>{s.fundadoraNombre}</strong><span>{h.fundadoraResumen}</span></p>
       </div>
-      <a class="bajar" href="#clientes-cifras">
+      <a class="bajar" href={rutas.comoTrabajamos[locale]}>
         {h.verMas}
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M6 13l6 6 6-6"></path></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg>
       </a>
     </div>
     <svg class="borde" viewBox="0 0 1440 24" preserveAspectRatio="none" aria-hidden="true"><path d="M0 12 Q180 2 360 12 T720 12 T1080 12 T1440 12 V24 H0 Z"></path></svg>
@@ -119,7 +120,9 @@ const resto = await Promise.all(
 
   .rejilla { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); align-items: center; gap: 56px; padding-block: 72px 104px; min-height: min(720px, calc(100svh - 170px)); }
   .texto { display: flex; flex-direction: column; align-items: flex-start; gap: 22px; }
-  .insignia { margin: 0; display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 999px; background: rgb(255 255 255 / 0.12); border: 1px solid rgb(255 255 255 / 0.28); font-size: 14px; font-weight: 500; }
+  .insignia { margin: 0; display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; min-height: 44px; box-sizing: border-box; padding: 8px 14px; border-radius: 999px; background: rgb(255 255 255 / 0.12); border: 1px solid rgb(255 255 255 / 0.28); color: inherit; font-size: 14px; font-weight: 500; text-decoration: none; }
+  .insignia:hover { background: rgb(255 255 255 / 0.2); }
+  .insignia .res { padding: 2px 9px; border-radius: 999px; background: var(--color-glow); color: var(--color-ink); font-size: 12.5px; font-weight: 600; letter-spacing: 0.02em; }
   .insignia svg { width: 18px; height: 18px; flex: none; fill: none; stroke: var(--color-glow); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   /* Interlínea holgada: el resaltado tiene caja y no debe tocar la línea de arriba. */
   h1 { margin: 0; font-size: clamp(36px, 4.4vw, 64px); line-height: 1.14; color: var(--color-paper); text-shadow: 0 2px 24px rgb(15 24 29 / 0.35); }
@@ -150,7 +153,7 @@ const resto = await Promise.all(
   .fundadora span { font-size: 14px; }
   .bajar { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--color-ink); font-weight: 600; font-size: 15px; text-decoration: none; }
   .bajar svg { width: 18px; height: 18px; animation: bajar 1.6s var(--ease-in-out) 3; }
-  @keyframes bajar { 50% { transform: translateY(4px); } }
+  @keyframes bajar { 50% { transform: translateX(4px); } }
   .franja :focus-visible { outline-color: var(--color-ink); }
 
   @media (max-width: 900px) {
