@@ -1,7 +1,7 @@
 // Textos de las páginas internas del sitio multipágina (índices, líneas, ofertas, soluciones,
 // portafolio, empresa, FAQ, blog, legales y mapa del sitio). Los textos comunes siguen en ui.ts.
-// Regla: los dos idiomas, sin guiones largos ni semilargos, sin emojis. Lo que va entre
-// corchetes es un dato que falta del cliente y se muestra en una caja .pendiente.
+// Regla: los dos idiomas, sin guiones largos ni semilargos, sin emojis. Un bloque sin contenido
+// no se pinta: nada de corchetes ni cajas de "pendiente" en el sitio publicado.
 import { enFrase, type Locale } from './ui';
 
 export const paginas = {
@@ -18,6 +18,7 @@ export const paginas = {
     navRecursos: 'Recursos',
     descNav: {
       soluciones: 'Por área: SST, talento humano, comunicaciones y educación.',
+      sgsst: 'Licencia SST, capacitación, sistemas de gestión y auditorías.',
       nosotros: 'Quiénes somos y de dónde venimos.',
       comoTrabajamos: 'Tres pasos, del reto al informe final.',
       clientes: 'Marcas que han trabajado con nosotros.',
@@ -48,20 +49,15 @@ export const paginas = {
       paraQuien: ['Para ', 'quién'],
       paraQuienLead: 'Las áreas que más contratan esta línea.',
       casos: ['Casos de ', 'esta línea'],
-      casoPendiente: '[CASO REAL DE ESTA LÍNEA: cliente, reto, solución y resultado validado]',
       faq: ['Preguntas ', 'frecuentes'],
       otras: ['Otras ', 'líneas'],
       datos: 'En cifras',
-      detallePendiente: '[DESCRIPCIÓN LARGA DE LA LÍNEA: metodología, formatos y diferenciales]',
       verOferta: 'Ver oferta',
     },
 
     oferta: {
       para: 'Para',
       incluye: ['Qué ', 'incluye'],
-      incluyePendiente: '[QUÉ INCLUYE: entregables, formato y duración]',
-      detallePendiente: '[DESCRIPCIÓN DETALLADA: cómo se hace, cuánto dura y qué se lleva el cliente]',
-      fotosPendiente: '[2 O 3 FOTOS DE ESTA OFERTA]',
       otras: (linea: string) => `Más de ${linea}`,
       soluciones: ['Recomendada ', 'para'],
       cotizarEsta: 'Cotizar esta oferta',
@@ -76,17 +72,12 @@ export const paginas = {
       solucion: 'Cómo lo resolvemos',
       ofertas: ['Lo que ', 'recomendamos'],
       clientes: 'Han confiado en nosotros',
-      casoPendiente: '[CASO REAL DE ESTA ÁREA: empresa, reto y una cifra validada por el cliente]',
-      educacionPendiente: '[RETOS TÍPICOS DE COLEGIOS Y UNIVERSIDADES, validados por el cliente]',
     },
 
     portafolio: {
       titulo: ['Nuestro ', 'trabajo'],
       lead: 'Proyectos reales de formación, video, catering y diseño, contados de principio a fin.',
       todos: 'Todos',
-      vacio: '[CASOS DEL PORTAFOLIO: cliente con autorización, reto, solución, resultado y fotos]',
-      vacioLead: 'Mientras publicamos los casos, mira las marcas que han trabajado con nosotros.',
-      verClientes: 'Ver clientes',
       reto: 'El reto',
       solucion: 'Lo que hicimos',
       resultado: 'El resultado',
@@ -105,10 +96,6 @@ export const paginas = {
     como: {
       titulo: ['Así trabajamos ', 'contigo'],
       lead: 'Tres pasos, de la primera conversación al informe final. Un solo equipo responde por todo.',
-      entregamos: ['Lo que ', 'te entregamos'],
-      entregamosPendiente: '[ENTREGABLES AL CIERRE: registro, informe, evaluación o certificados según el servicio]',
-      tiempos: ['Tiempos ', 'de respuesta'],
-      tiemposPendiente: '[TIEMPO DE RESPUESTA A UNA COTIZACIÓN Y ANTICIPACIÓN RECOMENDADA POR SERVICIO]',
     },
 
     trabaja: {
@@ -123,7 +110,6 @@ export const paginas = {
       talentoLead: 'Facilitadores, productores audiovisuales, cocina y diseño. Envíanos tu hoja de vida o portafolio por correo.',
       talentoAsunto: 'Hoja de vida para Antídoto',
       talentoCta: 'Enviar hoja de vida',
-      vacantesPendiente: '[VACANTES ABIERTAS, si las hay]',
       vacantesTitulo: ['Vacantes ', 'abiertas'],
       modalidad: { presencial: 'Presencial', hibrida: 'Híbrida', remota: 'Remota' },
       vinculo: { completo: 'Tiempo completo', medio: 'Medio tiempo', proyecto: 'Por proyecto' },
@@ -146,7 +132,7 @@ export const paginas = {
       },
       indice: 'Temas',
       todas: 'Ver todas las preguntas',
-      otra: ['¿Tienes otra pregunta?', 'Escríbenos y te respondemos por WhatsApp.'],
+      otra: ['¿Tienes otra pregunta?', 'Escríbenos por WhatsApp o por correo.'],
     },
 
     blog: {
@@ -154,7 +140,6 @@ export const paginas = {
       lead: 'Notas sobre SST, formación, video, eventos y cultura para quienes forman y cuidan a sus equipos.',
       categorias: { sst: 'SST', formacion: 'Formación', audiovisual: 'Audiovisual', eventos: 'Eventos', cultura: 'Cultura' },
       todas: 'Todas',
-      vacio: '[PRIMEROS ARTÍCULOS DEL BLOG: temas y autor definidos con el cliente]',
       por: 'Por',
       relacionados: ['Servicios ', 'relacionados'],
       otros: ['Más ', 'artículos'],
@@ -169,13 +154,12 @@ export const paginas = {
         titulo: 'Términos y condiciones',
         lead: 'Condiciones de uso de este sitio web.',
         secciones: [
-          ['Quiénes somos', 'Este sitio pertenece a Antídoto. [RAZÓN SOCIAL, NIT Y DOMICILIO]'],
+          ['Quiénes somos', 'Este sitio pertenece a ANTIDOTO S.A.S., NIT 901.777.384-6, que usa la marca Antídoto.'],
           ['Uso del sitio', 'El sitio informa sobre los servicios de Antídoto y permite pedir cotizaciones. Al usarlo te comprometes a no hacer un uso ilícito ni a afectar su funcionamiento.'],
           ['Cotizaciones', 'Las cotizaciones que armas en el sitio son una solicitud, no una oferta ni un contrato. Las condiciones de cada servicio se acuerdan por escrito en la propuesta.'],
-          ['Propiedad intelectual', 'Los textos, fotos, videos, logos y el diseño del sitio son de Antídoto o de sus titulares. Las marcas de clientes se muestran con fines informativos.'],
+          ['Propiedad intelectual', 'Los textos, fotos, videos, logos y el diseño del sitio son de Antídoto o de sus titulares. Las marcas de terceros pertenecen a sus titulares.'],
           ['Enlaces a terceros', 'El sitio enlaza a WhatsApp, Instagram y LinkedIn. Cada servicio tiene sus propias condiciones.'],
           ['Datos personales', 'El tratamiento de datos se rige por la política de tratamiento de datos.'],
-          ['Ley aplicable', '[LEY APLICABLE Y JURISDICCIÓN, a definir con el abogado]'],
         ],
       },
       cookies: {
@@ -184,7 +168,7 @@ export const paginas = {
         secciones: [
           ['Resumen', 'Este sitio no usa cookies de publicidad ni de seguimiento entre sitios.'],
           ['Lo que guardamos', 'Guardamos en tu navegador, solo durante la visita, de dónde llegaste (por ejemplo, una campaña) para saber qué canal funciona cuando pides una cotización. También guardamos copias de páginas para que el sitio funcione sin conexión.'],
-          ['Medición', '[HERRAMIENTA DE MEDICIÓN, si se activa: por ejemplo, una sin cookies]'],
+          ['Medición', 'Contamos los clics en WhatsApp y las cotizaciones enviadas sin cookies y sin datos personales: solo guardamos el tipo de acción, la página y el día.'],
           ['Cómo borrarlo', 'Puedes borrar estos datos desde la configuración de tu navegador cuando quieras.'],
         ],
       },
@@ -214,6 +198,7 @@ export const paginas = {
     navRecursos: 'Resources',
     descNav: {
       soluciones: 'By team: health and safety, HR, communications and education.',
+      sgsst: 'OHS license, training, management systems and audits.',
       nosotros: 'Who we are and where we come from.',
       comoTrabajamos: 'Three steps, from challenge to final report.',
       clientes: 'Brands that have worked with us.',
@@ -244,20 +229,15 @@ export const paginas = {
       paraQuien: ['Who it is ', 'for'],
       paraQuienLead: 'The teams that book this line the most.',
       casos: ['Cases from ', 'this line'],
-      casoPendiente: '[REAL CASE FROM THIS LINE: client, challenge, solution and validated result]',
       faq: ['Frequently asked ', 'questions'],
       otras: ['Other ', 'lines'],
       datos: 'In figures',
-      detallePendiente: '[LONG DESCRIPTION OF THIS LINE: method, formats and differentiators]',
       verOferta: 'See offering',
     },
 
     oferta: {
       para: 'For',
       incluye: ['What is ', 'included'],
-      incluyePendiente: '[WHAT IS INCLUDED: deliverables, format and duration]',
-      detallePendiente: '[DETAILED DESCRIPTION: how it is done, how long it takes and what the client gets]',
-      fotosPendiente: '[2 OR 3 PHOTOS OF THIS OFFERING]',
       otras: (linea: string) => `More from ${linea}`,
       soluciones: ['Recommended ', 'for'],
       cotizarEsta: 'Get a quote for this',
@@ -272,17 +252,12 @@ export const paginas = {
       solucion: 'How we solve it',
       ofertas: ['What we ', 'recommend'],
       clientes: 'They have trusted us',
-      casoPendiente: '[REAL CASE FOR THIS TEAM: company, challenge and a figure validated by the client]',
-      educacionPendiente: '[TYPICAL CHALLENGES OF SCHOOLS AND UNIVERSITIES, validated by the client]',
     },
 
     portafolio: {
       titulo: ['Our ', 'work'],
       lead: 'Real training, video, catering and design projects, told from start to finish.',
       todos: 'All',
-      vacio: '[PORTFOLIO CASES: client with permission, challenge, solution, result and photos]',
-      vacioLead: 'While we publish the cases, take a look at the brands that have worked with us.',
-      verClientes: 'See clients',
       reto: 'The challenge',
       solucion: 'What we did',
       resultado: 'The result',
@@ -301,10 +276,6 @@ export const paginas = {
     como: {
       titulo: ['How we work ', 'with you'],
       lead: 'Three steps, from the first conversation to the final report. One team answers for everything.',
-      entregamos: ['What you ', 'get'],
-      entregamosPendiente: '[DELIVERABLES AT THE END: record, report, evaluation or certificates depending on the service]',
-      tiempos: ['Response ', 'times'],
-      tiemposPendiente: '[QUOTE RESPONSE TIME AND RECOMMENDED LEAD TIME PER SERVICE]',
     },
 
     trabaja: {
@@ -319,7 +290,6 @@ export const paginas = {
       talentoLead: 'Facilitators, video producers, cooks and designers. Send us your resume or portfolio by email.',
       talentoAsunto: 'Resume for Antídoto',
       talentoCta: 'Send your resume',
-      vacantesPendiente: '[OPEN POSITIONS, if any]',
       vacantesTitulo: ['Open ', 'positions'],
       modalidad: { presencial: 'On site', hibrida: 'Hybrid', remota: 'Remote' },
       vinculo: { completo: 'Full time', medio: 'Part time', proyecto: 'Per project' },
@@ -342,7 +312,7 @@ export const paginas = {
       },
       indice: 'Topics',
       todas: 'See all questions',
-      otra: ['Have another question?', 'Message us and we will answer on WhatsApp.'],
+      otra: ['Have another question?', 'Message us on WhatsApp or by email.'],
     },
 
     blog: {
@@ -350,7 +320,6 @@ export const paginas = {
       lead: 'Notes on health and safety, training, video, events and culture for people who train and care for their teams.',
       categorias: { sst: 'Health and safety', formacion: 'Training', audiovisual: 'Video', eventos: 'Events', cultura: 'Culture' },
       todas: 'All',
-      vacio: '[FIRST BLOG POSTS: topics and author defined with the client]',
       por: 'By',
       relacionados: ['Related ', 'services'],
       otros: ['More ', 'posts'],
@@ -365,13 +334,12 @@ export const paginas = {
         titulo: 'Terms and conditions',
         lead: 'Terms of use of this website.',
         secciones: [
-          ['Who we are', 'This site belongs to Antídoto. [COMPANY NAME, TAX ID AND ADDRESS]'],
+          ['Who we are', 'This site belongs to ANTIDOTO S.A.S., tax ID (NIT) 901.777.384-6, which uses the Antídoto brand.'],
           ['Use of the site', 'The site provides information about Antídoto’s services and lets you request quotes. By using it you agree not to use it unlawfully or interfere with how it works.'],
           ['Quotes', 'The quotes you build on the site are a request, not an offer or a contract. The terms of each service are agreed in writing in the proposal.'],
-          ['Intellectual property', 'The texts, photos, videos, logos and design of the site belong to Antídoto or their owners. Client brands are shown for information purposes.'],
+          ['Intellectual property', 'The texts, photos, videos, logos and design of the site belong to Antídoto or their owners. Third party brands belong to their owners.'],
           ['Third party links', 'The site links to WhatsApp, Instagram and LinkedIn. Each service has its own terms.'],
           ['Personal data', 'Data processing is governed by the data processing policy.'],
-          ['Governing law', '[GOVERNING LAW AND JURISDICTION, to be defined with the lawyer]'],
         ],
       },
       cookies: {
@@ -380,7 +348,7 @@ export const paginas = {
         secciones: [
           ['Summary', 'This site does not use advertising cookies or cross site tracking.'],
           ['What we store', 'During your visit only, we store in your browser where you came from (for example, a campaign) to learn which channel works when you request a quote. We also keep copies of pages so the site works offline.'],
-          ['Analytics', '[ANALYTICS TOOL, if enabled: for example, a cookieless one]'],
+          ['Analytics', 'We count WhatsApp clicks and sent quote requests without cookies or personal data: we only keep the type of action, the page and the day.'],
           ['How to delete it', 'You can delete this data from your browser settings at any time.'],
         ],
       },
