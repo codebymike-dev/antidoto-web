@@ -1,0 +1,49 @@
+---
+// Tabla de resultados por equipo al terminar una actividad. Los datos son inventados para mostrar
+// el formato, así que la tarjeta lleva el rótulo "Ejemplo" a la vista. La usan la home (con la
+// animación de las barras, src/lib/motion/inicio.ts) y /actividades/ (quieta).
+import { t, type Locale } from '../i18n/ui';
+
+interface Props {
+  locale: Locale;
+  /** Id del título, único en la página. */
+  id?: string;
+}
+const { locale, id = 'resultados-t' } = Astro.props;
+const r = t(locale).inicio.actividades.resultados;
+---
+<figure class="resultados" aria-labelledby={id} data-resultados>
+  <div class="r-cab">
+    <p class="r-titulo" id={id}>{r.titulo} <span class="r-ejemplo">{r.ejemplo}</span></p>
+    <span class="r-col">{r.columna}</span>
+  </div>
+  <ol>
+    {r.equipos.map(([equipo, pct], i) => (
+      <li>
+        <span class="r-pos" aria-hidden="true">{i + 1}</span>
+        <span class="r-nombre">{equipo}</span>
+        <span class="r-barra" aria-hidden="true"><span style={`transform: scaleX(${Number(pct) / 100})`} data-pct={pct}></span></span>
+        <strong class="r-pct" data-cifra>{pct}</strong>
+      </li>
+    ))}
+  </ol>
+  <p class="r-pie">{r.pie}</p>
+</figure>
+
+<style>
+  .resultados { margin: 0; width: 100%; max-width: 472px; border-radius: 28px; background: var(--color-paper); color: var(--color-ink); padding: 26px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 30px 80px rgb(0 0 0 / 0.45); }
+  .r-cab { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .r-titulo { margin: 0; font: 400 23px/1.25 var(--font-display); }
+  .r-ejemplo { display: inline-block; vertical-align: middle; margin-left: 6px; padding: 3px 10px; border-radius: 999px; background: var(--color-mist); font: 600 12px/1.4 var(--font-sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-deep); }
+  .r-col { font-size: 13px; color: var(--color-slate); }
+  ol { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  ol li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; grid-template-areas: 'pos nombre pct' 'pos barra barra'; align-items: center; gap: 4px 10px; }
+  .r-pos { grid-area: pos; width: 28px; height: 28px; border-radius: 50%; background: var(--color-mist); display: grid; place-items: center; font-size: 13px; font-weight: 600; }
+  ol li:first-child .r-pos { background: var(--color-antidote); }
+  .r-nombre { grid-area: nombre; font-size: 15px; font-weight: 500; }
+  .r-pct { grid-area: pct; font: 400 22px/1.1 var(--font-accent); color: var(--color-deep); }
+  .r-pct::after { content: ' %'; font: 500 13px var(--font-sans); color: var(--color-slate); }
+  .r-barra { grid-area: barra; height: 8px; border-radius: 999px; background: var(--color-line-soft); overflow: hidden; }
+  .r-barra span { display: block; height: 100%; background: linear-gradient(90deg, var(--color-mid), var(--color-antidote)); transform-origin: left; }
+  .r-pie { margin: 0; font-size: 14px; color: var(--color-slate); }
+</style>

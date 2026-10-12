@@ -1,6 +1,5 @@
 ---
-// Servicios: columna de introducción con los espacios de testimonio y logos, y una tarjeta
-// ancha por servicio con afiche vertical.
+// Servicios: columna de introducción y una tarjeta ancha por servicio con afiche vertical.
 import { Image } from 'astro:assets';
 import taller from '../../assets/fotos/taller.jpg';
 import grabacion from '../../assets/fotos/grabacion.jpg';
@@ -25,7 +24,7 @@ const AFICHES = {
 } as const;
 const tarjetas = (await obtenerServicios()).map((sv) => {
   const id = sv.id as keyof typeof AFICHES;
-  return { id, href: servicioPath(sv, locale), titulo: sv[locale].title, texto: h.items[id], afiche: AFICHES[id], aliado: sv[locale].aliado };
+  return { id, href: servicioPath(sv, locale), titulo: sv[locale].title, texto: h.items[id], afiche: AFICHES[id] };
 });
 ---
 <section id="servicios" class="servicios" aria-labelledby="servicios-t">
@@ -33,13 +32,10 @@ const tarjetas = (await obtenerServicios()).map((sv) => {
     <div class="intro">
       <h2 id="servicios-t" class="titulo-seccion">{h.titulo[0]}<span class="resaltado">{h.titulo[1]}</span></h2>
       <p>{h.lead}</p>
-      <p class="pendiente">{t(locale).inicio.reel}</p>
-      <p class="pendiente">{h.testimonio}</p>
-      <p class="pendiente">{h.logos}</p>
     </div>
 
     <div class="lista" data-entra>
-      {tarjetas.map(({ id, href, titulo, texto, afiche: [foto, posicion], aliado }) => (
+      {tarjetas.map(({ id, href, titulo, texto, afiche: [foto, posicion] }) => (
         <article class="tarjeta" data-odometro>
           <div class="info">
             <h3><a class="t-linea" href={href}>{titulo}</a></h3>
@@ -53,18 +49,12 @@ const tarjetas = (await obtenerServicios()).map((sv) => {
               ))}
             </ul>
             {id === 'formaciones' && (
-              <p class="plataforma"><span>{h.plataforma}</span><span class="nombre">{h.plataformaNombre}</span></p>
-            )}
-            {aliado && 'aliado' in texto && (
-              <p class="plataforma">
-                <span>{texto.aliado}</span>
-                <a class="nombre" href={aliado.url} target="_blank" rel="noopener">{aliado.nombre}</a>
-              </p>
+              <p class="plataforma"><span>{h.plataforma}</span><a class="nombre" href={rutas.actividades[locale]}>{h.plataformaNombre}</a></p>
             )}
             {texto.cifras.length > 0 && (
               <dl class="cifras">
                 {texto.cifras.map(([valor, etiqueta]) => (
-                  <div><dt>{etiqueta}</dt><dd data-cifra={/\d/.test(valor) && !valor.includes('[') ? '' : undefined}>{valor}</dd></div>
+                  <div><dt>{etiqueta}</dt><dd data-cifra={/\d/.test(valor) ? '' : undefined}>{valor}</dd></div>
                 ))}
               </dl>
             )}
@@ -91,8 +81,7 @@ const tarjetas = (await obtenerServicios()).map((sv) => {
   .intro .titulo-seccion { font-size: clamp(32px, 3.4vw, 46px); }
   /* La columna es angosta: el resaltado puede partirse en dos líneas en vez de desbordarse. */
   .intro .resaltado { white-space: normal; }
-  .intro > p:not(.pendiente) { margin: 0; color: var(--color-slate); }
-  .intro .pendiente { margin: 0; justify-content: flex-start; text-align: left; }
+  .intro > p { margin: 0; color: var(--color-slate); }
 
   .lista { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 22px; }
   .tarjeta { display: flex; flex-wrap: wrap; gap: 24px; padding: 26px; border-radius: 22px; background: var(--color-paper); border: 1px solid var(--color-line-soft); box-shadow: 0 10px 30px rgb(15 24 29 / 0.06); }

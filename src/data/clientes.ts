@@ -1,5 +1,4 @@
-// Clientes con logo en el sitio actual (ver marca/clientes.md). Orden: marcas más reconocibles primero.
-// Pendiente: confirmar con el cliente la autorización para mostrar cada marca.
+// Clientes con logo. Solo marcas con autorización escrita (ver marca/clientes.md).
 import type { ImageMetadata } from 'astro';
 
 const logos = import.meta.glob<{ default: ImageMetadata }>('../assets/clientes/*.png', { eager: true });
@@ -8,27 +7,13 @@ const logos = import.meta.glob<{ default: ImageMetadata }>('../assets/clientes/*
 export const SECTORES = ['ingenieria', 'sst', 'seguros', 'transporte', 'otros'] as const;
 export type Sector = (typeof SECTORES)[number];
 
-/** Clientes locales. También los publica el panel: obtenerClientes() (src/data/contenido.ts) une los dos. */
-export const CLIENTES_LOCALES: Array<[archivo: string, nombre: string, sector: Sector]> = [
-  ['enel', 'Enel', 'ingenieria'],
-  ['claro', 'Claro', 'otros'],
-  ['stanley-black-decker', 'Stanley Black & Decker', 'otros'],
-  ['seguros-bolivar', 'Seguros Bolívar', 'seguros'],
-  ['gallagher', 'Gallagher', 'seguros'],
-  ['cruz-verde', 'Cruz Verde', 'otros'],
-  ['howden', 'Howden', 'otros'],
-  ['wsp', 'WSP', 'ingenieria'],
-  ['wom', 'WOM', 'otros'],
-  ['correcol', 'Correcol', 'seguros'],
-  ['mab-ingenieria', 'MAB Ingeniería', 'ingenieria'],
-  ['sgin', 'SGIN', 'ingenieria'],
-  ['tabasco-oc', 'Tabasco OC', 'ingenieria'],
-  ['seq-consultores', 'SEQ Consultores', 'sst'],
-  ['hseq-consultores', 'HSEQ Consultores', 'sst'],
-  ['bogota-movil', 'Bogotá Móvil', 'transporte'],
-  ['capital-bus', 'Capital Bus', 'transporte'],
-  ['la-lorenza', 'La Lorenza', 'otros'],
-];
+/**
+ * Clientes locales. Vacío a propósito: ninguna marca tiene autorización escrita para salir en el
+ * sitio (brief del 08/10/2026). El inventario y los logos siguen en marca/clientes.md y
+ * src/assets/clientes/. Los clientes autorizados se publican desde el panel; obtenerClientes()
+ * (src/data/contenido.ts) une las dos fuentes.
+ */
+export const CLIENTES_LOCALES: Array<[archivo: string, nombre: string, sector: Sector]> = [];
 
 export const CLIENTES = CLIENTES_LOCALES.map(([archivo, nombre, sector]) => {
   const mod = logos[`../assets/clientes/${archivo}.png`];

@@ -46,8 +46,12 @@ async function existe(ruta: URL) {
   }
 }
 
+/** La API todavía no conoce el tipo (el sitio se desplegó antes que ella): se sigue con lo local. */
+class TipoDesconocido extends Error {}
+
 async function pedir(api: string, tipo: TipoCms): Promise<RespuestaApi> {
   const r = await fetch(`${api}/v1/contenido?tipo=${tipo}`, { headers: { accept: 'application/json' }, signal: AbortSignal.timeout(20_000) });
+  if (r.status === 422) throw new TipoDesconocido(`La API no conoce el tipo "${tipo}"`);
   if (!r.ok) throw new Error(`La API respondió ${r.status} al pedir el contenido "${tipo}"`);
   return (await r.json()) as RespuestaApi;
 }
@@ -78,7 +82,7 @@ export function cms({ tipo, local }: { tipo: TipoCms; local?: Loader }): Loader 
         respuesta = await pedir(api, tipo);
         await bajarMedios(ctx, respuesta);
       } catch (e) {
-        if (estricto()) throw new Error(`[cms] ${(e as Error).message}. El build se detiene para no despublicar contenido sin querer.`);
+        if (estricto() && !(e instanceof TipoDesconocido)) throw new Error(`[cms] ${(e as Error).message}. El build se detiene para no despublicar contenido sin querer.`);
         ctx.logger.warn(`[cms] Sin contenido del panel para "${tipo}": ${(e as Error).message}. Sigue con el contenido local.`);
         return;
       }

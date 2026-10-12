@@ -68,9 +68,11 @@ export default function Contenido() {
           <Cargando />
         ) : !entradas.length ? (
           <Vacio titulo={`Todavía no hay ${e.plural.toLowerCase()} en el panel`}>
-            {tipo === 'faq' || tipo === 'cliente'
+            {tipo === 'faq' || tipo === 'juego'
               ? 'El sitio sigue mostrando los que están en el código. Lo que publiques aquí se suma, y si usas la misma clave, reemplaza al del código.'
-              : 'Crea el primero con el botón de arriba.'}
+              : tipo === 'cliente'
+                ? 'Sin clientes publicados, el sitio no muestra logos ni la página de clientes. Publica solo marcas con autorización escrita.'
+                : 'Crea el primero con el botón de arriba.'}
           </Vacio>
         ) : (
           <div class={`tabla-envoltura${d.cargando ? ' recargando' : ''}`}>

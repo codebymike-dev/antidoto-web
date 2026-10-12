@@ -1,8 +1,9 @@
 ---
 // Biblioteca de actividades: texto a la izquierda y, a la derecha, cómo se ven los resultados al
 // terminar una actividad (por equipo). El botón lleva a la sala de la actividad (Sala.astro), la
-// sección que sigue al hero. Los resultados son un ejemplo ilustrativo: los reales salen de la biblioteca.
-import { t, type Locale } from '../../i18n/ui';
+// sección que sigue al hero. Los resultados son un ejemplo y van rotulados así (ResultadosEjemplo).
+import ResultadosEjemplo from '../ResultadosEjemplo.astro';
+import { t, rutas, type Locale } from '../../i18n/ui';
 
 interface Props {
   locale: Locale;
@@ -10,7 +11,6 @@ interface Props {
 const { locale } = Astro.props;
 const s = t(locale);
 const h = s.inicio.actividades;
-const r = h.resultados;
 ---
 <section id="actividades" class="actividades" aria-labelledby="actividades-t">
   <div class="wrap interior">
@@ -30,23 +30,11 @@ const r = h.resultados;
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
         {s.inicio.probar}
       </a>
+      <a class="juegos" href={rutas.actividades[locale]}>{h.verJuegos}</a>
     </div>
 
     <div class="pantalla-wrap">
-      <figure class="resultados" aria-labelledby="resultados-t" data-resultados>
-        <div class="r-cab"><p class="r-titulo" id="resultados-t">{r.titulo}</p><span class="r-col">{r.columna}</span></div>
-        <ol>
-          {r.equipos.map(([equipo, pct], i) => (
-            <li>
-              <span class="r-pos" aria-hidden="true">{i + 1}</span>
-              <span class="r-nombre">{equipo}</span>
-              <span class="r-barra" aria-hidden="true"><span style={`transform: scaleX(${Number(pct) / 100})`} data-pct={pct}></span></span>
-              <strong class="r-pct" data-cifra>{pct}</strong>
-            </li>
-          ))}
-        </ol>
-        <p class="r-pie">{r.pie}</p>
-      </figure>
+      <ResultadosEjemplo locale={locale} />
     </div>
   </div>
 </section>
@@ -64,18 +52,6 @@ const r = h.resultados;
   .actividades :focus-visible { outline-color: var(--color-antidote); }
 
   .pantalla-wrap { flex: 1 1 380px; min-width: 0; display: flex; justify-content: center; }
-  .resultados { margin: 0; width: 100%; max-width: 472px; border-radius: 28px; background: var(--color-paper); color: var(--color-ink); padding: 26px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 30px 80px rgb(0 0 0 / 0.45); }
-  .r-cab { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-  .r-titulo { margin: 0; font: 400 23px/1.25 var(--font-display); }
-  .r-col { font-size: 13px; color: var(--color-slate); }
-  ol { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
-  ol li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; grid-template-areas: 'pos nombre pct' 'pos barra barra'; align-items: center; gap: 4px 10px; }
-  .r-pos { grid-area: pos; width: 28px; height: 28px; border-radius: 50%; background: var(--color-mist); display: grid; place-items: center; font-size: 13px; font-weight: 600; }
-  ol li:first-child .r-pos { background: var(--color-antidote); }
-  .r-nombre { grid-area: nombre; font-size: 15px; font-weight: 500; }
-  .r-pct { grid-area: pct; font: 400 22px/1.1 var(--font-accent); color: var(--color-deep); }
-  .r-pct::after { content: ' %'; font: 500 13px var(--font-sans); color: var(--color-slate); }
-  .r-barra { grid-area: barra; height: 8px; border-radius: 999px; background: var(--color-line-soft); overflow: hidden; }
-  .r-barra span { display: block; height: 100%; background: linear-gradient(90deg, var(--color-mid), var(--color-antidote)); transform-origin: left; }
-  .r-pie { margin: 0; font-size: 14px; color: var(--color-slate); }
+  .juegos { align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; color: var(--color-glow); font-weight: 600; text-underline-offset: 3px; }
+  .juegos:hover { color: var(--color-paper); }
 </style>

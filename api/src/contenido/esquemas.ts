@@ -4,7 +4,7 @@
 //
 // Módulo PURO, sin dependencias.
 
-export const TIPOS_CONTENIDO = ['blog', 'caso', 'vacante', 'faq', 'cliente'] as const;
+export const TIPOS_CONTENIDO = ['blog', 'caso', 'vacante', 'faq', 'cliente', 'juego'] as const;
 export type TipoContenido = (typeof TIPOS_CONTENIDO)[number];
 
 export type Campo =
@@ -154,7 +154,7 @@ export const ESQUEMAS: Record<TipoContenido, Esquema> = {
     ],
     porIdioma: [
       { tipo: 'texto', nombre: 'pregunta', etiqueta: 'Pregunta', requerido: true, max: 200 },
-      { tipo: 'parrafo', nombre: 'respuesta', etiqueta: 'Respuesta', requerido: true, max: 1500, ayuda: 'Lo que falte del cliente va entre corchetes: [ASÍ]. El sitio lo marca como pendiente.' },
+      { tipo: 'parrafo', nombre: 'respuesta', etiqueta: 'Respuesta', requerido: true, max: 1500, ayuda: 'Una respuesta que va entera entre corchetes, [ASÍ], no se publica en el sitio.' },
     ],
     titulo: 'pregunta',
   },
@@ -182,6 +182,19 @@ export const ESQUEMAS: Record<TipoContenido, Esquema> = {
     ],
     porIdioma: [],
     titulo: 'nombre',
+  },
+  juego: {
+    nombre: 'Juego',
+    plural: 'Juegos',
+    descripcion: 'Catálogo de juegos de /actividades/. Solo juegos propios o genéricos: ninguno con la marca, imágenes o datos de un cliente sin su autorización escrita.',
+    comunes: [{ tipo: 'numero', nombre: 'orden', etiqueta: 'Orden', min: 0, max: 999, ayuda: 'Los de menor número van primero.' }],
+    porIdioma: [
+      { tipo: 'texto', nombre: 'title', etiqueta: 'Nombre del juego', requerido: true, max: 80 },
+      { tipo: 'parrafo', nombre: 'trabaja', etiqueta: 'Qué trabaja', requerido: true, max: 300 },
+      { tipo: 'texto', nombre: 'duracion', etiqueta: 'Duración', max: 60, ayuda: 'Por ejemplo, 20 minutos. Si la dejas vacía, la tarjeta no la muestra.' },
+      { tipo: 'texto', nombre: 'modalidad', etiqueta: 'Modalidad', requerido: true, max: 80, ayuda: 'Por ejemplo, desde el celular, en sala o por videollamada.' },
+    ],
+    titulo: 'title',
   },
 };
 

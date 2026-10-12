@@ -1,0 +1,11 @@
+---
+// La página de clientes solo existe con al menos un cliente publicado con autorización (desde el
+// panel). Sin clientes no hay logos ni nombres de marcas en el sitio (brief del 08/10/2026).
+import P from '../../components/pages/PaginaClientes.astro';
+import { obtenerClientes } from '../../data/contenido';
+
+export async function getStaticPaths() {
+  return (await obtenerClientes()).length ? [{ params: { indice: undefined } }] : [];
+}
+---
+<P locale="es" />

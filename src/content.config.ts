@@ -7,6 +7,7 @@ import { z } from 'astro/zod';
 import { cms, desdeDatos } from './lib/cms/loader';
 import { FAQ, TEMAS_FAQ } from './data/faq';
 import { CLIENTES_LOCALES, SECTORES } from './data/clientes';
+import { JUEGOS_LOCALES } from './data/juegos';
 
 // El id sale de la ruta del archivo y no del campo `slug`, que el loader usa por defecto: un
 // slug igual en los dos idiomas ("inclusion") haría que una entrada pisara a la otra.
@@ -137,8 +138,9 @@ const faq = defineCollection({
   }),
 });
 
-// Clientes con logo: los de src/data/clientes.ts (logos en blanco) más los publicados en el panel
-// (logos a color). En los dos casos el CSS los pasa a tinta sobre fondo claro.
+// Clientes con logo: los de src/data/clientes.ts (hoy ninguno: falta la autorización de cada marca)
+// más los publicados en el panel (logos a color, solo con autorización). Sin clientes, el sitio no
+// muestra logos ni la página /clientes/.
 const clientes = defineCollection({
   loader: cms({
     tipo: 'cliente',
@@ -158,4 +160,20 @@ const clientes = defineCollection({
     }),
 });
 
-export const collections = { servicios, ofertas, casos, blog, vacantes, faq, clientes };
+// Catálogo de juegos de /actividades/: los de src/data/juegos.ts más los publicados en el panel.
+// Una entrada por juego, con los dos idiomas dentro.
+const textosJuego = z.object({ title: z.string().min(1), trabaja: z.string().min(1), duracion: z.string().optional(), modalidad: z.string().min(1) });
+const juegos = defineCollection({
+  loader: cms({
+    tipo: 'juego',
+    local: desdeDatos('juegos-local', 'src/data/juegos.ts', () => JUEGOS_LOCALES.map((j, i) => ({ id: j.clave, data: { ...j, orden: i } }))),
+  }),
+  schema: z.object({
+    clave: z.string().min(1),
+    orden: z.number().int().default(999),
+    es: textosJuego,
+    en: textosJuego,
+  }),
+});
+
+export const collections = { servicios, ofertas, casos, blog, vacantes, faq, clientes, juegos };

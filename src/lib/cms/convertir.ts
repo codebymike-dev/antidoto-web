@@ -3,7 +3,7 @@
 // con pruebas en tests/cms.test.ts. Las imágenes llegan como ruta relativa al archivo de la
 // entrada (src/content/.cms/<tipo>/), donde el cargador las dejó descargadas.
 
-export type TipoCms = 'blog' | 'caso' | 'vacante' | 'faq' | 'cliente';
+export type TipoCms = 'blog' | 'caso' | 'vacante' | 'faq' | 'cliente' | 'juego';
 
 export interface EntradaApi {
   clave: string;
@@ -50,7 +50,7 @@ export const hoyBogota = (ms = Date.now()) => new Intl.DateTimeFormat('en-CA', {
 
 /**
  * Entradas de la colección para una entrada del panel: una por idioma en blog, casos y vacantes;
- * una sola en preguntas (con los dos idiomas dentro) y en clientes.
+ * una sola en preguntas y juegos (con los dos idiomas dentro) y en clientes.
  */
 export function convertir(tipo: TipoCms, e: EntradaApi, medios: Record<string, MedioApi>, hoy = hoyBogota()): EntradaColeccion[] {
   const img = (id: unknown) => {
@@ -62,6 +62,10 @@ export function convertir(tipo: TipoCms, e: EntradaApi, medios: Record<string, M
   if (tipo === 'faq') {
     const par = (i: 'es' | 'en') => [s(e.textos[i]?.pregunta) ?? '', s(e.textos[i]?.respuesta) ?? ''];
     return [{ id: e.clave, data: sinVacios({ clave: e.clave, tema: d.tema, destacada: d.destacada === true, orden: d.orden, es: par('es'), en: par('en') }) }];
+  }
+  if (tipo === 'juego') {
+    const textos = (i: 'es' | 'en') => sinVacios({ title: e.textos[i]?.title, trabaja: e.textos[i]?.trabaja, duracion: e.textos[i]?.duracion, modalidad: e.textos[i]?.modalidad });
+    return [{ id: e.clave, data: sinVacios({ clave: e.clave, orden: d.orden, es: textos('es'), en: textos('en') }) }];
   }
   if (tipo === 'cliente') {
     return [{ id: e.clave, data: sinVacios({ clave: e.clave, nombre: d.nombre, sector: d.sector, logo: img(d.logo), color: true, orden: d.orden }) }];
