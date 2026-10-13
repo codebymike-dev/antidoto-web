@@ -1,6 +1,6 @@
 // Rutas del chat con IA del sitio:
 //   GET  /v1/asesor          ¿está disponible? (clave configurada, encendido y presupuesto del día)
-//   POST /v1/asesor          una pregunta: { locale, pagina, mensajes, conversacion?, origen?, turnstile? } -> respuesta revisada
+//   POST /v1/asesor          una pregunta: { locale, pagina, mensajes, conversacion?, origen? } -> respuesta revisada
 //   POST /v1/asesor/borrar   { conversacion }: el visitante borra su conversación guardada
 // Las dos solo desde los orígenes del sitio. El POST va en text/plain, como los leads, para no
 // pagar el preflight de CORS en cada pregunta.
@@ -9,7 +9,6 @@ import type { Env } from '../env';
 import type { ServicioId } from '../db/schema';
 import { enviar, correoInteresAsesor } from '../correo';
 import { dentroDelLimite } from '../limite';
-import { verificarTurnstile } from '../turnstile';
 import { ahora, DIA, hashIp, json } from '../util';
 import { atender, validarEntrada, UUID_V4 } from './bucle';
 import { MAX_PREGUNTAS } from './prompt';
@@ -58,13 +57,6 @@ export async function rutaAsesor(
   } catch {
     return json({ ok: false, error: 'json' }, 400, cabeceras);
   }
-  // El token de Turnstile viaja con la pregunta pero no es parte de ella.
-  let turnstile: unknown;
-  if (datos && typeof datos === 'object' && !Array.isArray(datos) && 'turnstile' in datos) {
-    const { turnstile: token, ...resto } = datos as Record<string, unknown>;
-    turnstile = token;
-    datos = resto;
-  }
   const entrada = validarEntrada(datos);
   if ('error' in entrada) return json({ ok: false, error: entrada.error }, entrada.error === 'limite' ? 429 : 422, cabeceras);
 
@@ -75,12 +67,6 @@ export async function rutaAsesor(
   }
   if (!(await dentroDelLimite(db, `asesor-dia:${ipHash ?? 'sin-ip'}`, PREGUNTAS_POR_DIA, t, DIA))) {
     return json({ ok: false, error: 'limite' }, 429, cabeceras);
-  }
-  // Protección contra bots: solo con TURNSTILE_SECRET. Si Cloudflare no contesta, sigue con los
-  // límites de arriba (que un caído de Turnstile no apague el chat).
-  if (env.TURNSTILE_SECRET) {
-    const humano = await verificarTurnstile(env.TURNSTILE_SECRET, turnstile, req.headers.get('cf-connecting-ip'));
-    if (humano === false) return json({ ok: false, error: 'verificacion' }, 403, cabeceras);
   }
   // Con la conversación guardada, el tope de preguntas lo cuenta el servidor (el navegador podría
   // mandar menos historial). Si la base no responde, sigue: guardar falla abierto.

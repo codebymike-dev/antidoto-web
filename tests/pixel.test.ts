@@ -5,7 +5,7 @@ import { STAND, lerpPose } from '../src/lib/pixel/avatar';
 import { Timeline, act, wait } from '../src/lib/pixel/actor';
 import { Iso } from '../src/lib/pixel/iso';
 import { Estudio, PUNTOS } from '../src/lib/pixel/escenas/estudio';
-import { Sala, RONDAS } from '../src/lib/pixel/escenas/sala';
+import { Sala, PLAN, TANDAS } from '../src/lib/pixel/escenas/sala';
 import { enRuta, scrollFinal, type Ruta } from '../src/lib/pixel/paseo';
 import { posters } from '../scripts/posters.mts';
 
@@ -92,8 +92,13 @@ describe('Estudio', () => {
 });
 
 describe('Sala', () => {
-  it('en cada ronda votan los otros cuatro', () => {
-    for (const r of RONDAS) expect(r.votos).toHaveLength(4);
+  it('las tandas ponen todos los bloques del plano, y cada uno se apoya en la base o en otro', () => {
+    expect(TANDAS.flat()).toHaveLength(PLAN.length);
+    PLAN.forEach((b, n) => {
+      if (b.fila === 0) return;
+      const abajo = PLAN.slice(0, n).filter((o) => o.fila === b.fila - 1 && o.u < b.u + b.ancho && o.u + o.ancho > b.u);
+      expect(abajo.length).toBeGreaterThan(0);
+    });
   });
 
   it('sin llegada no hay facilitador ni juego; al llegar corre el guion completo', () => {
@@ -103,7 +108,7 @@ describe('Sala', () => {
     expect(dichas).toEqual([]);
     s.llegar(true);
     for (let k = 0; k < 30 * 120 && !dichas.includes('cierra'); k++) s.update(1 / 30);
-    expect(dichas).toEqual(['abre', 'frases-0', 'vota', 'revela-0', 'frases-1', 'vota', 'revela-1', 'cierra']);
+    expect(dichas).toEqual(['abre', 'idea', 'pregunta', 'responde', 'cierra']);
   });
 
   it('si ya entró por la puerta, el del paseo toma su lugar sin reiniciar el juego', () => {

@@ -1,21 +1,15 @@
-// Analítica sin cookies (POST /v1/clic y Métricas del panel), Turnstile del chat y el límite
-// diario por visitante, contra una D1 local.
+// Analítica sin cookies (POST /v1/clic y Métricas del panel) y el límite diario por visitante
+// del chat, contra una D1 local.
 import { describe, test, expect } from 'vitest';
 import { drizzle } from 'drizzle-orm/d1';
 import { prepararPruebas } from './ayudas';
 import { validarClic } from '../src/clics';
 import { dentroDelLimite } from '../src/limite';
-import { verificarTurnstile } from '../src/turnstile';
 import { DIA, HORA } from '../src/util';
 
 const SITIO = 'https://antidotocolombia.com';
-const VERIFICAR = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
-const p = prepararPruebas((url, init) => {
-  if (url !== VERIFICAR) return null;
-  const token = (init?.body as FormData).get('response');
-  return Response.json({ success: token === 'bueno' });
-});
+const p = prepararPruebas();
 
 const clic = (cuerpo: unknown, origen = SITIO) =>
   p.llamar('/v1/clic', { method: 'POST', body: JSON.stringify(cuerpo), ip: '200.1.1.1', headers: { origin: origen, 'content-type': 'text/plain;charset=UTF-8' } });
@@ -48,29 +42,7 @@ describe('POST /v1/clic', () => {
   });
 });
 
-describe('protección del chat', () => {
-  test('Turnstile: token bueno, malo o ausente', async () => {
-    expect(await verificarTurnstile('secreto', 'bueno', null)).toBe(true);
-    expect(await verificarTurnstile('secreto', 'malo', null)).toBe(false);
-    expect(await verificarTurnstile('secreto', undefined, null)).toBe(false);
-  });
-
-  test('con TURNSTILE_SECRET, el chat exige el token', async () => {
-    p.env.TURNSTILE_SECRET = 'secreto';
-    const preguntar = (extra: Record<string, unknown>) =>
-      p.llamar('/v1/asesor', {
-        method: 'POST',
-        ip: '200.2.2.2',
-        headers: { origin: SITIO, 'content-type': 'text/plain;charset=UTF-8' },
-        body: JSON.stringify({ locale: 'es', pagina: 'sgsst', mensajes: [{ rol: 'usuario', texto: 'Hola' }], ...extra }),
-      });
-    expect((await preguntar({})).status).toBe(403);
-    expect((await preguntar({ turnstile: 'malo' })).status).toBe(403);
-    // Con el token bueno pasa la verificación; sin clave de Claude, el chat no está disponible.
-    expect((await preguntar({ turnstile: 'bueno' })).status).toBe(503);
-    p.env.TURNSTILE_SECRET = undefined;
-  });
-
+describe('límite del chat', () => {
   test('el límite diario cuenta todo el día, no solo la hora', async () => {
     const db = drizzle(p.env.DB);
     const t = Date.UTC(2026, 9, 12, 1, 0, 0);

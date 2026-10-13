@@ -5,7 +5,6 @@
 // que el panel se repinte. La API valida todo (api/src/asesor/bucle.ts) y guarda cada turno 90
 // días bajo el id de esta conversación; "Empezar de nuevo" la borra también allá.
 import { CLAVE_ALMACEN, CLAVE_ID, MAX_PREGUNTAS, MAX_TEXTO, cuerpoPregunta, esIdConversacion, leerHistorial, preguntasHechas, type Mensaje } from './asesor';
-import { tokenTurnstile } from './turnstile';
 
 /** Cambió el historial; `detail.origen` dice quién lo cambió. */
 export const EVENTO_HISTORIAL = 'antidoto:asesor-historial';
@@ -108,16 +107,11 @@ export async function preguntarAsesor(o: { api: string; locale: 'es' | 'en'; pag
   if (!(await disponible(o.api))) return { ok: false, motivo: 'no_disponible' };
   const pregunta: Mensaje = { rol: 'usuario', texto };
   try {
-    // Con Turnstile configurado, cada pregunta lleva un token nuevo (src/lib/turnstile.ts).
-    const turnstile = await tokenTurnstile(o.locale);
     const r = await fetch(`${o.api}/v1/asesor`, {
       method: 'POST',
       // text/plain: sin preflight de CORS en cada pregunta.
       headers: { 'content-type': 'text/plain;charset=UTF-8' },
-      body: JSON.stringify({
-        ...cuerpoPregunta(o.locale, o.pagina, [...historial, pregunta], historial.length ? idConversacion() : nuevaConversacion(), o.origen),
-        ...(turnstile ? { turnstile } : {}),
-      }),
+      body: JSON.stringify(cuerpoPregunta(o.locale, o.pagina, [...historial, pregunta], historial.length ? idConversacion() : nuevaConversacion(), o.origen)),
     });
     const j = (await r.json().catch(() => ({}))) as {
       ok?: boolean;

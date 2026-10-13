@@ -21,11 +21,6 @@ export interface Env {
   MAIL_DIRECCION?: string;
   /** Sal para el hash de IP. Sin ella se usa una fija y el hash es menos privado. */
   SAL_IP?: string;
-  /**
-   * Clave secreta de Cloudflare Turnstile. Con ella el chat exige el token que manda el navegador
-   * (el sitio necesita PUBLIC_TURNSTILE_SITEKEY en el build). Sin ella no se verifica.
-   */
-  TURNSTILE_SECRET?: string;
   /** Clave de la API de Claude para el chat con IA. Sin ella el chat no se ofrece (solo WhatsApp). */
   ANTHROPIC_API_KEY?: string;
   /** Solo con ENTORNO=local: otra URL para la API de mensajes (un Claude falso para probar el chat). */

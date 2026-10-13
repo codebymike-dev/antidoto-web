@@ -17,7 +17,6 @@ const servicios: Array<[servicio: string, para: string, plan: string, costo: str
 
 const variablesSitio: Array<[string, string]> = [
   ['PUBLIC_API_URL', 'URL de la API. Con ella aparecen el chat, la suscripción, el paso de contacto del cotizador, el contenido del panel y la analítica. Sin ella el sitio funciona solo con WhatsApp.'],
-  ['PUBLIC_TURNSTILE_SITEKEY', 'Opcional. Clave pública de Turnstile para el chat (ver la nota de abajo).'],
   ['CMS_ESTRICTO', 'Opcional. En 1, el build se detiene si la API no responde (en Vercel ya es así).'],
 ];
 
@@ -27,7 +26,6 @@ const variablesApi: Array<[string, string]> = [
   ['APP_URL, ORIGENES, SITIO_URL', 'Dirección de la API, orígenes del sitio que pueden llamarla y dirección pública del sitio.'],
   ['RESEND_API_KEY, RESEND_WEBHOOK_SECRET, MAIL_FROM, MAIL_EQUIPO, MAIL_DIRECCION', 'Correos: clave, webhook de entregas, remitente, a quién avisar y el pie legal de las campañas.'],
   ['ANTHROPIC_API_KEY, ASESOR_TOPE_DIARIO_USD', 'Chat con IA y su tope diario por defecto (el panel lo puede cambiar).'],
-  ['TURNSTILE_SECRET', 'Opcional. Con ella el chat exige el token de Turnstile.'],
   ['SAL_IP', 'Sal del resumen diario de la IP (nunca se guarda la IP).'],
   ['GITHUB_DISPATCH_TOKEN, GITHUB_REPO', 'Para que el botón Publicar del panel reconstruya el sitio. Al pasar el repositorio a la cuenta de Antídoto, GITHUB_REPO cambia al nombre nuevo.'],
 ];
@@ -95,7 +93,7 @@ const fallas: Array<[string, string]> = [
     </table>
   </div>
   <div class="caja">
-    <p><strong>Turnstile:</strong> el brief pide protección contra bots en el chat. El código la trae lista pero apagada: funciona con una cuenta gratuita de Cloudflare (Turnstile) y las dos claves de arriba. Sin ellas, el chat queda protegido por el límite de 60 preguntas por hora y 90 por día por visitante, el tope de 30 preguntas por conversación y el tope de gasto.</p>
+    <p><strong>Protección del chat:</strong> límite de 60 preguntas por hora y 90 por día por visitante, tope de 30 preguntas por conversación y tope de gasto diario que, al llegar, deja solo WhatsApp.</p>
   </div>
 
   <h2>Cómo se publica</h2>

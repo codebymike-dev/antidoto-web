@@ -36,7 +36,6 @@ const OPCIONALES = [
   'ANTHROPIC_API_KEY',
   'ANTHROPIC_URL',
   'GITHUB_DISPATCH_TOKEN',
-  'TURNSTILE_SECRET',
 ] as const;
 
 let env: Env | null = null;
