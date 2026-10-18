@@ -133,6 +133,8 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
   if (url.pathname === '/sw.js') return;
+  // La API va en el mismo dominio que el sitio: el panel, el portal y sus datos no pasan por aquí.
+  if (/^\/(v1|admin|portal|auth)(\/|$)|^\/salud$/.test(url.pathname)) return;
 
   if (request.mode === 'navigate') return event.respondWith(pagina(event));
   if (url.pathname.startsWith('/_astro/') && request.destination !== 'image') return event.respondWith(inmutable(event));

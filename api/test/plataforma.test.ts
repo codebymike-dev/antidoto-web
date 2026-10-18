@@ -12,8 +12,8 @@ import { VARS, entornoVercel, variables } from '../src/plataforma/vercel';
 
 describe('API en Vercel', () => {
   it('recupera la ruta original de la función', () => {
-    expect(urlOriginal('api.x', '/index?__ruta=admin/api/leads&q=1').href).toBe('https://api.x/admin/api/leads?q=1');
-    expect(urlOriginal('api.x', '/index?__ruta=').pathname).toBe('/');
+    expect(urlOriginal('api.x', '/_api?__ruta=admin/api/leads&q=1').href).toBe('https://api.x/admin/api/leads?q=1');
+    expect(urlOriginal('api.x', '/_api?__ruta=').pathname).toBe('/');
     expect(urlOriginal('api.x', '/v1/leads?__ruta=v1/leads').pathname).toBe('/v1/leads');
     expect(urlOriginal('api.x', '/v1/leads').pathname).toBe('/v1/leads');
   });
@@ -24,6 +24,16 @@ describe('API en Vercel', () => {
     expect(v.SAL_IP).toBe('sal');
     expect(v.MAIL_FROM).toBe(VARS.MAIL_FROM);
     expect('OTRA' in v).toBe(false);
+  });
+
+  it('sin APP_URL ni SITIO_URL usa el dominio de producción del proyecto', () => {
+    const v = variables({ VERCEL_PROJECT_PRODUCTION_URL: 'antidoto-web.vercel.app' });
+    expect(v.APP_URL).toBe('https://antidoto-web.vercel.app');
+    expect(v.SITIO_URL).toBe('https://antidoto-web.vercel.app');
+    const w = variables({ VERCEL_PROJECT_PRODUCTION_URL: 'antidoto-web.vercel.app', APP_URL: 'https://a.co', SITIO_URL: 'https://b.co' });
+    expect(w.APP_URL).toBe('https://a.co');
+    expect(w.SITIO_URL).toBe('https://b.co');
+    expect(variables({}).SITIO_URL).toBe(VARS.SITIO_URL);
   });
 
   it('arma el Env con Turso, Blob y las variables de Vercel', () => {

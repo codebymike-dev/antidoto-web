@@ -1,7 +1,0 @@
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": null,
-  "installCommand": "npm ci",
-  "buildCommand": "npm run vercel-build",
-  "ignoreCommand": "[ -n \"$VERCEL_GIT_PREVIOUS_SHA\" ] && git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- . ../src/data/consentimiento.json ../src/data/faq.ts ../src/data/site.ts ../src/data/clientes.ts ../src/i18n/ui.ts ../src/content/servicios ../public/fonts"
-}

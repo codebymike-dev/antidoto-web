@@ -17,4 +17,7 @@ api/node_modules/
 api/dist-admin/
 api/.local/
 api/.env
+api/.env.*
+api/.dev.vars
+.vercel/
 api/.vercel/

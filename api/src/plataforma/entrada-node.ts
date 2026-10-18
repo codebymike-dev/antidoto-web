@@ -1,18 +1,18 @@
 // Función de Vercel (Build Output API, launcherType Nodejs): pasa la petición de Node a Request y
-// la Response de vuelta. scripts/vercel-build.mjs la empaqueta en .vercel/output/functions/index.func.
+// la Response de vuelta. scripts/vercel-build.mjs la empaqueta en .vercel/output/functions/_api.func.
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { Readable } from 'node:stream';
 import { manejarVercel } from './vercel';
 
 /**
- * Ruta original: config.json reescribe todo a /index?__ruta=<ruta>. Si la plataforma ya entrega la
+ * Ruta original: las rutas de la API van a /_api?__ruta=<ruta>. Si la plataforma ya entrega la
  * ruta original, se usa esa.
  */
 export function urlOriginal(host: string, url: string): URL {
   const u = new URL(url, `https://${host}`);
   const ruta = u.searchParams.get('__ruta');
   u.searchParams.delete('__ruta');
-  if (ruta !== null && (u.pathname === '/index' || u.pathname === '/')) u.pathname = `/${ruta}`;
+  if (ruta !== null && (u.pathname === '/_api' || u.pathname === '/')) u.pathname = `/${ruta}`;
   return u;
 }
 

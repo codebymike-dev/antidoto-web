@@ -43,6 +43,11 @@ export function variables(p: NodeJS.ProcessEnv): Variables {
   const v: Variables = { ...VARS };
   for (const k of Object.keys(VARS) as (keyof typeof VARS)[]) if (p[k]) (v as unknown as Record<string, string>)[k] = p[k]!;
   for (const k of OPCIONALES) if (p[k]) v[k] = p[k];
+  // El sitio y la API van en el mismo proyecto de Vercel: sin APP_URL ni SITIO_URL, los dos son el
+  // dominio de producción del proyecto (el propio cuando se agregue, si no el *.vercel.app).
+  const produccion = p.VERCEL_PROJECT_PRODUCTION_URL ? `https://${p.VERCEL_PROJECT_PRODUCTION_URL}` : '';
+  if (produccion && !p.APP_URL) v.APP_URL = produccion;
+  if (produccion && !p.SITIO_URL) v.SITIO_URL = produccion;
   return v;
 }
 

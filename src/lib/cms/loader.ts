@@ -19,8 +19,10 @@ import { archivoMedio, clavesReemplazadas, convertir, type EntradaColeccion, typ
 
 const CARPETA = 'src/content/.cms/';
 
+// En Vercel la API va en el mismo despliegue que el sitio y todavía no está publicada mientras el
+// sitio se construye: scripts/vercel-build.mjs la levanta en local y la pasa en CMS_API_URL.
 function apiUrl(): string {
-  return String(import.meta.env.PUBLIC_API_URL || process.env.PUBLIC_API_URL || '').replace(/\/$/, '');
+  return String(process.env.CMS_API_URL || import.meta.env.PUBLIC_API_URL || process.env.PUBLIC_API_URL || '').replace(/\/$/, '');
 }
 
 /** Fuente local hecha de datos en memoria (preguntas y clientes de src/data/). */

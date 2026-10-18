@@ -1,15 +1,17 @@
-// Build de la API para Vercel con la Build Output API (v3): una sola función Node con todo el
-// código empaquetado por esbuild, los archivos del panel (dist-admin/) a su lado y las rutas. Sin
-// tareas programadas (src/pendientes.ts). Vercel publica .vercel/output tal cual. Lo corre `npm run vercel-build` (vercel.json),
-// después de construir el panel y el conocimiento del asesor.
+// La función de la API para la Build Output API (v3) de Vercel: una sola función Node con todo el
+// código empaquetado por esbuild y los archivos del panel (dist-admin/) a su lado. Sin tareas
+// programadas (src/pendientes.ts). La arma en <salida>/functions/_api.func (por defecto
+// api/.vercel/output); scripts/vercel-build.mjs de la raíz la junta con el sitio en un solo
+// despliegue y escribe las rutas. Lo corre `npm run vercel-build`, después de construir el panel y
+// el conocimiento del asesor.
 import { build } from 'esbuild';
 import { execFileSync } from 'node:child_process';
 import { cpSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const raiz = fileURLToPath(new URL('..', import.meta.url));
-const salida = `${raiz}.vercel/output`;
-const funcion = `${salida}/functions/index.func`;
+const salida = process.argv[2] ?? `${raiz}.vercel/output`;
+const funcion = `${salida}/functions/_api.func`;
 
 // Migraciones de la base (Turso) solo en el despliegue de producción: las vistas previas no tocan
 // la base de producción.
@@ -18,9 +20,8 @@ if (process.env.VERCEL_ENV === 'production') {
   execFileSync('node', [`${raiz}scripts/migrar.mjs`], { stdio: 'inherit' });
 }
 
-rmSync(salida, { recursive: true, force: true });
+rmSync(funcion, { recursive: true, force: true });
 mkdirSync(funcion, { recursive: true });
-mkdirSync(`${salida}/static`, { recursive: true });
 
 await build({
   entryPoints: [`${raiz}src/plataforma/entrada-node.ts`],
@@ -43,23 +44,4 @@ writeFileSync(
 );
 writeFileSync(`${funcion}/package.json`, JSON.stringify({ type: 'module' }));
 
-// La API no tiene páginas propias para buscadores.
-writeFileSync(`${salida}/static/robots.txt`, 'User-agent: *\nDisallow: /\n');
-
-writeFileSync(
-  `${salida}/config.json`,
-  JSON.stringify(
-    {
-      version: 3,
-      routes: [
-        { handle: 'filesystem' },
-        // Todo lo demás va a la función, con la ruta original en __ruta (src/plataforma/entrada-node.ts).
-        { src: '^/(.*)$', dest: '/index?__ruta=$1' },
-      ],
-    },
-    null,
-    2,
-  ),
-);
-
-console.log('API lista para Vercel en .vercel/output');
+console.log(`Función de la API lista en ${funcion}`);

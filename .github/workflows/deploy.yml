@@ -1,13 +1,13 @@
 name: Deploy a producción (Vercel)
 
-# Construye el sitio y lo publica en producción en Vercel (proyecto del sitio, dominio
+# Construye el sitio y lo publica en producción en Vercel (proyecto antidoto-web, dominio
 # antidotocolombia.com). Cada push a main ya publica solo por la integración de Git de Vercel;
 # este workflow sirve para volver a construir sin un commit: lo dispara el panel al publicar
 # contenido (blog, casos, FAQ...) o se corre a mano (Actions > Run workflow).
 # Secrets requeridos en GitHub (Settings > Secrets and variables > Actions):
 #   VERCEL_TOKEN              token de la cuenta de Vercel (vercel.com/account/tokens)
 #   VERCEL_ORG_ID             id del equipo (.vercel/project.json después de `vercel link`)
-#   VERCEL_PROJECT_ID         id del proyecto del sitio (mismo archivo)
+#   VERCEL_PROJECT_ID         id del proyecto antidoto-web (mismo archivo)
 # Las variables del build (PUBLIC_API_URL) viven en el proyecto de Vercel, no en GitHub.
 # Sin los secrets el job se omite con un aviso.
 
