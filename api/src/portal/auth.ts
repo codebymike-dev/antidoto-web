@@ -3,7 +3,7 @@
 // del equipo no abre el portal ni al revés. Cookie SameSite=Strict: el portal no se abre desde
 // enlaces de otros sitios con la sesión puesta.
 import { and, eq, gt, isNull } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from '../db/conexion';
 import { enlacesCliente, sesionesCliente, usuariosCliente, organizaciones, type UsuarioCliente } from '../db/schema';
 import { enviar, correoEnlacePortal } from '../correo';
 import { dentroDelLimite } from '../limite';
@@ -31,7 +31,7 @@ const leerCookie = (req: Request, nombre: string): string | null => {
 export const cookieCliente = (valor: string, maxAge: number) => `${COOKIE_CLIENTE}=${valor}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}`;
 
 /** POST /portal/auth/enlace. Responde lo mismo exista o no el correo. */
-export async function pedirEnlaceCliente(req: Request, env: Env, db: DrizzleD1Database, appUrl: string): Promise<Response> {
+export async function pedirEnlaceCliente(req: Request, env: Env, db: Db, appUrl: string): Promise<Response> {
   const d = (await req.json().catch(() => ({}))) as { email?: unknown };
   const email = typeof d.email === 'string' ? d.email.trim().toLowerCase().slice(0, 200) : '';
   const respuesta = json({ ok: true });
@@ -53,7 +53,7 @@ export function paginaEntrarCliente(req: Request): Response {
 }
 
 /** POST /portal/auth/entrar: gasta el enlace y abre la sesión del cliente. */
-export async function entrarCliente(req: Request, db: DrizzleD1Database): Promise<Response> {
+export async function entrarCliente(req: Request, db: Db): Promise<Response> {
   const f = await req.formData().catch(() => null);
   const secreto = String(f?.get('t') ?? '');
   const volver = () => Response.redirect(`${new URL(req.url).origin}/portal/?error=enlace`, 303);
@@ -76,7 +76,7 @@ export async function entrarCliente(req: Request, db: DrizzleD1Database): Promis
   return new Response(null, { status: 303, headers: { location: '/portal/', 'set-cookie': cookieCliente(sesion, DIAS_SESION_CLIENTE * 86_400), 'cache-control': 'no-store' } });
 }
 
-export async function sesionCliente(req: Request, db: DrizzleD1Database): Promise<SesionCliente | null> {
+export async function sesionCliente(req: Request, db: Db): Promise<SesionCliente | null> {
   const secreto = leerCookie(req, COOKIE_CLIENTE);
   if (!secreto) return null;
   const hash = await sha256(secreto);
@@ -92,7 +92,7 @@ export async function sesionCliente(req: Request, db: DrizzleD1Database): Promis
   return { usuario: fila.u, organizacion: fila.o, hash };
 }
 
-export async function salirCliente(db: DrizzleD1Database, s: SesionCliente): Promise<Response> {
+export async function salirCliente(db: Db, s: SesionCliente): Promise<Response> {
   await db.update(sesionesCliente).set({ revocada: ahora() }).where(eq(sesionesCliente.hash, s.hash));
   return json({ ok: true }, 200, { 'set-cookie': cookieCliente('', 0) });
 }

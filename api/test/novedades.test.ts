@@ -2,8 +2,8 @@
 // recordatorio único, importación con invitaciones por lotes, programación, prueba A/B, plantillas,
 // duplicado, archivo público, métricas de la lista y suscripción en la ficha del lead.
 import { describe, test, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
-import { drizzle } from 'drizzle-orm/d1';
-import { crearEntorno } from './entorno';
+import { conectar as drizzle } from '../src/db/conexion';
+import { crearEntorno, consulta } from './entorno';
 import { manejar } from '../src/index';
 import { procesarEnvios, arrancarProgramadas, decidirPruebas, ganadora } from '../src/marketing/envios';
 import { recordatorios, invitaciones, RECORDATORIO_TRAS } from '../src/marketing/automaticos';
@@ -46,7 +46,7 @@ beforeAll(async () => {
   });
 
   const t = Date.now();
-  await env.DB.prepare("insert into usuarios (id, email, nombre, rol, activo, creado) values ('88888888-8888-4888-8888-888888888888', 'nov@antidoto.co', 'Novedades', 'admin', 1, ?)").bind(t).run();
+  await consulta(env.DB, "insert into usuarios (id, email, nombre, rol, activo, creado) values ('88888888-8888-4888-8888-888888888888', 'nov@antidoto.co', 'Novedades', 'admin', 1, ?)", t).run();
   await llamar('/auth/enlace', { method: 'POST', headers: { origin: APP, 'content-type': 'application/json' }, body: JSON.stringify({ email: 'nov@antidoto.co' }) });
   const tk = new URL(correos[0]!.text.match(/https:\/\/\S+/)![0]).searchParams.get('t')!;
   const r = await llamar('/auth/entrar', { method: 'POST', headers: { origin: APP }, body: new URLSearchParams({ t: tk }) });
@@ -64,7 +64,7 @@ beforeEach(() => {
 async function llamar(ruta: string, init: RequestInit & { ip?: string } = {}) {
   const pendientes: Promise<unknown>[] = [];
   const headers = new Headers(init.headers);
-  if (init.ip) headers.set('cf-connecting-ip', init.ip);
+  if (init.ip) headers.set('x-real-ip', init.ip);
   const res = await manejar(new Request(`${APP}${ruta}`, { ...init, headers, redirect: 'manual' }), env, (p) => pendientes.push(p));
   await Promise.all(pendientes);
   return res;
@@ -82,15 +82,13 @@ const suscribirse = (email: string, extra: Record<string, unknown> = {}) =>
     body: JSON.stringify({ email, consentimiento: NOVEDADES, locale: 'es', t: TIEMPO_MINIMO_MS + 1000, ...extra }),
   });
 
-const contacto = (email: string) => env.DB.prepare('select * from contactos where email = ?').bind(email).first<Record<string, unknown>>();
+const contacto = (email: string) => consulta(env.DB, 'select * from contactos where email = ?', email).first<Record<string, unknown>>();
 
 /** Contacto activo listo para campañas. */
 async function activo(email: string, extra: { locale?: string; intereses?: string; pausa?: number | null } = {}) {
   const t = Date.now();
-  await env.DB.prepare(
-    "insert into contactos (id, email, locale, estado, origen, intereses, token, creado, actualizado, confirmado, pausa_hasta) values (?, ?, ?, 'activo', 'pie', ?, ?, ?, ?, ?, ?)",
-  )
-    .bind(crypto.randomUUID(), email, extra.locale ?? 'es', extra.intereses ?? '[]', `tok-${email}`, t, t, t, extra.pausa ?? null)
+  await consulta(env.DB, 
+    "insert into contactos (id, email, locale, estado, origen, intereses, token, creado, actualizado, confirmado, pausa_hasta) values (?, ?, ?, 'activo', 'pie', ?, ?, ?, ?, ?, ?)", crypto.randomUUID(), email, extra.locale ?? 'es', extra.intereses ?? '[]', `tok-${email}`, t, t, t, extra.pausa ?? null)
     .run();
 }
 
@@ -200,8 +198,7 @@ describe('correos automáticos', () => {
   test('un solo recordatorio a quien no confirmó, y nunca a los invitados', async () => {
     const hace = Date.now() - RECORDATORIO_TRAS - 60_000;
     const insertar = (email: string, origen: string, enviada: number) =>
-      env.DB.prepare("insert into contactos (id, email, locale, estado, origen, intereses, token, creado, actualizado, confirmacion_enviada) values (?, ?, 'es', 'pendiente', ?, '[]', ?, ?, ?, ?)")
-        .bind(crypto.randomUUID(), email, origen, `tok-${email}`, enviada, enviada, enviada)
+      consulta(env.DB, "insert into contactos (id, email, locale, estado, origen, intereses, token, creado, actualizado, confirmacion_enviada) values (?, ?, 'es', 'pendiente', ?, '[]', ?, ?, ?, ?)", crypto.randomUUID(), email, origen, `tok-${email}`, enviada, enviada, enviada)
         .run();
     await insertar('olvido@demo.co', 'inicio', hace);
     await insertar('reciente@demo.co', 'pie', Date.now() - 3_600_000);
@@ -244,9 +241,9 @@ describe('importación', () => {
 
     // Como toda invitación, la autorización nace cuando confirma.
     const c = await contacto('imp1@demo.co');
-    expect(await env.DB.prepare('select count(*) n from contacto_consentimientos where contacto_id = ?').bind(c!.id).first<number>('n')).toBe(0);
+    expect(await consulta(env.DB, 'select count(*) n from contacto_consentimientos where contacto_id = ?', c!.id).first<number>('n')).toBe(0);
     await llamar(`/v1/suscripcion/confirmar?t=${encodeURIComponent(c!.token as string)}`, { method: 'POST' });
-    expect(await env.DB.prepare('select count(*) n from contacto_consentimientos where contacto_id = ? and confirmado is not null').bind(c!.id).first<number>('n')).toBe(1);
+    expect(await consulta(env.DB, 'select count(*) n from contacto_consentimientos where contacto_id = ? and confirmado is not null', c!.id).first<number>('n')).toBe(1);
 
     expect((await admin('/admin/api/contactos/importar', { method: 'POST', body: JSON.stringify({ filas: Array(1001).fill({ email: 'a@b.co' }) }) })).status).toBe(413);
   });
@@ -271,7 +268,7 @@ describe('campañas: programación, A/B, duplicado y plantillas', () => {
 
     await admin(`/admin/api/campanas/${c.id}/programar`, { method: 'POST', body: JSON.stringify({ fecha: Date.now() + 3_600_000 }) });
     expect(await arrancarProgramadas(env, drizzle(env.DB))).toBe(0);
-    await env.DB.prepare('update campanas set programada = ? where id = ?').bind(Date.now() - 1000, c.id).run();
+    await consulta(env.DB, 'update campanas set programada = ? where id = ?', Date.now() - 1000, c.id).run();
     expect(await arrancarProgramadas(env, drizzle(env.DB))).toBe(1);
     await procesarEnvios(env, drizzle(env.DB));
     expect(lotes.flat()).toHaveLength(10);
@@ -293,8 +290,8 @@ describe('campañas: programación, A/B, duplicado y plantillas', () => {
 
     // Antes de la hora no se decide nada.
     expect(await decidirPruebas(env, drizzle(env.DB))).toBe(0);
-    await env.DB.prepare("update envios set clic = ? where campana_id = ? and variante = 'b' and rowid = (select min(rowid) from envios where campana_id = ? and variante = 'b')").bind(Date.now(), c.id, c.id).run();
-    await env.DB.prepare('update campanas set ab_decision = ? where id = ?').bind(Date.now() - 1000, c.id).run();
+    await consulta(env.DB, "update envios set clic = ? where campana_id = ? and variante = 'b' and rowid = (select min(rowid) from envios where campana_id = ? and variante = 'b')", Date.now(), c.id, c.id).run();
+    await consulta(env.DB, 'update campanas set ab_decision = ? where id = ?', Date.now() - 1000, c.id).run();
     expect(await decidirPruebas(env, drizzle(env.DB))).toBe(1);
     lotes = [];
     await procesarEnvios(env, drizzle(env.DB));
@@ -323,8 +320,7 @@ describe('archivo público', () => {
   test('lista solo las públicas enviadas y su versión web no lleva datos de nadie', async () => {
     const t = Date.now();
     const insertar = (id: string, asunto: string, estado: string, publica: number) =>
-      env.DB.prepare("insert into campanas (id, asunto, cuerpo, locale, intereses, estado, autor, creada, actualizada, iniciada, publica) values (?, ?, 'Hola {{nombre}}', 'es', '[]', ?, 'x', ?, ?, ?, ?)")
-        .bind(id, asunto, estado, t, t, t, publica)
+      consulta(env.DB, "insert into campanas (id, asunto, cuerpo, locale, intereses, estado, autor, creada, actualizada, iniciada, publica) values (?, ?, 'Hola {{nombre}}', 'es', '[]', ?, 'x', ?, ?, ?, ?)", id, asunto, estado, t, t, t, publica)
         .run();
     await insertar('99999999-9999-4999-8999-000000000001', 'Pública', 'enviada', 1);
     await insertar('99999999-9999-4999-8999-000000000002', 'Privada', 'enviada', 0);

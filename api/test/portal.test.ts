@@ -2,6 +2,7 @@
 // organización y lo marcado como visible, aprueba o pide cambios y comenta.
 import { describe, test, expect, beforeAll } from 'vitest';
 import { prepararPruebas, APP } from './ayudas';
+import { consulta } from './entorno';
 
 const p = prepararPruebas();
 let admin = '';
@@ -107,7 +108,7 @@ describe('portal', () => {
   });
 
   test('quitar el acceso corta la sesión del cliente', async () => {
-    const accesos = (await (await p.llamar(`/admin/api/organizaciones/${(await p.env.DB.prepare('select organizacion_id from proyectos where id = ?').bind(proyectoA).first<string>('organizacion_id'))}/accesos`, { headers: { cookie: admin } })).json()) as { accesos: { id: string }[] };
+    const accesos = (await (await p.llamar(`/admin/api/organizaciones/${(await consulta(p.env.DB, 'select organizacion_id from proyectos where id = ?', proyectoA).first<string>('organizacion_id'))}/accesos`, { headers: { cookie: admin } })).json()) as { accesos: { id: string }[] };
     await enviar(admin, `/admin/api/accesos/${accesos.accesos[0]!.id}/quitar`, 'POST');
     expect((await p.llamar('/portal/api/yo', { headers: { cookie: cliente } })).status).toBe(401);
   });

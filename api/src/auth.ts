@@ -2,7 +2,7 @@
 // recuperar. Los tokens nunca se guardan en claro (solo su SHA-256), el enlace sirve una vez
 // y vence rápido, y las sesiones se pueden revocar una a una o todas.
 import { and, desc, eq, gt, isNull } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from './db/conexion';
 import { enlaces, sesiones, usuarios, type Usuario } from './db/schema';
 import { enviar, correoEnlaceAcceso } from './correo';
 import { dentroDelLimite } from './limite';
@@ -49,7 +49,7 @@ async function leerEmail(req: Request): Promise<string> {
 }
 
 /** POST /auth/enlace. Responde lo mismo exista o no el correo, para no revelar quién es del equipo. */
-export async function pedirEnlace(req: Request, env: Env, db: DrizzleD1Database, appUrl: string): Promise<Response> {
+export async function pedirEnlace(req: Request, env: Env, db: Db, appUrl: string): Promise<Response> {
   const email = (await leerEmail(req)).trim().toLowerCase().slice(0, 200);
   const respuesta = json({ ok: true });
   if (!email) return respuesta;
@@ -78,7 +78,7 @@ export function paginaEntrar(req: Request): Response {
 }
 
 /** POST /auth/entrar: gasta el enlace y abre la sesión. */
-export async function entrar(req: Request, db: DrizzleD1Database): Promise<Response> {
+export async function entrar(req: Request, db: Db): Promise<Response> {
   const f = await req.formData().catch(() => null);
   const secreto = String(f?.get('t') ?? '');
   const volver = (motivo: string) => Response.redirect(`${new URL(req.url).origin}/admin/?error=${motivo}`, 303);
@@ -116,7 +116,7 @@ export async function entrar(req: Request, db: DrizzleD1Database): Promise<Respo
 }
 
 /** Sesión vigente de la petición, o null. Renueva el último uso como mucho una vez por hora. */
-export async function sesionActual(req: Request, db: DrizzleD1Database): Promise<Sesion | null> {
+export async function sesionActual(req: Request, db: Db): Promise<Sesion | null> {
   const secreto = leerCookie(req, COOKIE);
   if (!secreto) return null;
   const hash = await sha256(secreto);
@@ -132,7 +132,7 @@ export async function sesionActual(req: Request, db: DrizzleD1Database): Promise
 }
 
 /** GET /admin/api/yo/sesiones: las sesiones abiertas de quien pregunta, la actual marcada. */
-export async function listarSesiones(db: DrizzleD1Database, sesion: Sesion): Promise<Response> {
+export async function listarSesiones(db: Db, sesion: Sesion): Promise<Response> {
   const t = ahora();
   const filas = await db
     .select({ id: sesiones.id, creada: sesiones.creada, ultimoUso: sesiones.ultimoUso, expira: sesiones.expira, userAgent: sesiones.userAgent, hash: sesiones.hash })
@@ -143,7 +143,7 @@ export async function listarSesiones(db: DrizzleD1Database, sesion: Sesion): Pro
 }
 
 /** POST /admin/api/yo/sesiones/<id>/revocar: solo las propias; la de otra persona responde 404. */
-export async function revocarSesion(db: DrizzleD1Database, sesion: Sesion, id: string): Promise<Response> {
+export async function revocarSesion(db: Db, sesion: Sesion, id: string): Promise<Response> {
   const r = await db
     .update(sesiones)
     .set({ revocada: ahora() })
@@ -153,7 +153,7 @@ export async function revocarSesion(db: DrizzleD1Database, sesion: Sesion, id: s
   return listarSesiones(db, sesion);
 }
 
-export async function salir(db: DrizzleD1Database, sesion: Sesion, todas: boolean): Promise<Response> {
+export async function salir(db: Db, sesion: Sesion, todas: boolean): Promise<Response> {
   const t = ahora();
   await db
     .update(sesiones)

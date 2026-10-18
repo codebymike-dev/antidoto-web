@@ -2,7 +2,7 @@
 // tope real de preguntas, borrado por el visitante, limpieza a los 90 días, vínculo con el lead
 // y la vista del panel.
 import { describe, test, expect, beforeEach } from 'vitest';
-import { drizzle } from 'drizzle-orm/d1';
+import { conectar as drizzle } from '../src/db/conexion';
 import { prepararPruebas } from './ayudas';
 import type { RespuestaApi } from '../src/asesor/bucle';
 import { MAX_PREGUNTAS } from '../src/asesor/prompt';
@@ -10,6 +10,7 @@ import { limpiarConversaciones, DIAS_RETENCION } from '../src/asesor/guardado';
 import { temaDe } from '../src/asesor/temas';
 import { TIEMPO_MINIMO_MS } from '../src/validar';
 import consentimiento from '../../src/data/consentimiento.json';
+import { consulta } from './entorno';
 
 const SITIO = 'https://antidotocolombia.com';
 let respuestas: RespuestaApi[] = [];
@@ -21,7 +22,7 @@ const p = prepararPruebas((url) => (url === 'https://api.anthropic.com/v1/messag
 beforeEach(async () => {
   p.env.ANTHROPIC_API_KEY = 'sk-prueba';
   respuestas = [];
-  await p.env.DB.exec('DELETE FROM limites;');
+  await p.env.DB.executeMultiple('DELETE FROM limites;');
 });
 
 let n = 0;
@@ -29,7 +30,7 @@ const nuevoId = () => `00000000-0000-4000-8000-${String(++n).padStart(12, '0')}`
 const preguntar = (cuerpo: Record<string, unknown>, ruta = '/v1/asesor') =>
   p.llamar(ruta, { method: 'POST', body: JSON.stringify(cuerpo), headers: { origin: SITIO, 'content-type': 'text/plain;charset=UTF-8' }, ip: `10.0.${n}.1` });
 const mensajes = (...textos: string[]) => textos.map((t, i) => ({ rol: i % 2 ? 'asesor' : 'usuario', texto: t }));
-const filas = async <T,>(sql: string, ...args: unknown[]) => (await p.env.DB.prepare(sql).bind(...args).all<T>()).results;
+const filas = async <T,>(sql: string, ...args: unknown[]) => (await consulta(p.env.DB, sql, ...args).all<T>()).results;
 
 describe('guardado por turno', () => {
   test('dos preguntas seguidas guardan cuatro mensajes, con temas y costo', async () => {
@@ -101,7 +102,7 @@ describe('guardado por turno', () => {
   test('el tope de preguntas lo cuenta el servidor aunque el navegador mande menos historial', async () => {
     const id = nuevoId();
     const t = Date.now();
-    await p.env.DB.prepare('insert into conversaciones (id, creada, actualizada, locale, preguntas, expira) values (?, ?, ?, ?, ?, ?)').bind(id, t, t, 'es', MAX_PREGUNTAS, t + 1e9).run();
+    await consulta(p.env.DB, 'insert into conversaciones (id, creada, actualizada, locale, preguntas, expira) values (?, ?, ?, ?, ?, ?)', id, t, t, 'es', MAX_PREGUNTAS, t + 1e9).run();
     const r = await preguntar({ locale: 'es', conversacion: id, mensajes: mensajes('Una más') });
     expect(r.status).toBe(429);
   });
@@ -125,7 +126,7 @@ describe('borrado y retención', () => {
     respuestas = [texto('Uno.'), texto('Dos.')];
     await preguntar({ locale: 'es', conversacion: vieja, mensajes: mensajes('Vieja') });
     await preguntar({ locale: 'es', conversacion: nueva, mensajes: mensajes('Nueva') });
-    await p.env.DB.prepare('update conversaciones set expira = 1 where id = ?').bind(vieja).run();
+    await consulta(p.env.DB, 'update conversaciones set expira = 1 where id = ?', vieja).run();
     const [antes] = await filas<{ preguntas: number }>('select sum(preguntas) as preguntas from gasto_asesor');
     expect(await limpiarConversaciones(drizzle(p.env.DB), Date.now())).toBeGreaterThanOrEqual(1);
     expect(await filas('select id from conversaciones where id = ?', vieja)).toHaveLength(0);

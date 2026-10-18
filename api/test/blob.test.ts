@@ -13,26 +13,26 @@ const blob = vi.hoisted(() => ({
 vi.mock('@vercel/blob', () => ({ get: blob.get, put: blob.put, del: blob.del, head: blob.head, issueSignedToken: blob.issueSignedToken }));
 vi.mock('@vercel/blob/client', () => ({ handleUploadPresigned: blob.handleUploadPresigned }));
 
-const { r2DesdeBlob } = await import('../src/plataforma/blob-r2');
+const { almacenBlob } = await import('../src/plataforma/blob');
 const { subidaBlob } = await import('../src/plataforma/subida-blob');
 
 beforeEach(() => {
   for (const f of Object.values(blob)) f.mockReset();
 });
 
-describe('R2 sobre Blob', () => {
+describe('Almacén en Blob', () => {
   it('lee, escribe y borra con el prefijo y acceso privado', async () => {
-    const b = r2DesdeBlob('archivos');
+    const b = almacenBlob('archivos');
     const cuerpo = new ReadableStream();
     blob.get.mockResolvedValue({ statusCode: 200, stream: cuerpo, blob: { size: 5, contentType: 'image/png' } });
     const o = await b.get('proyectos/p/1');
     expect(blob.get).toHaveBeenCalledWith('archivos/proyectos/p/1', { access: 'private', useCache: false });
-    expect(o).toMatchObject({ body: cuerpo, size: 5, httpMetadata: { contentType: 'image/png' } });
+    expect(o).toMatchObject({ body: cuerpo, size: 5, contentType: 'image/png' });
 
     blob.get.mockResolvedValue(null);
     expect(await b.get('no')).toBeNull();
 
-    await b.put('x', new Uint8Array([1, 2]), { httpMetadata: { contentType: 'image/webp' } });
+    await b.put('x', new Uint8Array([1, 2]), { contentType: 'image/webp' });
     expect(blob.put).toHaveBeenCalledWith('archivos/x', expect.any(Uint8Array), { access: 'private', addRandomSuffix: false, allowOverwrite: true, contentType: 'image/webp' });
 
     await b.delete('x');
@@ -40,7 +40,7 @@ describe('R2 sobre Blob', () => {
   });
 
   it('medios y archivos no se mezclan', async () => {
-    await r2DesdeBlob('medios').delete(['a', 'b']);
+    await almacenBlob('medios').delete(['a', 'b']);
     expect(blob.del).toHaveBeenCalledWith(['medios/a', 'medios/b']);
   });
 });

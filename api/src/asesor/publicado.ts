@@ -1,9 +1,9 @@
 // Preguntas frecuentes y clientes publicados desde el panel, para el conocimiento del asesor. Así
-// el chat dice lo mismo que el sitio sin esperar a que se vuelva a desplegar el Worker. Se guardan
+// el chat dice lo mismo que el sitio sin esperar a que se vuelva a desplegar la API. Se guardan
 // 5 minutos en memoria del isolate; si la base no responde, el asesor sigue con lo del sitio
 // (falla abierto: es información extra, no un control).
 import { and, inArray, isNotNull, isNull } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from '../db/conexion';
 import { contenido } from '../db/schema';
 import type { Extra } from './conocimiento';
 
@@ -14,7 +14,7 @@ export function vaciarCache() {
   cache = null;
 }
 
-export async function contenidoAsesor(db: DrizzleD1Database, t = Date.now()): Promise<Extra | undefined> {
+export async function contenidoAsesor(db: Db, t = Date.now()): Promise<Extra | undefined> {
   if (cache && cache.hasta > t) return cache.extra;
   try {
     const filas = await db

@@ -36,11 +36,9 @@ test('celdaCsv neutraliza fórmulas y escapa comillas', () => {
 });
 
 test('origenPermitido', () => {
-  const env = { ORIGENES: 'https://antidotocolombia.com, https://antidoto-web.pages.dev' };
+  const env = { ORIGENES: 'https://antidotocolombia.com, https://antidoto-web.vercel.app' };
   expect(origenPermitido('https://antidotocolombia.com', env)).toBe(true);
-  expect(origenPermitido('https://mi-rama.antidoto-web.pages.dev', env)).toBe(true);
-  expect(origenPermitido('https://antidoto-web.pages.dev.evil.com', env)).toBe(false);
-  expect(origenPermitido('https://evil-antidoto-web.pages.dev', env)).toBe(false);
+  expect(origenPermitido('https://antidoto-web.vercel.app.evil.com', env)).toBe(false);
   expect(origenPermitido('https://antidoto-web-git-rama-equipo.vercel.app', env)).toBe(true);
   expect(origenPermitido('https://antidoto-web-a1b2c3-equipo.vercel.app', env)).toBe(true);
   expect(origenPermitido('https://otro-antidoto-web-x.vercel.app', env)).toBe(false);

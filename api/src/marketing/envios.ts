@@ -7,7 +7,7 @@
 // y asunto B) y el resto queda "en espera". Pasadas las horas de la prueba, la revisión de pendientes elige la
 // variante con más clics (o aperturas, si no hay clics) y el resto recibe esa.
 import { and, eq, inArray, lt, sql } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from '../db/conexion';
 import { campanas, contactos, envios, type Campana, type Contacto } from '../db/schema';
 import { renderizar } from './render';
 import { enlaceBaja, enlacePreferencias, enlaceWeb } from './enlaces';
@@ -66,12 +66,12 @@ export async function enviarLote(env: Env, cuerpos: unknown[]): Promise<{ ok: tr
 }
 
 /** Procesa hasta LOTES_POR_CORRIDA lotes pendientes de campañas en envío. */
-export async function procesarEnvios(env: Env, db: DrizzleD1Database): Promise<{ enviados: number; fallidos: number }> {
+export async function procesarEnvios(env: Env, db: Db): Promise<{ enviados: number; fallidos: number }> {
   const t = ahora();
   let enviados = 0;
   let fallidos = 0;
 
-  // Lotes que quedaron a medias (el Worker se cortó): no se sabe si salieron, así que no se reintentan.
+  // Lotes que quedaron a medias (la función se cortó): no se sabe si salieron, así que no se reintentan.
   await db
     .update(envios)
     .set({ estado: 'fallido', error: 'Lote interrumpido' })
@@ -97,7 +97,7 @@ export async function procesarEnvios(env: Env, db: DrizzleD1Database): Promise<{
       .returning({ id: envios.id });
     if (!reclamados.length) break;
 
-    // Todo se consulta y actualiza por id de lote: D1 acepta como mucho 100 variables por consulta.
+    // Todo se consulta y actualiza por id de lote, en consultas de hasta 100 variables.
     const delLote = eq(envios.lote, lote);
     // Quien se dio de baja entre el clic de enviar y este lote ya no recibe nada.
     await db
@@ -159,36 +159,41 @@ const AUDIENCIA_SQL = `c.estado = 'activo' and c.locale = ?1
 export async function iniciarEnvio(env: Env, c: Campana, appUrl: string): Promise<boolean> {
   const t = ahora();
   const ab = !!c.asuntoB;
-  const [marcada] = await env.DB.batch([
-    env.DB.prepare(
-      `update campanas set estado = 'enviando', iniciada = ?1, actualizada = ?1, base_url = ?2, programada = null, ab_decision = ?3
-       where id = ?4 and estado in ('borrador', 'programada') returning id`,
-    ).bind(t, appUrl, ab ? t + Math.max(1, c.abHoras ?? 4) * HORA : null, c.id),
-    env.DB.prepare(
-      `insert or ignore into envios (id, campana_id, contacto_id, estado, intentos)
-       select lower(hex(randomblob(16))), ?4, c.id, ?5, 0
-       from contactos c
-       where ${AUDIENCIA_SQL}
-         and exists (select 1 from campanas where id = ?4 and estado = 'enviando' and iniciada = ?2)`,
-    ).bind(c.locale, t, JSON.stringify(c.intereses), c.id, ab ? 'espera' : 'pendiente'),
-  ]);
-  if (!marcada?.results.length) return false;
+  const [marcada] = await env.DB.batch(
+    [
+      {
+        sql: `update campanas set estado = 'enviando', iniciada = ?1, actualizada = ?1, base_url = ?2, programada = null, ab_decision = ?3
+         where id = ?4 and estado in ('borrador', 'programada') returning id`,
+        args: [t, appUrl, ab ? t + Math.max(1, c.abHoras ?? 4) * HORA : null, c.id],
+      },
+      {
+        sql: `insert or ignore into envios (id, campana_id, contacto_id, estado, intentos)
+         select lower(hex(randomblob(16))), ?4, c.id, ?5, 0
+         from contactos c
+         where ${AUDIENCIA_SQL}
+           and exists (select 1 from campanas where id = ?4 and estado = 'enviando' and iniciada = ?2)`,
+        args: [c.locale, t, JSON.stringify(c.intereses), c.id, ab ? 'espera' : 'pendiente'],
+      },
+    ],
+    'write',
+  );
+  if (!marcada?.rows.length) return false;
   if (ab) {
-    const { n } = (await env.DB.prepare(`select count(*) n from envios where campana_id = ?`).bind(c.id).first<{ n: number }>()) ?? { n: 0 };
+    const n = Number((await env.DB.execute({ sql: 'select count(*) n from envios where campana_id = ?', args: [c.id] })).rows[0]?.n ?? 0);
     const muestra = Math.min(n, Math.max(2, Math.round((n * Math.min(100, Math.max(10, c.abMuestra ?? 20))) / 100)));
     const mitad = Math.ceil(muestra / 2);
-    const tomar = (variante: 'a' | 'b', cuantos: number) =>
-      env.DB.prepare(
-        `update envios set estado = 'pendiente', variante = ?1
+    const tomar = (variante: 'a' | 'b', cuantos: number) => ({
+      sql: `update envios set estado = 'pendiente', variante = ?1
          where id in (select id from envios where campana_id = ?2 and estado = 'espera' order by random() limit ?3)`,
-      ).bind(variante, c.id, cuantos);
-    await env.DB.batch([tomar('a', mitad), tomar('b', muestra - mitad)]);
+      args: [variante, c.id, cuantos],
+    });
+    await env.DB.batch([tomar('a', mitad), tomar('b', muestra - mitad)], 'write');
   }
   return true;
 }
 
 /** Cron: arranca las campañas programadas cuya hora ya llegó. */
-export async function arrancarProgramadas(env: Env, db: DrizzleD1Database): Promise<number> {
+export async function arrancarProgramadas(env: Env, db: Db): Promise<number> {
   const listas = await db
     .select()
     .from(campanas)
@@ -205,7 +210,7 @@ export function ganadora(a: { clics: number; abiertos: number }, b: { clics: num
 }
 
 /** Cron: cierra las pruebas A/B vencidas y libera el resto de la audiencia con la ganadora. */
-export async function decidirPruebas(env: Env, db: DrizzleD1Database): Promise<number> {
+export async function decidirPruebas(env: Env, db: Db): Promise<number> {
   const vencidas = await db
     .select()
     .from(campanas)

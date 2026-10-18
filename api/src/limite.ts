@@ -2,12 +2,12 @@
 // sentencia (INSERT ... ON CONFLICT DO UPDATE ... RETURNING), así que dos peticiones a la vez
 // nunca ven el mismo número.
 import { sql } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from './db/conexion';
 import { limites } from './db/schema';
 import { ahora, HORA } from './util';
 
 /** Cuenta un intento para la clave en la ventana en curso (una hora por defecto); true si no pasa de `max`. */
-export async function dentroDelLimite(db: DrizzleD1Database, clave: string, max: number, t = ahora(), duracion = HORA): Promise<boolean> {
+export async function dentroDelLimite(db: Db, clave: string, max: number, t = ahora(), duracion = HORA): Promise<boolean> {
   const ventana = t - (t % duracion);
   const [fila] = await db
     .insert(limites)

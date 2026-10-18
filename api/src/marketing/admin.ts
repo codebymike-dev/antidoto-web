@@ -3,7 +3,7 @@
 // y métricas de la lista. Todo pasa por una sesión válida (ver index.ts).
 import { enviarTodo } from '../pendientes';
 import { and, desc, eq, gte, inArray, isNull, like, lte, or, sql, type SQL } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from '../db/conexion';
 import {
   automaticos,
   campanas,
@@ -35,7 +35,7 @@ const intereses = (v: unknown): ServicioId[] =>
 
 // Contactos ------------------------------------------------------------------------------
 
-export async function listarContactos(url: URL, db: DrizzleD1Database): Promise<Response> {
+export async function listarContactos(url: URL, db: Db): Promise<Response> {
   const p = url.searchParams;
   const filtros: SQL[] = [];
   const estado = p.get('estado');
@@ -76,7 +76,7 @@ export async function listarContactos(url: URL, db: DrizzleD1Database): Promise<
   return json({ contactos: filas, total: total?.n ?? 0, pagina, porPagina: POR_PAGINA, conteos });
 }
 
-export async function verContacto(id: string, db: DrizzleD1Database): Promise<Response> {
+export async function verContacto(id: string, db: Db): Promise<Response> {
   const [c] = await db.select().from(contactos).where(eq(contactos.id, id));
   if (!c) return json({ error: 'no existe' }, 404);
   const [cons, hist] = await Promise.all([
@@ -98,7 +98,7 @@ export async function verContacto(id: string, db: DrizzleD1Database): Promise<Re
 }
 
 /** El equipo invita a alguien: queda pendiente hasta que confirme desde su correo. */
-export async function invitarContacto(req: Request, env: Env, db: DrizzleD1Database, appUrl: string): Promise<Response> {
+export async function invitarContacto(req: Request, env: Env, db: Db, appUrl: string): Promise<Response> {
   const d = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   const email = typeof d.email === 'string' ? d.email.trim().toLowerCase() : '';
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return json({ errores: ['email'] }, 422);
@@ -123,7 +123,7 @@ export async function invitarContacto(req: Request, env: Env, db: DrizzleD1Datab
   return json({ ok: true, contacto: c });
 }
 
-export async function bajaContacto(id: string, db: DrizzleD1Database): Promise<Response> {
+export async function bajaContacto(id: string, db: Db): Promise<Response> {
   const [c] = await db.select().from(contactos).where(eq(contactos.id, id));
   if (!c) return json({ error: 'no existe' }, 404);
   if (c.estado === 'activo' || c.estado === 'pendiente') await darDeBaja(db, c, 'admin');
@@ -131,7 +131,7 @@ export async function bajaContacto(id: string, db: DrizzleD1Database): Promise<R
 }
 
 /** Supresión (Ley 1581): borra los datos personales del contacto y deja el registro sin identificar. */
-export async function suprimir(db: DrizzleD1Database, c: Contacto): Promise<void> {
+export async function suprimir(db: Db, c: Contacto): Promise<void> {
   await darDeBaja(db, c, 'supresion');
   await db.batch([
     db
@@ -142,7 +142,7 @@ export async function suprimir(db: DrizzleD1Database, c: Contacto): Promise<void
   ]);
 }
 
-export async function suprimirContacto(id: string, db: DrizzleD1Database): Promise<Response> {
+export async function suprimirContacto(id: string, db: Db): Promise<Response> {
   const [c] = await db.select().from(contactos).where(eq(contactos.id, id));
   if (!c) return json({ error: 'no existe' }, 404);
   await suprimir(db, c);
@@ -194,12 +194,12 @@ function audiencia(c: Pick<Campana, 'locale' | 'intereses'>): SQL {
   return and(base, alguno)!;
 }
 
-async function contarAudiencia(db: DrizzleD1Database, c: Pick<Campana, 'locale' | 'intereses'>): Promise<number> {
+async function contarAudiencia(db: Db, c: Pick<Campana, 'locale' | 'intereses'>): Promise<number> {
   const [f] = await db.select({ n: sql<number>`count(*)` }).from(contactos).where(audiencia(c));
   return f?.n ?? 0;
 }
 
-async function estadisticas(db: DrizzleD1Database, ids: string[]) {
+async function estadisticas(db: Db, ids: string[]) {
   if (!ids.length) return new Map<string, Record<string, number>>();
   const filas = await db
     .select({
@@ -221,14 +221,14 @@ async function estadisticas(db: DrizzleD1Database, ids: string[]) {
   return new Map(filas.map(({ campanaId, ...resto }) => [campanaId, resto]));
 }
 
-export async function listarCampanas(db: DrizzleD1Database): Promise<Response> {
+export async function listarCampanas(db: Db): Promise<Response> {
   const filas = await db.select().from(campanas).orderBy(desc(campanas.creada)).limit(100);
   const stats = await estadisticas(db, filas.map((c) => c.id));
   return json({ campanas: filas.map((c) => ({ ...c, cuerpo: undefined, stats: stats.get(c.id) ?? null })) });
 }
 
 /** Resultados por variante de una prueba A/B. */
-async function porVariante(db: DrizzleD1Database, id: string) {
+async function porVariante(db: Db, id: string) {
   return db
     .select({
       variante: envios.variante,
@@ -241,7 +241,7 @@ async function porVariante(db: DrizzleD1Database, id: string) {
     .groupBy(envios.variante);
 }
 
-export async function verCampana(id: string, db: DrizzleD1Database): Promise<Response> {
+export async function verCampana(id: string, db: Db): Promise<Response> {
   const [c] = await db.select().from(campanas).where(eq(campanas.id, id));
   if (!c) return json({ error: 'no existe' }, 404);
   const stats = (await estadisticas(db, [id])).get(id) ?? null;
@@ -254,7 +254,7 @@ export async function verCampana(id: string, db: DrizzleD1Database): Promise<Res
   });
 }
 
-export async function crearCampana(req: Request, db: DrizzleD1Database, sesion: Sesion): Promise<Response> {
+export async function crearCampana(req: Request, db: Db, sesion: Sesion): Promise<Response> {
   const r = validarCampana(await req.json().catch(() => null));
   if (!r.ok) return json({ errores: r.errores }, 422);
   const t = ahora();
@@ -263,7 +263,7 @@ export async function crearCampana(req: Request, db: DrizzleD1Database, sesion: 
   return verCampana(id, db);
 }
 
-export async function editarCampana(id: string, req: Request, db: DrizzleD1Database): Promise<Response> {
+export async function editarCampana(id: string, req: Request, db: Db): Promise<Response> {
   const [c] = await db.select().from(campanas).where(eq(campanas.id, id));
   if (!c) return json({ error: 'no existe' }, 404);
   if (c.estado !== 'borrador') return json({ error: 'estado' }, 409);
@@ -273,7 +273,7 @@ export async function editarCampana(id: string, req: Request, db: DrizzleD1Datab
   return verCampana(id, db);
 }
 
-export async function borrarCampana(id: string, db: DrizzleD1Database): Promise<Response> {
+export async function borrarCampana(id: string, db: Db): Promise<Response> {
   const [c] = await db.select().from(campanas).where(eq(campanas.id, id));
   if (!c) return json({ error: 'no existe' }, 404);
   if (c.estado !== 'borrador') return json({ error: 'estado' }, 409);
@@ -282,7 +282,7 @@ export async function borrarCampana(id: string, db: DrizzleD1Database): Promise<
 }
 
 /** Vista previa para el iframe de la bandeja, con un contacto de ejemplo. */
-export async function vistaCampana(id: string, env: Env, db: DrizzleD1Database, appUrl: string): Promise<Response> {
+export async function vistaCampana(id: string, env: Env, db: Db, appUrl: string): Promise<Response> {
   const [c] = await db.select().from(campanas).where(eq(campanas.id, id));
   if (!c) return new Response('No existe', { status: 404 });
   const { html } = renderizar(c, { nombre: c.locale === 'en' ? 'Alex' : 'Laura' }, `${appUrl}/v1/suscripcion/baja?t=ejemplo`, {
@@ -306,7 +306,7 @@ export function vistaHtml(html: string): Response {
 }
 
 /** Manda la campaña solo a quien la pide, marcada como prueba. */
-export async function probarCampana(id: string, env: Env, db: DrizzleD1Database, sesion: Sesion, appUrl: string): Promise<Response> {
+export async function probarCampana(id: string, env: Env, db: Db, sesion: Sesion, appUrl: string): Promise<Response> {
   const [c] = await db.select().from(campanas).where(eq(campanas.id, id));
   if (!c) return json({ error: 'no existe' }, 404);
   // Con prueba A/B llegan las dos variantes, para ver ambos asuntos en la bandeja de entrada.
@@ -327,7 +327,7 @@ export async function probarCampana(id: string, env: Env, db: DrizzleD1Database,
  * Envía la campaña. Pide el número de destinatarios que vio quien envía: si cambió (alguien se
  * suscribió o se dio de baja mientras tanto) se rechaza y la bandeja muestra el número nuevo.
  */
-export async function enviarCampana(id: string, req: Request, env: Env, db: DrizzleD1Database, appUrl: string, diferir: (p: Promise<unknown>) => void): Promise<Response> {
+export async function enviarCampana(id: string, req: Request, env: Env, db: Db, appUrl: string, diferir: (p: Promise<unknown>) => void): Promise<Response> {
   const [c] = await db.select().from(campanas).where(eq(campanas.id, id));
   if (!c) return json({ error: 'no existe' }, 404);
   if (c.estado !== 'borrador') return json({ error: 'estado' }, 409);
@@ -345,7 +345,7 @@ export async function enviarCampana(id: string, req: Request, env: Env, db: Driz
   return verCampana(id, db);
 }
 
-export async function cancelarCampana(id: string, db: DrizzleD1Database): Promise<Response> {
+export async function cancelarCampana(id: string, db: Db): Promise<Response> {
   const [c] = await db.select().from(campanas).where(eq(campanas.id, id));
   if (!c) return json({ error: 'no existe' }, 404);
   if (c.estado !== 'enviando') return json({ error: 'estado' }, 409);
@@ -358,7 +358,7 @@ export async function cancelarCampana(id: string, db: DrizzleD1Database): Promis
 
 
 /** Programa el envío para una fecha futura. La audiencia se cuenta de nuevo al salir. */
-export async function programarCampana(id: string, req: Request, env: Env, db: DrizzleD1Database, appUrl: string): Promise<Response> {
+export async function programarCampana(id: string, req: Request, env: Env, db: Db, appUrl: string): Promise<Response> {
   const [c] = await db.select().from(campanas).where(eq(campanas.id, id));
   if (!c) return json({ error: 'no existe' }, 404);
   if (c.estado !== 'borrador') return json({ error: 'estado' }, 409);
@@ -373,7 +373,7 @@ export async function programarCampana(id: string, req: Request, env: Env, db: D
   return verCampana(id, db);
 }
 
-export async function desprogramarCampana(id: string, db: DrizzleD1Database): Promise<Response> {
+export async function desprogramarCampana(id: string, db: Db): Promise<Response> {
   const [c] = await db.select().from(campanas).where(eq(campanas.id, id));
   if (!c) return json({ error: 'no existe' }, 404);
   if (c.estado !== 'programada') return json({ error: 'estado' }, 409);
@@ -382,7 +382,7 @@ export async function desprogramarCampana(id: string, db: DrizzleD1Database): Pr
 }
 
 /** Copia una campaña (en cualquier estado) como borrador nuevo. */
-export async function duplicarCampana(id: string, db: DrizzleD1Database, sesion: Sesion): Promise<Response> {
+export async function duplicarCampana(id: string, db: Db, sesion: Sesion): Promise<Response> {
   const [c] = await db.select().from(campanas).where(eq(campanas.id, id));
   if (!c) return json({ error: 'no existe' }, 404);
   const t = ahora();
@@ -394,11 +394,11 @@ export async function duplicarCampana(id: string, db: DrizzleD1Database, sesion:
 
 // Plantillas ------------------------------------------------------------------------------
 
-export async function listarPlantillas(db: DrizzleD1Database): Promise<Response> {
+export async function listarPlantillas(db: Db): Promise<Response> {
   return json({ plantillas: await db.select().from(plantillas).orderBy(desc(plantillas.creada)).limit(100) });
 }
 
-export async function crearPlantilla(req: Request, db: DrizzleD1Database, sesion: Sesion): Promise<Response> {
+export async function crearPlantilla(req: Request, db: Db, sesion: Sesion): Promise<Response> {
   const d = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   const r = validarCampana(d);
   const nombre = typeof d.nombre === 'string' ? d.nombre.trim().slice(0, 80) : '';
@@ -408,18 +408,18 @@ export async function crearPlantilla(req: Request, db: DrizzleD1Database, sesion
   return listarPlantillas(db);
 }
 
-export async function borrarPlantilla(id: string, db: DrizzleD1Database): Promise<Response> {
+export async function borrarPlantilla(id: string, db: Db): Promise<Response> {
   await db.delete(plantillas).where(eq(plantillas.id, id));
   return listarPlantillas(db);
 }
 
 // Correos automáticos ---------------------------------------------------------------------
 
-export async function listarAutomaticos(db: DrizzleD1Database): Promise<Response> {
+export async function listarAutomaticos(db: Db): Promise<Response> {
   return json({ automaticos: await Promise.all(CLAVES_AUTOMATICOS.map(async (clave) => ({ clave, locale: localeDeClave(clave), ...(await automatico(db, clave)) }))) });
 }
 
-export async function guardarAutomatico(clave: string, req: Request, db: DrizzleD1Database, sesion: Sesion): Promise<Response> {
+export async function guardarAutomatico(clave: string, req: Request, db: Db, sesion: Sesion): Promise<Response> {
   if (!esClave(clave)) return json({ error: 'no existe' }, 404);
   const d = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   const r = validarCampana({ ...d, locale: localeDeClave(clave) });
@@ -430,20 +430,20 @@ export async function guardarAutomatico(clave: string, req: Request, db: Drizzle
 }
 
 /** Vuelve al texto por defecto. */
-export async function restaurarAutomatico(clave: string, db: DrizzleD1Database): Promise<Response> {
+export async function restaurarAutomatico(clave: string, db: Db): Promise<Response> {
   if (!esClave(clave)) return json({ error: 'no existe' }, 404);
   await db.delete(automaticos).where(eq(automaticos.clave, clave));
   return listarAutomaticos(db);
 }
 
-export async function vistaAutomatico(clave: string, env: Env, db: DrizzleD1Database, appUrl: string): Promise<Response> {
+export async function vistaAutomatico(clave: string, env: Env, db: Db, appUrl: string): Promise<Response> {
   if (!esClave(clave)) return new Response('No existe', { status: 404 });
   const locale = localeDeClave(clave);
   const { html } = renderAutomatico(env, await automatico(db, clave), locale, {}, { baja: `${appUrl}/v1/suscripcion/baja?t=ejemplo`, preferencias: `${appUrl}/v1/suscripcion/preferencias?t=ejemplo` });
   return vistaHtml(html);
 }
 
-export async function probarAutomatico(clave: string, env: Env, db: DrizzleD1Database, sesion: Sesion, appUrl: string): Promise<Response> {
+export async function probarAutomatico(clave: string, env: Env, db: Db, sesion: Sesion, appUrl: string): Promise<Response> {
   if (!esClave(clave)) return json({ error: 'no existe' }, 404);
   const r = renderAutomatico(env, await automatico(db, clave), localeDeClave(clave), {}, { baja: `${appUrl}/v1/suscripcion/baja?t=prueba`, preferencias: `${appUrl}/v1/suscripcion/preferencias?t=prueba` });
   const ok = await enviar(env, { para: sesion.usuario.email, asunto: `[Prueba] ${r.asunto}`, html: r.html, texto: r.texto, de: env.MAIL_FROM_NOVEDADES || env.MAIL_FROM });
@@ -459,7 +459,7 @@ export const MAX_IMPORTACION = 1000;
  * lotes. Nadie queda suscrito sin confirmar, y quien ya estaba (en cualquier estado) no se toca:
  * así no se reinvita a quien se dio de baja o se quejó.
  */
-export async function importarContactos(req: Request, db: DrizzleD1Database): Promise<Response> {
+export async function importarContactos(req: Request, db: Db): Promise<Response> {
   const d = (await req.json().catch(() => ({}))) as { filas?: unknown };
   if (!Array.isArray(d.filas) || !d.filas.length) return json({ errores: ['filas'] }, 422);
   if (d.filas.length > MAX_IMPORTACION) return json({ errores: ['maximo'], maximo: MAX_IMPORTACION }, 413);
@@ -477,7 +477,7 @@ export async function importarContactos(req: Request, db: DrizzleD1Database): Pr
     const texto = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, 120) : null);
     validas.push({ email, nombre: texto(f.nombre), empresa: texto(f.empresa), locale: f.locale === 'en' ? 'en' : 'es', intereses: intereses(f.intereses) });
   }
-  // Los que ya existen se buscan por partes: D1 acepta como mucho 100 variables por consulta.
+  // Los que ya existen se buscan por partes, de hasta 100 variables por consulta.
   const existentes = new Set<string>();
   for (let i = 0; i < validas.length; i += 90) {
     const parte = validas.slice(i, i + 90).map((v) => v.email);
@@ -504,7 +504,7 @@ export async function importarContactos(req: Request, db: DrizzleD1Database): Pr
 const SEMANA = 7 * DIA;
 
 /** Altas, confirmaciones y bajas por semana, tamaño de la lista y confirmación por origen. */
-export async function metricasMarketing(url: URL, db: DrizzleD1Database): Promise<Response> {
+export async function metricasMarketing(url: URL, db: Db): Promise<Response> {
   const semanas = Math.min(52, Math.max(4, Number(url.searchParams.get('semanas')) || 12));
   const fin = ahora();
   const desde = fin - semanas * SEMANA;
@@ -552,7 +552,7 @@ export async function metricasMarketing(url: URL, db: DrizzleD1Database): Promis
 // Ficha del lead --------------------------------------------------------------------------
 
 /** Suscripción de quien pidió un lead: por el lead que la originó o por su correo. */
-export async function suscripcionDeLead(db: DrizzleD1Database, lead: { id: string; email: string | null }) {
+export async function suscripcionDeLead(db: Db, lead: { id: string; email: string | null }) {
   const [c] = await db
     .select()
     .from(contactos)

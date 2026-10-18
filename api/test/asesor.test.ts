@@ -1,7 +1,7 @@
 // Chat con IA: prompt, conocimiento, guardia, herramientas y bucle con un modelo falso (sin
-// red), y de punta a punta contra una D1 local con la API de Claude interceptada.
+// red), y de punta a punta contra una base local con la API de Claude interceptada.
 import { describe, test, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
-import { drizzle } from 'drizzle-orm/d1';
+import { conectar as drizzle } from '../src/db/conexion';
 import { crearEntorno } from './entorno';
 import { manejar } from '../src/index';
 import type { Env } from '../src/env';
@@ -285,14 +285,14 @@ describe('de punta a punta', () => {
     respuestas = [];
     llamadasClaude = [];
     correos = [];
-    await env.DB.exec('DELETE FROM gasto_asesor; DELETE FROM limites;');
+    await env.DB.executeMultiple('DELETE FROM gasto_asesor; DELETE FROM limites;');
   });
 
   async function llamar(init: RequestInit & { ip?: string; origen?: string } = {}) {
     const pendientes: Promise<unknown>[] = [];
     const headers = new Headers(init.headers);
     headers.set('origin', init.origen ?? SITIO);
-    headers.set('cf-connecting-ip', init.ip ?? '1.1.1.1');
+    headers.set('x-real-ip', init.ip ?? '1.1.1.1');
     const res = await manejar(new Request('https://api.test/v1/asesor', { ...init, headers }), env, (p) => pendientes.push(p));
     await Promise.all(pendientes);
     return res;

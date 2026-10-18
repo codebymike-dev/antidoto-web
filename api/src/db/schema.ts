@@ -1,6 +1,6 @@
 // Modelo de datos de la fase 1: leads del cotizador, su consentimiento (Ley 1581 de 2012),
 // el historial de cada lead y el acceso del equipo al admin con enlace mágico.
-// Fechas en milisegundos desde epoch (UTC). Los ids son UUID generados en el Worker.
+// Fechas en milisegundos desde epoch (UTC). Los ids son UUID generados en la API.
 import { sqliteTable, text, integer, real, index, uniqueIndex, primaryKey } from 'drizzle-orm/sqlite-core';
 import { ESTADOS, SERVICIOS, ROLES, ESTADOS_CONTACTO, ESTADOS_CAMPANA, TIPOS_CLIC } from '../dominio';
 
@@ -92,7 +92,7 @@ export const usuarios = sqliteTable('usuarios', {
   id: text('id').primaryKey(),
   email: text('email').notNull().unique(),
   nombre: text('nombre').notNull(),
-  // En D1 la columna conserva DEFAULT 'equipo' (rol de antes de 0005): cambiarlo exige recrear
+  // En la base la columna conserva DEFAULT 'equipo' (rol de antes de 0005): cambiarlo exige recrear
   // la tabla, que tiene llaves foráneas. El código siempre envía el rol.
   rol: text('rol', { enum: ROLES }).notNull().default('comercial'),
   activo: integer('activo', { mode: 'boolean' }).notNull().default(true),
@@ -466,12 +466,12 @@ export const versionesContenido = sqliteTable(
   (t) => [index('versiones_contenido').on(t.contenidoId, t.version)],
 );
 
-/** Imágenes subidas al bucket público MEDIOS (R2). */
+/** Imágenes del contenido del sitio, en medios/ de Vercel Blob. */
 export const medios = sqliteTable(
   'medios',
   {
     id: text('id').primaryKey(),
-    claveR2: text('clave_r2').notNull(),
+    clave: text('clave').notNull(),
     nombre: text('nombre').notNull(),
     mime: text('mime').notNull(),
     bytes: integer('bytes').notNull(),
@@ -483,7 +483,7 @@ export const medios = sqliteTable(
   (t) => [index('medios_creado').on(t.creado)],
 );
 
-/** Pedidos de publicar el sitio: el Worker dispara el workflow de GitHub que lo construye. */
+/** Pedidos de publicar el sitio: la API dispara el workflow de GitHub que lo construye. */
 export const publicaciones = sqliteTable(
   'publicaciones',
   {
@@ -625,7 +625,7 @@ export const entregables = sqliteTable(
   (t) => [index('entregables_proy').on(t.proyectoId)],
 );
 
-/** Archivos de los entregables, en el bucket privado ARCHIVOS: solo se descargan con sesión. */
+/** Archivos de los entregables, en archivos/ del store privado de Blob: solo se descargan con sesión. */
 export const archivosEntregable = sqliteTable(
   'entregable_archivos',
   {
@@ -634,7 +634,7 @@ export const archivosEntregable = sqliteTable(
       .notNull()
       .references(() => entregables.id, { onDelete: 'cascade' }),
     version: integer('version').notNull(),
-    claveR2: text('clave_r2').notNull(),
+    clave: text('clave').notNull(),
     nombre: text('nombre').notNull(),
     mime: text('mime').notNull(),
     bytes: integer('bytes').notNull(),

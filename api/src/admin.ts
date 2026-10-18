@@ -1,7 +1,7 @@
 // API de la bandeja de leads. Todo pasa por una sesión válida; lo que cambia datos exige
 // además el mismo origen (ver index.ts). Cada cambio queda en lead_eventos con su autor.
 import { and, desc, eq, gte, isNull, like, or, sql, type SQL } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from './db/conexion';
 import { leads, clics, eventos, consentimientos, usuarios, contactos, conversaciones, contactosCliente, ESTADOS, SERVICIOS, ROLES, type Estado, type Lead } from './db/schema';
 import { borrarConversacion } from './asesor/guardado';
 import { suprimir, suscripcionDeLead } from './marketing/admin';
@@ -10,7 +10,7 @@ import { ahora, uuid, json, DIA } from './util';
 
 const POR_PAGINA = 50;
 
-export async function listarLeads(url: URL, db: DrizzleD1Database): Promise<Response> {
+export async function listarLeads(url: URL, db: Db): Promise<Response> {
   const p = url.searchParams;
   const filtros: SQL[] = [];
   const estado = p.get('estado');
@@ -34,7 +34,7 @@ export async function listarLeads(url: URL, db: DrizzleD1Database): Promise<Resp
 
 const sinIp = ({ ipHash: _, ...resto }: Lead) => resto;
 
-export async function verLead(id: string, db: DrizzleD1Database): Promise<Response> {
+export async function verLead(id: string, db: Db): Promise<Response> {
   const [lead] = await db.select().from(leads).where(eq(leads.id, id));
   if (!lead) return json({ error: 'no existe' }, 404);
   const [hist, cons] = await Promise.all([
@@ -82,7 +82,7 @@ export function validarCambios(d: unknown): { ok: true; cambios: Cambios } | { o
   return errores.length ? { ok: false, errores } : { ok: true, cambios };
 }
 
-export async function editarLead(id: string, req: Request, db: DrizzleD1Database, sesion: Sesion): Promise<Response> {
+export async function editarLead(id: string, req: Request, db: Db, sesion: Sesion): Promise<Response> {
   const r = validarCambios(await req.json().catch(() => null));
   if (!r.ok) return json({ errores: r.errores }, 422);
   const [lead] = await db.select().from(leads).where(eq(leads.id, id));
@@ -117,7 +117,7 @@ export async function editarLead(id: string, req: Request, db: DrizzleD1Database
  * Si la misma persona está suscrita a novedades (por este lead o con el mismo correo), ese
  * contacto también se suprime: la supresión es de la persona, no de un formulario.
  */
-export async function anonimizarLead(id: string, db: DrizzleD1Database, sesion: Sesion): Promise<Response> {
+export async function anonimizarLead(id: string, db: Db, sesion: Sesion): Promise<Response> {
   const [lead] = await db.select().from(leads).where(eq(leads.id, id));
   if (!lead) return json({ error: 'no existe' }, 404);
   if (lead.anonimizado) return verLead(id, db);
@@ -155,7 +155,7 @@ export async function anonimizarLead(id: string, db: DrizzleD1Database, sesion: 
 }
 
 /** Métricas de los últimos N días (90 por defecto): embudo, servicios, origen y tiempos. */
-export async function metricas(url: URL, db: DrizzleD1Database): Promise<Response> {
+export async function metricas(url: URL, db: Db): Promise<Response> {
   const dias = Math.min(730, Math.max(7, Number(url.searchParams.get('dias')) || 90));
   const desde = ahora() - dias * DIA;
   const rango = gte(leads.creado, desde);
@@ -218,7 +218,7 @@ export function celdaCsv(v: unknown): string {
   return /[",\n\r;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
-export async function exportarCsv(db: DrizzleD1Database): Promise<Response> {
+export async function exportarCsv(db: Db): Promise<Response> {
   const filas = await db.select().from(leads).orderBy(desc(leads.creado));
   const cols: (keyof Lead)[] = [
     'creado', 'estado', 'servicio', 'nombre', 'empresa', 'email', 'telefono', 'tipoOrganizacion', 'fecha', 'personas', 'ciudad',
@@ -237,11 +237,11 @@ export async function exportarCsv(db: DrizzleD1Database): Promise<Response> {
 
 // Equipo: listar lo puede cualquier sesión (para asignar responsables); agregar y editar exige
 // el permiso equipo.gestionar, que aplica el ruteo (src/rutas/equipo.ts).
-export async function listarUsuarios(db: DrizzleD1Database): Promise<Response> {
+export async function listarUsuarios(db: Db): Promise<Response> {
   return json({ usuarios: await db.select().from(usuarios).orderBy(usuarios.creado) });
 }
 
-export async function crearUsuario(req: Request, db: DrizzleD1Database): Promise<Response> {
+export async function crearUsuario(req: Request, db: Db): Promise<Response> {
   const d = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   const email = typeof d.email === 'string' ? d.email.trim().toLowerCase() : '';
   const nombre = typeof d.nombre === 'string' ? d.nombre.trim().slice(0, 120) : '';
@@ -253,7 +253,7 @@ export async function crearUsuario(req: Request, db: DrizzleD1Database): Promise
   return listarUsuarios(db);
 }
 
-export async function editarUsuario(id: string, req: Request, db: DrizzleD1Database, sesion: Sesion): Promise<Response> {
+export async function editarUsuario(id: string, req: Request, db: Db, sesion: Sesion): Promise<Response> {
   if (id === sesion.usuario.id) return json({ error: 'propio' }, 409);
   const d = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   const set: Partial<typeof usuarios.$inferInsert> = {};

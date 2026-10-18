@@ -3,7 +3,7 @@
 // hora ya pasó, decide las pruebas A/B, manda los lotes y las invitaciones que queden, reintenta
 // las publicaciones del sitio, avisa las solicitudes sin respuesta, manda los recordatorios de
 // confirmación y borra las conversaciones vencidas.
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from './db/conexion';
 import type { Env } from './env';
 import { dentroDelLimite } from './limite';
 import { arrancarProgramadas, decidirPruebas, procesarEnvios } from './marketing/envios';
@@ -19,7 +19,7 @@ export const CADA_MS = 5 * 60_000;
 const MAX_VUELTAS = 40;
 
 /** Manda todos los lotes pendientes de una vez (al pulsar Enviar). Para cuando ya no sale nada. */
-export async function enviarTodo(env: Env, db: DrizzleD1Database): Promise<{ enviados: number; fallidos: number }> {
+export async function enviarTodo(env: Env, db: Db): Promise<{ enviados: number; fallidos: number }> {
   const total = { enviados: 0, fallidos: 0 };
   for (let i = 0; i < MAX_VUELTAS; i++) {
     const r = await procesarEnvios(env, db);
@@ -31,12 +31,12 @@ export async function enviarTodo(env: Env, db: DrizzleD1Database): Promise<{ env
 }
 
 /** Corre lo pendiente si no se corrió en los últimos 5 minutos. Falla abierto: nunca rompe el panel. */
-export async function pendientesSiToca(env: Env, db: DrizzleD1Database, appUrl: string, t = ahora()): Promise<void> {
+export async function pendientesSiToca(env: Env, db: Db, appUrl: string, t = ahora()): Promise<void> {
   if (!(await dentroDelLimite(db, `pendientes:${Math.floor(t / CADA_MS)}`, 1, t).catch(() => false))) return;
   await correrPendientes(env, db, appUrl);
 }
 
-export async function correrPendientes(env: Env, db: DrizzleD1Database, appUrl: string): Promise<void> {
+export async function correrPendientes(env: Env, db: Db, appUrl: string): Promise<void> {
   const fallo = (que: string) => (e: unknown) => (console.error(`[pendientes] ${que}`, e), -1);
   // Primero las programadas y las pruebas A/B: así sus correos salen en esta misma vuelta.
   const programadas = await arrancarProgramadas(env, db).catch(fallo('programadas'));

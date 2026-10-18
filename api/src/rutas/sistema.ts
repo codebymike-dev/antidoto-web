@@ -1,7 +1,7 @@
 // Estado del sistema para el panel: servicios configurados, última revisión de pendientes, último
 // despliegue pedido, gasto del chat y tamaño de las tablas. Sin secretos: solo si están o no.
 import { desc, eq, sql } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from '../db/conexion';
 import { configuracion, publicaciones, gastoAsesor } from '../db/schema';
 import { ajustesAsesor, hoyBogota } from '../asesor/presupuesto';
 import { configurada } from '../publicacion';
@@ -11,7 +11,7 @@ import { sinPermiso, type Ctx } from './contexto';
 const CLAVE_REVISION = 'sistema.pendientes';
 
 /** Anota la última revisión de pendientes (src/pendientes.ts). Falla abierto: es solo para el panel. */
-export async function anotarRevision(db: DrizzleD1Database, resumen: Record<string, number>): Promise<void> {
+export async function anotarRevision(db: Db, resumen: Record<string, number>): Promise<void> {
   const clave = CLAVE_REVISION;
   const valor = { t: ahora(), resumen };
   await db

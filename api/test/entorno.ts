@@ -1,41 +1,54 @@
-// D1 local de verdad (miniflare, vía getPlatformProxy) con las migraciones aplicadas, para
-// probar la API de punta a punta sin Cloudflare.
-import { readdirSync, readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { mkdtempSync } from 'node:fs';
+// Entorno de las pruebas de punta a punta: una base libSQL en un archivo temporal (la misma base
+// que Turso) con las migraciones aplicadas y archivos en una carpeta temporal.
+import { mkdtempSync, readdirSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createClient } from '@libsql/client';
-import { getPlatformProxy } from 'wrangler';
+import { fileURLToPath } from 'node:url';
+import { createClient, type Client, type InStatement, type InValue } from '@libsql/client';
 import type { Env } from '../src/env';
-import { d1DesdeLibsql } from '../src/plataforma/libsql-d1';
-
-/**
- * BD=libsql corre las mismas pruebas sobre libSQL (la base de la API en Vercel, Turso) con el
- * adaptador de src/plataforma/libsql-d1.ts, en lugar de la D1 de miniflare.
- */
-const conLibsql = process.env.BD === 'libsql';
+import { almacenEnDisco } from '../src/plataforma/almacen-disco';
 
 export async function crearEntorno() {
-  const proxy = await getPlatformProxy<Env>({ configPath: 'wrangler.toml', persist: false });
-  // getPlatformProxy lee el .dev.vars de quien corre las pruebas (orígenes localhost, APP_URL,
-  // claves): las pruebas fijan sus propias variables para dar lo mismo en cualquier PC y en CI.
+  const dir = mkdtempSync(join(tmpdir(), 'antidoto-prueba-'));
   const env: Env = {
-    DB: conLibsql ? d1DesdeLibsql(createClient({ url: `file:${join(mkdtempSync(join(tmpdir(), 'antidoto-libsql-')), 'prueba.db')}` })) : proxy.env.DB,
-    MEDIOS: proxy.env.MEDIOS,
-    ARCHIVOS: proxy.env.ARCHIVOS,
+    DB: createClient({ url: `file:${join(dir, 'prueba.db')}` }),
+    MEDIOS: almacenEnDisco(join(dir, 'medios')),
+    ARCHIVOS: almacenEnDisco(join(dir, 'archivos')),
     ENTORNO: 'produccion',
-    ORIGENES: 'https://antidotocolombia.com,https://antidoto-web.vercel.app,https://antidoto-web.pages.dev',
+    ORIGENES: 'https://antidotocolombia.com,https://antidoto-web.vercel.app',
     MAIL_FROM: 'Antídoto <hola@antidotocolombia.com>',
     MAIL_FROM_NOVEDADES: 'Antídoto <novedades@antidotocolombia.com>',
     MAIL_EQUIPO: 'equipo@antidoto.test',
     HORAS_SEGUIMIENTO: '24',
     SITIO_URL: 'https://antidotocolombia.com',
   };
-  const dir = fileURLToPath(import.meta.resolve('../migraciones/'));
-  for (const archivo of readdirSync(dir).filter((f) => f.endsWith('.sql')).sort()) {
-    const sentencias = readFileSync(`${dir}${archivo}`, 'utf8').split('--> statement-breakpoint').map((s) => s.trim()).filter(Boolean);
-    await env.DB.batch(sentencias.map((s) => env.DB.prepare(s)));
+  const migraciones = fileURLToPath(import.meta.resolve('../migraciones/'));
+  for (const archivo of readdirSync(migraciones).filter((f) => f.endsWith('.sql')).sort()) {
+    const sentencias = readFileSync(`${migraciones}${archivo}`, 'utf8').split('--> statement-breakpoint').map((s) => s.trim()).filter(Boolean);
+    await env.DB.batch(sentencias, 'write');
   }
-  return { env, cerrar: () => proxy.dispose() };
+  return { env, cerrar: async () => env.DB.close() };
 }
+
+/** SQL crudo en las pruebas: consulta(db, sql, ...args).first() | .first('col') | .all() | .run(). */
+export function consulta(db: Client, sql: string, ...args: unknown[]) {
+  const instruccion = { sql, args: args.map((a) => (a === undefined ? null : a)) as InValue[] };
+  const filas = async () => (await db.execute(instruccion)).rows.map((f) => ({ ...f }) as Record<string, unknown>);
+  return {
+    instruccion,
+    async first<T = Record<string, unknown>>(columna?: string): Promise<T | null> {
+      const [fila] = await filas();
+      if (!fila) return null;
+      return (columna ? fila[columna] : fila) as T;
+    },
+    async all<T = Record<string, unknown>>() {
+      return { results: (await filas()) as T[] };
+    },
+    async run() {
+      await db.execute(instruccion);
+    },
+  };
+}
+
+/** Varias consultas en una transacción. */
+export const lote = (db: Client, consultas: { instruccion: InStatement }[]) => db.batch(consultas.map((c) => c.instruccion), 'write');

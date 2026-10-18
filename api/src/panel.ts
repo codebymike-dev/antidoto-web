@@ -1,6 +1,5 @@
-// Archivos del panel (Preact, construido por Vite en dist-admin/admin/) servidos con el binding
-// ASSETS. El Worker corre primero en todas las rutas (run_worker_first) para poner la CSP y
-// decidir qué es archivo y qué es API.
+// Archivos del panel (Preact, construido por Vite en dist-admin/admin/), servidos por la API con
+// la CSP, que decide qué es archivo y qué es API.
 import type { Env } from './env';
 
 // El panel no se incrusta en otros sitios ni carga nada de fuera. Sin scripts ni estilos en línea:

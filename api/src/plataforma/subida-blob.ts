@@ -3,7 +3,7 @@
 import { head, issueSignedToken } from '@vercel/blob';
 import { handleUploadPresigned, type HandleUploadPresignedBody } from '@vercel/blob/client';
 import type { SubidaDirecta } from '../env';
-import { rutaBlob } from './blob-r2';
+import { rutaBlob } from './blob';
 
 /** Vigencia de la URL firmada: alcanza para subir 50 MB con una conexión lenta. */
 const VIGENCIA_MS = 30 * 60 * 1000;

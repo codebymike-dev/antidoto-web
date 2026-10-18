@@ -1,5 +1,9 @@
 node_modules/
-.wrangler/
+.local/
+.env
+.env.*
+!.env.ejemplo
+# Archivo viejo de variables locales, con claves reales: nunca a git.
 .dev.vars
 src/asesor/publico.gen.ts
 dist-admin/

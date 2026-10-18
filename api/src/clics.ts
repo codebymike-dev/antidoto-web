@@ -3,13 +3,13 @@
 // suma 1 al contador del día, el tipo y la página. Lo ve el panel en Métricas.
 // Va en text/plain con keepalive, como los leads: sin preflight y sin frenar la apertura de WhatsApp.
 import { sql } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from './db/conexion';
 import type { Env } from './env';
 import { clics } from './db/schema';
 import { TIPOS_CLIC, type TipoClic } from './dominio';
 import { dentroDelLimite } from './limite';
 import { hoyBogota } from './asesor/presupuesto';
-import { ahora, hashIp, json } from './util';
+import { ahora, hashIp, ipCliente, json } from './util';
 
 /** Clics por IP y hora: una persona real no llega ni cerca. */
 export const CLICS_POR_HORA = 120;
@@ -23,7 +23,7 @@ export function validarClic(cuerpo: unknown): { tipo: TipoClic; pagina: string }
   return { tipo: tipo as TipoClic, pagina };
 }
 
-export async function registrarClic(req: Request, env: Env, db: DrizzleD1Database, cors: Record<string, string>): Promise<Response> {
+export async function registrarClic(req: Request, env: Env, db: Db, cors: Record<string, string>): Promise<Response> {
   const bruto = await req.text();
   if (bruto.length > 1024) return json({ ok: false }, 413, cors);
   let datos: unknown;
@@ -35,7 +35,7 @@ export async function registrarClic(req: Request, env: Env, db: DrizzleD1Databas
   const clic = validarClic(datos);
   if (!clic) return json({ ok: false }, 422, cors);
   const t = ahora();
-  const ipHash = await hashIp(req.headers.get('cf-connecting-ip'), env.SAL_IP, t);
+  const ipHash = await hashIp(ipCliente(req), env.SAL_IP, t);
   if (!(await dentroDelLimite(db, `clic:${ipHash ?? 'sin-ip'}`, CLICS_POR_HORA, t))) return json({ ok: false }, 429, cors);
   await db
     .insert(clics)

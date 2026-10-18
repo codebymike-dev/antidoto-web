@@ -1,7 +1,7 @@
 // Ajustes editables desde el panel. Cada clave tiene su validación y su valor por defecto; lo que
 // no está en la tabla usa el defecto (o la variable de entorno, en el caso del tope del chat).
 import { inArray } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from './db/conexion';
 import { configuracion } from './db/schema';
 import { ahora } from './util';
 
@@ -45,7 +45,7 @@ export type ClaveAjuste = keyof typeof AJUSTES;
 export const CLAVES_AJUSTE = Object.keys(AJUSTES) as ClaveAjuste[];
 
 /** Lee varias claves de una vez. Lanza si la base no responde (quien llama decide si falla abierto o cerrado). */
-export async function leerAjustes(db: DrizzleD1Database, claves: readonly ClaveAjuste[] = CLAVES_AJUSTE): Promise<Record<ClaveAjuste, unknown>> {
+export async function leerAjustes(db: Db, claves: readonly ClaveAjuste[] = CLAVES_AJUSTE): Promise<Record<ClaveAjuste, unknown>> {
   const filas = await db.select().from(configuracion).where(inArray(configuracion.clave, [...claves]));
   const r = Object.fromEntries(claves.map((c) => [c, AJUSTES[c].defecto])) as Record<ClaveAjuste, unknown>;
   for (const f of filas) if (f.clave in AJUSTES) r[f.clave as ClaveAjuste] = f.valor;
@@ -76,7 +76,7 @@ export function validarAjustes(d: unknown): { ok: true; cambios: Partial<Record<
   return errores.length ? { ok: false, errores } : { ok: true, cambios };
 }
 
-export async function guardarAjustes(db: DrizzleD1Database, cambios: Partial<Record<ClaveAjuste, unknown>>, autor: string): Promise<void> {
+export async function guardarAjustes(db: Db, cambios: Partial<Record<ClaveAjuste, unknown>>, autor: string): Promise<void> {
   const t = ahora();
   const sentencias = Object.entries(cambios).map(([clave, valor]) =>
     valor === null

@@ -3,6 +3,7 @@
 import { describe, test, expect, beforeAll } from 'vitest';
 import { prepararPruebas } from './ayudas';
 import { PLANTILLAS, codigoProyecto } from '../src/proyectos/plantillas';
+import { consulta } from './entorno';
 
 const p = prepararPruebas();
 let admin = '';
@@ -15,10 +16,8 @@ beforeAll(async () => {
   produccion = await p.entrarComo('prod-proy@antidoto.co', 'produccion');
   lectura = await p.entrarComo('lect-proy@antidoto.co', 'lectura');
   const t = Date.now();
-  await p.env.DB.prepare(
-    "insert into leads (id, creado, actualizado, estado, servicio, nombre, empresa, email, telefono, valor_estimado, locale) values (?, ?, ?, 'cotizado', 'audiovisual', 'Paola Cárdenas', 'Ruta 5', 'paola@ruta5.co', '3155551234', 8500000, 'es')",
-  )
-    .bind(LEAD, t, t)
+  await consulta(p.env.DB, 
+    "insert into leads (id, creado, actualizado, estado, servicio, nombre, empresa, email, telefono, valor_estimado, locale) values (?, ?, ?, 'cotizado', 'audiovisual', 'Paola Cárdenas', 'Ruta 5', 'paola@ruta5.co', '3155551234', 8500000, 'es')", LEAD, t, t)
     .run();
 });
 
@@ -46,7 +45,7 @@ describe('de solicitud a proyecto', () => {
     expect(d.etapas.map((e) => e.nombre)).toEqual([...PLANTILLAS.audiovisual]);
     expect(d.contactos.map((c) => c.email)).toEqual(['paola@ruta5.co']);
     expect((await enviar(admin, `/admin/api/leads/${LEAD}/proyecto`, 'POST', {})).status).toBe(409);
-    const lead = await p.env.DB.prepare('select proyecto_id, organizacion_id from leads where id = ?').bind(LEAD).first<{ proyecto_id: string; organizacion_id: string }>();
+    const lead = await consulta(p.env.DB, 'select proyecto_id, organizacion_id from leads where id = ?', LEAD).first<{ proyecto_id: string; organizacion_id: string }>();
     expect(lead).toEqual({ proyecto_id: id, organizacion_id: d.proyecto.organizacionId });
   });
 
@@ -55,7 +54,7 @@ describe('de solicitud a proyecto', () => {
     expect(d.proyecto.valor).toBe(null);
     const r = (await (await enviar(produccion, `/admin/api/proyectos/${id}`, 'PATCH', { estado: 'en_curso', valor: 1 })).json()) as Det;
     expect(r.proyecto.estado).toBe('en_curso');
-    const real = await p.env.DB.prepare('select valor from proyectos where id = ?').bind(id).first<number>('valor');
+    const real = await consulta(p.env.DB, 'select valor from proyectos where id = ?', id).first<number>('valor');
     expect(real).toBe(8500000);
     expect((await enviar(lectura, `/admin/api/proyectos/${id}`, 'PATCH', { estado: 'cerrado' })).status).toBe(403);
     expect(r.bitacora[0]).toMatchObject({ tipo: 'estado', texto: 'Estado del proyecto: Planeado → En curso' });
@@ -94,11 +93,11 @@ describe('de solicitud a proyecto', () => {
     let d = (await (await enviar(produccion, `/admin/api/proyectos/${id}/entregables`, 'POST', { titulo: 'Fotos del evento' })).json()) as Det;
     const ent = d.entregables.find((e) => e.archivos.length === 0)!;
 
-    // Sin env.SUBIDA (Cloudflare) el panel recibe 404 y sube por el formulario.
+    // Sin env.SUBIDA (local, sin Blob) el panel recibe 404 y sube por el formulario.
     expect(await (await enviar(produccion, `${base(ent.id)}/firmar`, 'POST', {})).json()).toEqual({ error: 'sin_subida_directa' });
     expect((await enviar(produccion, `${base(ent.id)}/registrar`, 'POST', {})).status).toBe(404);
 
-    // Con un almacenamiento falso que guarda en el R2 local, como haría Blob.
+    // Con un almacenamiento falso que guarda en el almacén local, como haría Blob.
     const firmadas: string[] = [];
     p.env.SUBIDA = {
       async firmar(_req, cuerpo, prefijo, permitida) {
@@ -110,7 +109,7 @@ describe('de solicitud a proyecto', () => {
       },
       async info(_prefijo, clave) {
         const o = await p.env.ARCHIVOS!.get(clave);
-        return o ? { bytes: o.size, mime: o.httpMetadata?.contentType ?? '' } : null;
+        return o ? { bytes: o.size, mime: o.contentType ?? '' } : null;
       },
     };
     try {
@@ -129,7 +128,7 @@ describe('de solicitud a proyecto', () => {
 
       // Registrar antes de subir no crea nada.
       expect((await enviar(produccion, `${base(ent.id)}/registrar`, 'POST', { clave, nombre: 'foto.jpg' })).status).toBe(422);
-      await p.env.ARCHIVOS!.put(clave, new TextEncoder().encode('foto subida directo'), { httpMetadata: { contentType: 'image/jpeg' } });
+      await p.env.ARCHIVOS!.put(clave, new TextEncoder().encode('foto subida directo'), { contentType: 'image/jpeg' });
       expect((await enviar(produccion, `${base(ent.id)}/registrar`, 'POST', { clave: `proyectos/otro/${crypto.randomUUID()}`, nombre: 'x' })).status).toBe(422);
       d = (await (await enviar(produccion, `${base(ent.id)}/registrar`, 'POST', { clave, nombre: 'foto.jpg' })).json()) as Det;
       const archivo = d.entregables.find((e) => e.id === ent.id)!.archivos[0]!;
@@ -153,7 +152,7 @@ describe('de solicitud a proyecto', () => {
 
   test('suprimir la solicitud también suprime al contacto de la organización', async () => {
     await enviar(admin, `/admin/api/leads/${LEAD}/anonimizar`, 'POST');
-    const c = await p.env.DB.prepare("select count(*) as n from contactos_cliente where email = 'paola@ruta5.co'").first<number>('n');
+    const c = await consulta(p.env.DB, "select count(*) as n from contactos_cliente where email = 'paola@ruta5.co'").first<number>('n');
     expect(c).toBe(0);
   });
 

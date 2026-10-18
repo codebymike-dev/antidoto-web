@@ -1,10 +1,10 @@
 // Lecturas públicas del contenido publicado, para el build del sitio (src/lib/cms/ en la raíz):
 //   GET /v1/contenido?tipo=blog   entradas publicadas de un tipo, con las URL de sus imágenes
-//   GET /v1/medios/<id>           una imagen del bucket MEDIOS
+//   GET /v1/medios/<id>           una imagen del almacén MEDIOS
 //   GET /v1/ajustes               ajustes del sitio (regalo de bienvenida, video del hero)
 // Solo sale lo publicado: la copia de trabajo y los borradores nunca.
 import { and, eq, inArray, isNotNull, isNull } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from '../db/conexion';
 import { contenido, medios } from '../db/schema';
 import { leerAjustes } from '../configuracion';
 import type { Env } from '../env';
@@ -13,7 +13,7 @@ import { TIPOS_CONTENIDO, mediosDe, type TipoContenido } from './esquemas';
 
 const CACHE = { 'cache-control': 'public, max-age=60', 'access-control-allow-origin': '*' };
 
-export async function contenidoPublicado(url: URL, db: DrizzleD1Database, appUrl: string): Promise<Response> {
+export async function contenidoPublicado(url: URL, db: Db, appUrl: string): Promise<Response> {
   const tipo = url.searchParams.get('tipo');
   if (!TIPOS_CONTENIDO.includes(tipo as TipoContenido)) return json({ error: 'tipo' }, 422, CACHE);
   const filas = await db
@@ -34,10 +34,10 @@ export async function contenidoPublicado(url: URL, db: DrizzleD1Database, appUrl
   );
 }
 
-export async function servirMedio(id: string, env: Env, db: DrizzleD1Database): Promise<Response> {
+export async function servirMedio(id: string, env: Env, db: Db): Promise<Response> {
   const [m] = await db.select().from(medios).where(eq(medios.id, id));
   if (!m || !env.MEDIOS) return new Response('No existe', { status: 404 });
-  const obj = await env.MEDIOS.get(m.claveR2);
+  const obj = await env.MEDIOS.get(m.clave);
   if (!obj) return new Response('No existe', { status: 404 });
   return new Response(obj.body, {
     headers: {
@@ -51,7 +51,7 @@ export async function servirMedio(id: string, env: Env, db: DrizzleD1Database): 
   });
 }
 
-export async function ajustesSitio(db: DrizzleD1Database): Promise<Response> {
+export async function ajustesSitio(db: Db): Promise<Response> {
   const a = await leerAjustes(db, ['sitio.regalo_novedades', 'sitio.video_hero']);
   return json({ regaloNovedades: a['sitio.regalo_novedades'], videoHero: a['sitio.video_hero'] }, 200, CACHE);
 }

@@ -1,7 +1,7 @@
 // Bitácora de auditoría del panel. Se escribe después de cada cambio que salió bien, sin datos
 // personales en el detalle (solo ids, nombres de campos y valores de catálogo).
 import { and, desc, eq, gte, lt, sql, type SQL } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from './db/conexion';
 import { auditoria } from './db/schema';
 import type { Sesion } from './auth';
 import { ahora, uuid, json } from './util';
@@ -9,7 +9,7 @@ import { ahora, uuid, json } from './util';
 const POR_PAGINA = 50;
 
 export function registrar(
-  db: DrizzleD1Database,
+  db: Db,
   sesion: Sesion | null,
   accion: string,
   entidad: string | null = null,
@@ -31,7 +31,7 @@ export function registrar(
 }
 
 /** GET /admin/api/auditoria?entidad=&entidadId=&usuario=&accion=&desde=&hasta=&pagina= */
-export async function listarAuditoria(url: URL, db: DrizzleD1Database): Promise<Response> {
+export async function listarAuditoria(url: URL, db: Db): Promise<Response> {
   const p = url.searchParams;
   const filtros: SQL[] = [];
   const entidad = p.get('entidad');

@@ -237,7 +237,7 @@ function ItemEntregable({ e, editable, hacer, recargar }: { e: Entregable; edita
       recargar();
     } catch (err) {
       const motivo = err instanceof ErrorApi ? err.datos.error : null;
-      avisar(motivo === 'grande' ? 'El archivo pasa de 50 MB. Para videos grandes, comparte un enlace en la bitácora.' : motivo === 'sin_bucket' ? 'Falta configurar el almacenamiento de archivos.' : mensajeError(err), 'error');
+      avisar(motivo === 'grande' ? 'El archivo pasa de 50 MB. Para videos grandes, comparte un enlace en la bitácora.' : motivo === 'sin_almacen' ? 'Falta configurar el almacenamiento de archivos.' : mensajeError(err), 'error');
     } finally {
       setSubiendo(false);
     }

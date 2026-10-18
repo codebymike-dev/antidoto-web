@@ -1,6 +1,6 @@
 // Proyectos y organizaciones en el panel. Una solicitud ganada se vuelve proyecto (con su
 // organización y su contacto), arranca con las etapas de la plantilla de su línea y suma tareas,
-// entregables con archivos (bucket privado ARCHIVOS) y una bitácora. El valor solo lo ve quien
+// entregables con archivos (almacén privado ARCHIVOS) y una bitácora. El valor solo lo ve quien
 // tiene proyectos.valor.
 import { and, asc, desc, eq, like, or, sql, type SQL } from 'drizzle-orm';
 import type { BatchItem } from 'drizzle-orm/batch';
@@ -514,7 +514,7 @@ async function borrarParte(c: Ctx, que: 'etapas' | 'tareas' | 'entregables', id:
   if (!x) return json({ error: 'no existe' }, 404);
   if (que === 'entregables') {
     const archivos = await c.db.select().from(archivosEntregable).where(eq(archivosEntregable.entregableId, id));
-    for (const a of archivos) await c.env.ARCHIVOS?.delete(a.claveR2);
+    for (const a of archivos) await c.env.ARCHIVOS?.delete(a.clave);
     await c.db.delete(archivosEntregable).where(eq(archivosEntregable.entregableId, id));
   }
   if (que === 'etapas') await c.db.batch([c.db.update(tareas).set({ etapaId: null }).where(eq(tareas.etapaId, id)), c.db.update(entregables).set({ etapaId: null }).where(eq(entregables.etapaId, id))]);
@@ -531,10 +531,10 @@ async function crearNota(c: Ctx, id: string): Promise<Response> {
   return verProyecto(c, id);
 }
 
-// Archivos de entregables (bucket privado) ------------------------------------------------
+// Archivos de entregables (almacén privado) -----------------------------------------------
 
 async function subirArchivo(c: Ctx, entId: string): Promise<Response> {
-  if (!c.env.ARCHIVOS) return json({ error: 'sin_bucket' }, 503);
+  if (!c.env.ARCHIVOS) return json({ error: 'sin_almacen' }, 503);
   const [e] = await c.db.select().from(entregables).where(eq(entregables.id, entId));
   if (!e) return json({ error: 'no existe' }, 404);
   if (Number(c.req.headers.get('content-length')) > MAX_BYTES_ARCHIVO + 64 * 1024) return json({ error: 'grande' }, 413);
@@ -544,23 +544,16 @@ async function subirArchivo(c: Ctx, entId: string): Promise<Response> {
   if (archivo.size > MAX_BYTES_ARCHIVO) return json({ error: 'grande' }, 413);
   const id = uuid();
   const nombre = nombreLimpio(archivo.name);
-  const claveR2 = `proyectos/${e.proyectoId}/${id}`;
-  const metadatos = { httpMetadata: { contentType: archivo.type || 'application/octet-stream' } };
-  if (typeof FixedLengthStream === 'function') {
-    // R2 necesita saber el largo de un stream; así no se carga el archivo entero en memoria.
-    const { readable, writable } = new FixedLengthStream(archivo.size);
-    await Promise.all([c.env.ARCHIVOS.put(claveR2, readable, metadatos), archivo.stream().pipeTo(writable)]);
-  } else {
-    // Fuera de workerd (pruebas en Node) no existe FixedLengthStream.
-    await c.env.ARCHIVOS.put(claveR2, await archivo.arrayBuffer(), metadatos);
-  }
-  return guardarArchivo(c, e, { id, claveR2, nombre, mime: archivo.type, bytes: archivo.size });
+  const clave = `proyectos/${e.proyectoId}/${id}`;
+  // En Vercel este camino recibe hasta 4,5 MB (lo grande sube directo a Blob); en local, todo.
+  await c.env.ARCHIVOS.put(clave, await archivo.arrayBuffer(), { contentType: archivo.type || 'application/octet-stream' });
+  return guardarArchivo(c, e, { id, clave, nombre, mime: archivo.type, bytes: archivo.size });
 }
 
-async function guardarArchivo(c: Ctx, e: typeof entregables.$inferSelect, a: { id: string; claveR2: string; nombre: string; mime: string; bytes: number }): Promise<Response> {
+async function guardarArchivo(c: Ctx, e: typeof entregables.$inferSelect, a: { id: string; clave: string; nombre: string; mime: string; bytes: number }): Promise<Response> {
   const t = ahora();
   await c.db.batch([
-    c.db.insert(archivosEntregable).values({ id: a.id, entregableId: e.id, version: e.version, claveR2: a.claveR2, nombre: a.nombre, mime: (a.mime || 'application/octet-stream').slice(0, 100), bytes: a.bytes, subido: t, autor: c.sesion.usuario.email }),
+    c.db.insert(archivosEntregable).values({ id: a.id, entregableId: e.id, version: e.version, clave: a.clave, nombre: a.nombre, mime: (a.mime || 'application/octet-stream').slice(0, 100), bytes: a.bytes, subido: t, autor: c.sesion.usuario.email }),
     c.db.insert(bitacora).values(nota(e.proyectoId, 'equipo', c.sesion.usuario.email, 'archivo', `${e.titulo}: archivo ${a.nombre}`, e.visibleCliente)),
     c.db.update(entregables).set({ actualizado: t }).where(eq(entregables.id, e.id)),
     tocar(c, e.proyectoId),
@@ -595,25 +588,25 @@ async function registrarSubida(c: Ctx, entId: string): Promise<Response> {
   const [e] = await c.db.select().from(entregables).where(eq(entregables.id, entId));
   if (!e) return json({ error: 'no existe' }, 404);
   const d = await leer(c);
-  const claveR2 = typeof d.clave === 'string' ? d.clave : '';
-  const m = claveR2.match(claveDe(e.proyectoId));
+  const clave = typeof d.clave === 'string' ? d.clave : '';
+  const m = clave.match(claveDe(e.proyectoId));
   if (!m) return json({ error: 'clave' }, 422);
   const id = m[1]!;
   const [ya] = await c.db.select({ id: archivosEntregable.id }).from(archivosEntregable).where(eq(archivosEntregable.id, id));
   if (ya) return json({ error: 'ya registrado' }, 409);
-  const info = await c.env.SUBIDA.info('archivos', claveR2);
+  const info = await c.env.SUBIDA.info('archivos', clave);
   if (!info) return json({ error: 'archivo' }, 422);
   if (info.bytes > MAX_BYTES_ARCHIVO) {
-    await c.env.ARCHIVOS?.delete(claveR2);
+    await c.env.ARCHIVOS?.delete(clave);
     return json({ error: 'grande' }, 413);
   }
   const nombre = nombreLimpio(typeof d.nombre === 'string' ? d.nombre : 'archivo');
-  return guardarArchivo(c, e, { id, claveR2, nombre, mime: info.mime, bytes: info.bytes });
+  return guardarArchivo(c, e, { id, clave, nombre, mime: info.mime, bytes: info.bytes });
 }
 
-/** Descarga un archivo de R2. Siempre como adjunto y con nosniff: nunca se muestra dentro del panel. */
+/** Descarga un archivo de entregable. Siempre como adjunto y con nosniff: nunca se muestra dentro del panel. */
 export async function respuestaArchivo(env: Ctx['env'], a: typeof archivosEntregable.$inferSelect): Promise<Response> {
-  const obj = await env.ARCHIVOS?.get(a.claveR2);
+  const obj = await env.ARCHIVOS?.get(a.clave);
   if (!obj) return json({ error: 'no existe' }, 404);
   return new Response(obj.body, {
     headers: {
@@ -638,7 +631,7 @@ async function borrarArchivo(c: Ctx, id: string): Promise<Response> {
     .innerJoin(entregables, eq(entregables.id, archivosEntregable.entregableId))
     .where(eq(archivosEntregable.id, id));
   if (!x) return json({ error: 'no existe' }, 404);
-  await c.env.ARCHIVOS?.delete(x.a.claveR2);
+  await c.env.ARCHIVOS?.delete(x.a.clave);
   await c.db.delete(archivosEntregable).where(eq(archivosEntregable.id, id));
   return verProyecto(c, x.proyectoId);
 }

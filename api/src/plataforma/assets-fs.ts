@@ -1,7 +1,8 @@
-// Archivos del panel en Vercel: lee dist-admin/ del disco de la función (vercel.json lo incluye con
-// includeFiles) detrás de la parte de Fetcher que usa src/panel.ts: fetch(Request) por ruta.
+// Archivos del panel: lee dist-admin/ del disco (en Vercel, la copia que scripts/vercel-build.mjs
+// deja junto a la función) y los entrega por ruta a src/panel.ts.
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize, sep } from 'node:path';
+import type { ArchivosPanel } from '../env';
 
 const TIPOS: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -16,11 +17,11 @@ const TIPOS: Record<string, string> = {
   '.map': 'application/json',
 };
 
-export function assetsDesdeDisco(raiz: string): Fetcher {
+export function assetsDesdeDisco(raiz: string): ArchivosPanel {
   const base = normalize(raiz) + sep;
-  const fetcher = {
-    async fetch(entrada: Request | string) {
-      const ruta = decodeURIComponent(new URL(typeof entrada === 'string' ? entrada : entrada.url).pathname);
+  return {
+    async fetch(req) {
+      const ruta = decodeURIComponent(new URL(req.url).pathname);
       const archivo = normalize(join(base, ruta));
       // Nada fuera de dist-admin/.
       if (!archivo.startsWith(base)) return new Response('No existe', { status: 404 });
@@ -31,9 +32,5 @@ export function assetsDesdeDisco(raiz: string): Fetcher {
         return new Response('No existe', { status: 404 });
       }
     },
-    connect() {
-      throw new Error('connect no está disponible');
-    },
   };
-  return fetcher as unknown as Fetcher;
 }

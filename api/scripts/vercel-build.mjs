@@ -15,7 +15,7 @@ const funcion = `${salida}/functions/index.func`;
 // la base de producción.
 if (process.env.VERCEL_ENV === 'production') {
   if (!process.env.TURSO_DATABASE_URL) throw new Error('Falta TURSO_DATABASE_URL en producción');
-  execFileSync('node', [`${raiz}scripts/turso-migrar.mjs`], { stdio: 'inherit' });
+  execFileSync('node', [`${raiz}scripts/migrar.mjs`], { stdio: 'inherit' });
 }
 
 rmSync(salida, { recursive: true, force: true });

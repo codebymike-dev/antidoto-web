@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 export default defineConfig({
   test: {
     projects: [
-      // API: Node con una D1 local (miniflare).
+      // API: Node con una base libSQL en un archivo temporal.
       { test: { name: 'api', include: ['test/**/*.test.ts'], testTimeout: 20000, hookTimeout: 60000 } },
       // Panel: componentes de Preact en happy-dom.
       {

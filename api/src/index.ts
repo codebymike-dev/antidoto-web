@@ -1,4 +1,4 @@
-// Worker de la API de Antídoto. Rutas:
+// API de Antídoto (función de Vercel, src/plataforma/). Rutas:
 //   POST /v1/leads                  público (solo orígenes del sitio): guarda un lead
 //   POST /v1/suscripciones          público (solo orígenes del sitio): suscripción a novedades
 //   GET|POST /v1/asesor             público (solo orígenes del sitio): chat con IA (src/asesor/)
@@ -11,17 +11,17 @@
 //   GET  /v1/novedades/<id>         versión web de una campaña enviada
 //   POST /v1/resend/webhook         eventos de Resend, firmados con Svix
 //   GET  /v1/contenido?tipo=        contenido publicado desde el panel, para el build del sitio
-//   GET  /v1/medios/<id>            imágenes de ese contenido (R2)
+//   GET  /v1/medios/<id>            imágenes de ese contenido (Blob)
 //   GET  /v1/ajustes                ajustes del sitio (regalo de bienvenida, video del hero)
 //   POST /auth/enlace               pide el enlace de acceso por correo
 //   GET|POST /auth/entrar           abre la sesión con el enlace
 //   POST /auth/salir[?todas=1]      cierra la sesión (o todas las del usuario)
-//   GET  /admin/*                   panel en Preact (dist-admin/, binding ASSETS; ver src/panel.ts)
+//   GET  /admin/*                   panel en Preact (dist-admin/; ver src/panel.ts)
 //   /admin/api/*                    API del panel, con sesión y permisos por rol (src/rutas/)
 //   GET  /portal/*                  portal de proyectos para clientes (misma app de Vite, portal.html)
 //   /portal/auth/*, /portal/api/*   acceso y API del portal, con su propia sesión (src/portal/)
-import { drizzle } from 'drizzle-orm/d1';
 import type { Env } from './env';
+import { conectar } from './db/conexion';
 import { crearLead } from './leads';
 import { registrarClic } from './clics';
 import { origenPermitido, cabecerasCors } from './cors';
@@ -55,7 +55,7 @@ export async function manejar(req: Request, env: Env, diferir: (p: Promise<unkno
   const url = new URL(req.url);
   const { pathname: ruta } = url;
   const metodo = req.method;
-  const db = drizzle(env.DB);
+  const db = conectar(env.DB);
   const appUrl = (env.APP_URL || url.origin).replace(/\/$/, '');
 
   if (ruta === '/v1/leads' || ruta === '/v1/suscripciones') {
@@ -150,14 +150,3 @@ export async function manejar(req: Request, env: Env, diferir: (p: Promise<unkno
 
   return json({ error: 'no existe' }, 404);
 }
-
-export default {
-  async fetch(req, env, ctx) {
-    try {
-      return await manejar(req, env, (p) => ctx.waitUntil(p));
-    } catch (e) {
-      console.error('[api] error sin manejar', e);
-      return json({ ok: false, error: 'interno' }, 500);
-    }
-  },
-} satisfies ExportedHandler<Env>;

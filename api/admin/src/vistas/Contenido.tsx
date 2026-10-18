@@ -198,7 +198,7 @@ export function PublicarSitio() {
           </div>
         )}
       </div>
-      {!d.datos.configurada && <Aviso tono="alerta">La publicación desde el panel no está configurada: falta el secret GITHUB_DISPATCH_TOKEN del Worker. Mientras tanto, el sitio se publica desde GitHub Actions.</Aviso>}
+      {!d.datos.configurada && <Aviso tono="alerta">La publicación desde el panel no está configurada: falta la variable GITHUB_DISPATCH_TOKEN de la API. Mientras tanto, el sitio se publica desde GitHub Actions.</Aviso>}
       {ultima?.estado === 'fallida' && ultima.error && <Aviso tono="error">La última publicación falló: {ultima.error}</Aviso>}
     </Tarjeta>
   );

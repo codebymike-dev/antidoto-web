@@ -87,7 +87,7 @@ function Biblioteca({ titulo, alElegir, alCerrar }: { titulo: string; alElegir: 
     } catch (e) {
       const motivo = e instanceof ErrorApi ? e.datos.error : null;
       avisar(
-        motivo === 'formato' ? 'Solo PNG, JPEG o WebP.' : motivo === 'grande' ? 'La imagen pasa de 4 MB.' : motivo === 'sin_bucket' ? 'Falta configurar el almacenamiento de imágenes.' : mensajeError(e),
+        motivo === 'formato' ? 'Solo PNG, JPEG o WebP.' : motivo === 'grande' ? 'La imagen pasa de 4 MB.' : motivo === 'sin_almacen' ? 'Falta configurar el almacenamiento de imágenes.' : mensajeError(e),
         'error',
       );
     } finally {
@@ -105,7 +105,7 @@ function Biblioteca({ titulo, alElegir, alCerrar }: { titulo: string; alElegir: 
           </svg>
         </button>
       </div>
-      {!configurado && <p class="aviso aviso-alerta">Falta configurar el almacenamiento de imágenes (bucket R2 MEDIOS).</p>}
+      {!configurado && <p class="aviso aviso-alerta">Falta configurar el almacenamiento de imágenes (Vercel Blob).</p>}
       <label class="subir">
         <input type="file" accept="image/png,image/jpeg,image/webp" disabled={subiendo || !configurado} onChange={(e) => (e.target as HTMLInputElement).files?.[0] && subirArchivo((e.target as HTMLInputElement).files![0]!)} />
         <span>{subiendo ? 'Subiendo' : 'Subir una imagen nueva'}</span>

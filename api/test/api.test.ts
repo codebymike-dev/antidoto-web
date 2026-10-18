@@ -1,8 +1,8 @@
-// De punta a punta contra una D1 local: lead desde el sitio, acceso del equipo con enlace
+// De punta a punta contra una base local: lead desde el sitio, acceso del equipo con enlace
 // mágico, gestión en la bandeja, supresión de datos y el aviso de seguimiento.
 import { describe, test, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
-import { drizzle } from 'drizzle-orm/d1';
-import { crearEntorno } from './entorno';
+import { conectar as drizzle } from '../src/db/conexion';
+import { crearEntorno, consulta, lote } from './entorno';
 import { manejar } from '../src/index';
 import { seguimiento } from '../src/seguimiento';
 import { TIEMPO_MINIMO_MS } from '../src/validar';
@@ -23,7 +23,7 @@ beforeAll(async () => {
   ({ env, cerrar } = await crearEntorno());
   env.RESEND_API_KEY = 'prueba';
   env.SAL_IP = 'sal';
-  // Solo se interceptan las llamadas a Resend; el resto (miniflare) pasa tal cual.
+  // Solo se interceptan las llamadas a Resend; el resto pasa tal cual.
   const real = globalThis.fetch;
   vi.spyOn(globalThis, 'fetch').mockImplementation(async (entrada, init) => {
     const url = entrada instanceof Request ? entrada.url : String(entrada);
@@ -42,11 +42,11 @@ beforeEach(() => {
   correos = [];
 });
 
-/** Llama al Worker y espera también el trabajo diferido (correos). */
+/** Llama a la API y espera también el trabajo diferido (correos). */
 async function llamar(ruta: string, init: RequestInit & { ip?: string } = {}) {
   const pendientes: Promise<unknown>[] = [];
   const headers = new Headers(init.headers);
-  if (init.ip) headers.set('cf-connecting-ip', init.ip);
+  if (init.ip) headers.set('x-real-ip', init.ip);
   const res = await manejar(new Request(`${APP}${ruta}`, { ...init, headers, redirect: 'manual' }), env, (p) => pendientes.push(p));
   await Promise.all(pendientes);
   return res;
@@ -78,9 +78,9 @@ describe('POST /v1/leads', () => {
   });
 
   test('responde el preflight con CORS del origen', async () => {
-    const r = await llamar('/v1/leads', { method: 'OPTIONS', headers: { origin: 'https://rama.antidoto-web.pages.dev' } });
+    const r = await llamar('/v1/leads', { method: 'OPTIONS', headers: { origin: 'https://antidoto-web-git-rama-equipo.vercel.app' } });
     expect(r.status).toBe(204);
-    expect(r.headers.get('access-control-allow-origin')).toBe('https://rama.antidoto-web.pages.dev');
+    expect(r.headers.get('access-control-allow-origin')).toBe('https://antidoto-web-git-rama-equipo.vercel.app');
   });
 
   test('guarda el lead con su consentimiento y avisa a los dos lados', async () => {
@@ -89,11 +89,11 @@ describe('POST /v1/leads', () => {
     expect(r.headers.get('access-control-allow-origin')).toBe(SITIO);
     const { id } = (await r.json()) as { id: string };
 
-    const fila = await env.DB.prepare('select * from leads where id = ?').bind(id).first<Record<string, unknown>>();
+    const fila = await consulta(env.DB, 'select * from leads where id = ?', id).first<Record<string, unknown>>();
     expect(fila).toMatchObject({ estado: 'nuevo', servicio: 'catering', nombre: 'Andrés Ruiz', personas: 120 });
     expect(fila?.ip_hash).toMatch(/^[0-9a-f]{64}$/);
 
-    const c = await env.DB.prepare('select * from consentimientos where lead_id = ?').bind(id).first<Record<string, unknown>>();
+    const c = await consulta(env.DB, 'select * from consentimientos where lead_id = ?', id).first<Record<string, unknown>>();
     expect(c).toMatchObject({ version: CONSENTIMIENTO_VERSION, revocado: null });
     expect(String(c?.texto)).toContain('Autorizo a Antídoto');
 
@@ -102,10 +102,10 @@ describe('POST /v1/leads', () => {
   });
 
   test('a un bot le responde bien pero no guarda nada', async () => {
-    const antes = await env.DB.prepare('select count(*) n from leads').first<number>('n');
+    const antes = await consulta(env.DB, 'select count(*) n from leads').first<number>('n');
     const r = await enviarLead(lead({ web: 'x' }), '203.0.113.2');
     expect(r.status).toBe(202);
-    expect(await env.DB.prepare('select count(*) n from leads').first<number>('n')).toBe(antes);
+    expect(await consulta(env.DB, 'select count(*) n from leads').first<number>('n')).toBe(antes);
     expect(correos).toHaveLength(0);
   });
 
@@ -150,9 +150,9 @@ describe('bandeja', () => {
 
   beforeAll(async () => {
     const t = Date.now();
-    await env.DB.batch([
-      env.DB.prepare("insert into usuarios (id, email, nombre, rol, activo, creado) values ('11111111-1111-4111-8111-111111111111', 'dueña@antidoto.co', 'Dueña', 'admin', 1, ?)").bind(t),
-      env.DB.prepare("insert into usuarios (id, email, nombre, rol, activo, creado) values ('22222222-2222-4222-8222-222222222222', 'equipo@antidoto.co', 'Equipo', 'comercial', 1, ?)").bind(t),
+    await lote(env.DB, [
+      consulta(env.DB, "insert into usuarios (id, email, nombre, rol, activo, creado) values ('11111111-1111-4111-8111-111111111111', 'dueña@antidoto.co', 'Dueña', 'admin', 1, ?)", t),
+      consulta(env.DB, "insert into usuarios (id, email, nombre, rol, activo, creado) values ('22222222-2222-4222-8222-222222222222', 'equipo@antidoto.co', 'Equipo', 'comercial', 1, ?)", t),
     ]);
     const r = await enviarLead(lead({ nombre: '=Malicioso', email: 'x@y.co' }), '192.0.2.50');
     leadId = ((await r.json()) as { id: string }).id;
@@ -227,16 +227,15 @@ describe('bandeja', () => {
   test('solo un admin suprime datos, y la supresión borra lo personal', async () => {
     // La misma persona está suscrita a novedades con el correo del lead.
     const t = Date.now();
-    await env.DB.prepare(
-      "insert into contactos (id, email, nombre, locale, estado, origen, intereses, token, creado, actualizado) values ('88888888-8888-4888-8888-888888888888', 'x@y.co', 'Malicioso', 'es', 'activo', 'cotizador', '[]', 'tok-lead', ?, ?)",
-    ).bind(t, t).run();
+    await consulta(env.DB, 
+      "insert into contactos (id, email, nombre, locale, estado, origen, intereses, token, creado, actualizado) values ('88888888-8888-4888-8888-888888888888', 'x@y.co', 'Malicioso', 'es', 'activo', 'cotizador', '[]', 'tok-lead', ?, ?)", t, t).run();
     expect((await post(`/admin/api/leads/${leadId}/anonimizar`, {}, cookieEquipo)).status).toBe(403);
     const d = (await (await post(`/admin/api/leads/${leadId}/anonimizar`)).json()) as { lead: Record<string, unknown>; consentimientos: { revocado: number | null }[] };
     expect(d.lead).toMatchObject({ nombre: null, email: null, telefono: null, notas: null, servicio: 'catering', estado: 'cotizado' });
     expect(d.consentimientos[0]!.revocado).toEqual(expect.any(Number));
-    const nota = await env.DB.prepare("select detalle from lead_eventos where lead_id = ? and tipo = 'nota'").bind(leadId).first<string>('detalle');
+    const nota = await consulta(env.DB, "select detalle from lead_eventos where lead_id = ? and tipo = 'nota'", leadId).first<string>('detalle');
     expect(nota).toBe(null);
-    const contacto = await env.DB.prepare("select email, nombre, estado, motivo_baja from contactos where id = '88888888-8888-4888-8888-888888888888'").first();
+    const contacto = await consulta(env.DB, "select email, nombre, estado, motivo_baja from contactos where id = '88888888-8888-4888-8888-888888888888'").first();
     expect(contacto).toEqual({ email: 'suprimido+88888888-8888-4888-8888-888888888888@invalid', nombre: null, estado: 'baja', motivo_baja: 'supresion' });
     expect((await post(`/admin/api/leads/${leadId}`, { method: 'PATCH', body: '{"estado":"ganado"}' })).status).toBe(409);
   });
@@ -257,10 +256,8 @@ describe('bandeja', () => {
 
 test('seguimiento avisa una sola vez por lead viejo sin respuesta', async () => {
   const hace2dias = Date.now() - 48 * 3_600_000;
-  await env.DB.prepare(
-    "insert into leads (id, creado, actualizado, estado, servicio, nombre, locale) values ('33333333-3333-4333-8333-333333333333', ?, ?, 'nuevo', 'diseno', 'Viejo', 'es')",
-  )
-    .bind(hace2dias, hace2dias)
+  await consulta(env.DB, 
+    "insert into leads (id, creado, actualizado, estado, servicio, nombre, locale) values ('33333333-3333-4333-8333-333333333333', ?, ?, 'nuevo', 'diseno', 'Viejo', 'es')", hace2dias, hace2dias)
     .run();
   const db = drizzle(env.DB);
   expect(await seguimiento(env, db)).toEqual({ avisados: 1 });

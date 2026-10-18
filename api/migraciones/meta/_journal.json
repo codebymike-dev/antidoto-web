@@ -78,6 +78,13 @@
       "when": 1791825230798,
       "tag": "0010_clics",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1792281338881,
+      "tag": "0011_clave_archivos",
+      "breakpoints": true
     }
   ]
 }

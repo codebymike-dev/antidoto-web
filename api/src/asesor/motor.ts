@@ -1,4 +1,4 @@
-// Conecta el bucle (bucle.ts) con la API de Claude. Sin SDK: el Worker llama con fetch, como a
+// Conecta el bucle (bucle.ts) con la API de Claude. Sin SDK: la API llama con fetch, como a
 // Resend.
 //
 // Sin transmisión palabra a palabra: la guardia de cifras revisa la respuesta COMPLETA antes de

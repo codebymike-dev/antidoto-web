@@ -2,7 +2,7 @@
 // organización: un cliente nunca ve proyectos de otra, ni el valor, las notas internas, las
 // tareas o entregables no marcados como visibles.
 import { and, asc, desc, eq, inArray, ne, sql } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from '../db/conexion';
 import { proyectos, etapas, tareas, entregables, archivosEntregable, bitacora, usuarios } from '../db/schema';
 import type { Env } from '../env';
 import { enviar, correoRespuestaCliente } from '../correo';
@@ -17,7 +17,7 @@ interface CtxPortal {
   ruta: string;
   metodo: string;
   env: Env;
-  db: DrizzleD1Database;
+  db: Db;
   sesion: SesionCliente;
   appUrl: string;
   diferir: (p: Promise<unknown>) => void;

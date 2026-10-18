@@ -24,7 +24,7 @@ El sitio ya tiene páginas e índices reales: líneas y ofertas, soluciones por 
 - [x] Barra inferior de WhatsApp: borrada por decisión del dueño (05/10/2026). La burbuja recibe el mensaje de cada página y, sin la API, queda solo con WhatsApp. RF-07 ajustado. Antes: Ahora que todas las páginas usan `tema="claro"`, `BarraWhatsapp` ya no aparece en ninguna. O se activa en las internas (cuidando que no choque con el botón del asesor) o se borra y se ajusta RF-07.
 - [x] (05/10/2026, comparado con capturas antes y después) Limpiar el diseño oscuro que quedó sin uso: `Ambiente`, `BarraWhatsapp` (según lo anterior), `tema="oscuro"` en `Base.astro` y las clases `.panel`, `.btn`, `.eyebrow` y `.mono` de `global.css` que ya nadie use. El bloque de movimiento reducido de `global.css` repite reglas de `.resaltado`, `.boton` y `.pendiente`: revisar.
 - [x] (05/10/2026) Cotizador: hoy acepta `?servicio=`. Sumar `?oferta=` para que el mensaje de WhatsApp nombre la oferta desde la que llegó la persona.
-- [ ] Analítica sin cookies (Plausible o Cloudflare Web Analytics) con eventos de clic a WhatsApp, envío del cotizador y uso del asesor. Al activarla, completar la sección "Medición" de `/cookies/`.
+- [ ] Analítica sin cookies (Plausible) con eventos de clic a WhatsApp, envío del cotizador y uso del asesor. Al activarla, completar la sección "Medición" de `/cookies/`.
 - [ ] Prueba de accesibilidad del mega menú con lector de pantalla (NVDA y VoiceOver). La de solo teclado ya se hizo (05/10/2026): en escritorio, Tab, Enter, Esc y el foco al cerrar funcionan; en móvil, el Tab después de abrir Menú salía del panel y se corrigió poniendo el botón antes del panel en el DOM. También capturas con movimiento reducido de las páginas nuevas. Hasta ahora solo se verificó con capturas en 1440 y 390 px.
 - [x] (05/10/2026: 68,6 KB gzip y LCP de 0,7 a 1,7 s) Medir el JS inicial y el LCP de las páginas nuevas (línea, oferta, solución) contra el presupuesto. Solo se sumó el script de la nav, pero no se midió con las importaciones dinámicas.
 - [ ] Cuando haya varios casos o artículos: filtros como páginas propias en el portafolio (hoy son anclas) y búsqueda estática con Pagefind para el blog.
@@ -56,16 +56,15 @@ Estado al 03/10/2026: el código está completo y probado (suscripción con dobl
 
 ### Para activarlo (técnico)
 
-- [ ] Token de Cloudflare con permisos *Workers Scripts: Edit*, *D1: Edit* y *Account Settings: Read*, además de Pages.
 - [ ] Activar la API en Vercel (pasos en `api/README.md`, sección *Producción (Vercel)*). El build de producción aplica solo las migraciones en Turso.
 - [ ] Guardar la URL de la API como variable `PUBLIC_API_URL` en el proyecto de Vercel del sitio (y en GitHub). Sin ella no aparecen la sección de la home, el formulario del pie ni el archivo `/novedades/`. Lo ideal es un dominio propio (`api.antidotocolombia.com`).
-- [ ] Revisar `SITIO_URL` (`api/wrangler.toml` y `VARS` de `api/src/plataforma/vercel.ts`) (hoy `https://antidotocolombia.com`): es a donde redirigen confirmar, baja y preferencias. Mientras el rediseño no esté publicado en ese dominio, esos enlaces llevarían a la SPA vieja.
+- [ ] Revisar `SITIO_URL` (`VARS` de `api/src/plataforma/vercel.ts` o variable del proyecto de Vercel) (hoy `https://antidotocolombia.com`): es a donde redirigen confirmar, baja y preferencias. Mientras el rediseño no esté publicado en ese dominio, esos enlaces llevarían a la SPA vieja.
 - [ ] Primer admin en la base de producción (`api/README.md`, paso 7).
 - [ ] Secret `SAL_IP` (texto aleatorio largo).
 
 ### Resend y DNS
 
-- [ ] Cuenta en Resend, dominio `antidotocolombia.com` verificado (SPF y DKIM) y secret `RESEND_API_KEY` en GitHub.
+- [ ] Cuenta en Resend, dominio `antidotocolombia.com` verificado (SPF y DKIM) y variable `RESEND_API_KEY` en el proyecto de la API en Vercel.
 - [ ] Registro DMARC: `_dmarc.antidotocolombia.com TXT "v=DMARC1; p=none; rua=mailto:<correo>"`. Gmail y Yahoo lo exigen a quien envía en volumen. Subirlo a `quarantine` cuando los informes salgan limpios.
 - [ ] Recomendado: subdominio solo para campañas (por ejemplo `news.antidotocolombia.com`), verificado en Resend, y `MAIL_FROM_NOVEDADES` apuntando a él. Separa la reputación de las campañas de la de los correos de acceso y avisos de leads.
 - [ ] Webhook de Resend hacia `<URL de la API>/v1/resend/webhook` con `email.delivered`, `email.opened`, `email.clicked`, `email.bounced` y `email.complained`, y su secreto como `RESEND_WEBHOOK_SECRET`. Sin él no hay métricas de campañas ni bajas automáticas por rebote o queja.
@@ -75,7 +74,7 @@ Estado al 03/10/2026: el código está completo y probado (suscripción con dobl
 ### Datos del cliente (tarjeta K-54 en /docs/)
 
 - [ ] Frecuencia de envío. Hoy se ve como "[FRECUENCIA DE ENVÍO]" en una caja pendiente en la home y en `/novedades/`.
-- [ ] Razón social y domicilio para el pie legal de las campañas: `MAIL_DIRECCION` en `api/wrangler.toml`. Es el mismo dato que falta en la política de datos.
+- [ ] Razón social y domicilio para el pie legal de las campañas: variable `MAIL_DIRECCION` del proyecto de la API en Vercel. Es el mismo dato que falta en la política de datos.
 - [ ] Regalo por suscribirse (opcional, por ejemplo una guía en PDF). Cuando exista: su nombre en `REGALO_NOVEDADES` (`src/data/site.ts`) y su enlace en el correo de bienvenida (bandeja > Campañas > Correos automáticos).
 - [ ] Revisar y ajustar el texto de bienvenida por defecto en los dos idiomas desde la bandeja.
 - [ ] Revisión del abogado: incluir en la política de datos la finalidad de novedades, la pausa y la importación de contactos (invitaciones a personas con relación previa).

@@ -50,7 +50,7 @@ export default function Ajustes() {
                 Chat con IA encendido
               </Casilla>
               <p class="suave texto-chico">Apagado, la burbuja del sitio ofrece solo WhatsApp. Sirve si algo sale mal y hay que cortarlo ya.</p>
-              <Campo etiqueta="Tope de gasto diario (USD)" ayuda={tope === null ? 'Vacío usa el valor de la configuración del Worker (ASESOR_TOPE_DIARIO_USD).' : 'Entre 0 y 20. Al llegar al tope, el chat se apaga hasta medianoche (hora de Colombia).'}>
+              <Campo etiqueta="Tope de gasto diario (USD)" ayuda={tope === null ? 'Vacío usa el valor de la configuración de la API (ASESOR_TOPE_DIARIO_USD).' : 'Entre 0 y 20. Al llegar al tope, el chat se apaga hasta medianoche (hora de Colombia).'}>
                 <input name="tope" inputMode="decimal" defaultValue={typeof tope === 'number' ? String(tope) : ''} placeholder="Por defecto" />
               </Campo>
               {editable && (

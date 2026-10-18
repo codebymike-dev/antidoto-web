@@ -4,6 +4,7 @@ import { prepararPruebas } from './ayudas';
 import { puede, permisosDe, PERMISOS } from '../src/permisos';
 import { ROLES, type Rol } from '../src/dominio';
 import { validarAjustes } from '../src/configuracion';
+import { consulta } from './entorno';
 
 const p = prepararPruebas();
 
@@ -109,7 +110,7 @@ describe('ajustes', () => {
     const admin = await p.entrarComo('ajustes@antidoto.co', 'admin');
     const r = await p.conSesion(admin, '/admin/api/configuracion', { method: 'PUT', body: JSON.stringify({ 'asesor.tope_diario_usd': 3 }) });
     expect(((await r.json()) as { ajustes: Record<string, unknown> }).ajustes['asesor.tope_diario_usd']).toBe(3);
-    const reg = await p.env.DB.prepare("select usuario_email, detalle from auditoria where accion = 'config.cambiar' order by creado desc").first<{ usuario_email: string; detalle: string }>();
+    const reg = await consulta(p.env.DB, "select usuario_email, detalle from auditoria where accion = 'config.cambiar' order by creado desc").first<{ usuario_email: string; detalle: string }>();
     expect(reg).toEqual({ usuario_email: 'ajustes@antidoto.co', detalle: JSON.stringify({ 'asesor.tope_diario_usd': 3 }) });
     const vuelta = await p.conSesion(admin, '/admin/api/configuracion', { method: 'PUT', body: JSON.stringify({ 'asesor.tope_diario_usd': null }) });
     expect(((await vuelta.json()) as { ajustes: Record<string, unknown> }).ajustes['asesor.tope_diario_usd']).toBe(null);
@@ -120,8 +121,7 @@ describe('auditoría', () => {
   test('editar un lead deja registro sin datos personales', async () => {
     const t = Date.now();
     const id = '00000000-0000-4000-8000-0000000000a1';
-    await p.env.DB.prepare("insert into leads (id, creado, actualizado, estado, servicio, nombre, email, locale) values (?, ?, ?, 'nuevo', 'catering', 'Ana Pérez', 'ana@demo.co', 'es')")
-      .bind(id, t, t)
+    await consulta(p.env.DB, "insert into leads (id, creado, actualizado, estado, servicio, nombre, email, locale) values (?, ?, ?, 'nuevo', 'catering', 'Ana Pérez', 'ana@demo.co', 'es')", id, t, t)
       .run();
     const c = await p.entrarComo('auditor@antidoto.co', 'admin');
     const r = await p.conSesion(c, `/admin/api/leads/${id}`, { method: 'PATCH', body: JSON.stringify({ estado: 'contactado', notas: 'Llamé a Ana al 3001234567' }) });
@@ -138,7 +138,7 @@ describe('auditoría', () => {
   test('un cambio que falla no se registra', async () => {
     const c = await p.entrarComo('auditor@antidoto.co', 'admin');
     await p.conSesion(c, '/admin/api/leads/00000000-0000-4000-8000-0000000000ff', { method: 'PATCH', body: '{"estado":"ganado"}' });
-    const n = await p.env.DB.prepare("select count(*) as n from auditoria where entidad_id = '00000000-0000-4000-8000-0000000000ff'").first<number>('n');
+    const n = await consulta(p.env.DB, "select count(*) as n from auditoria where entidad_id = '00000000-0000-4000-8000-0000000000ff'").first<number>('n');
     expect(n).toBe(0);
   });
 });

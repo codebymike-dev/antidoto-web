@@ -1,9 +1,10 @@
 // Contenido del sitio desde el panel: borradores, publicación en los dos idiomas, copia publicada
-// aparte, historial, imágenes en R2, permisos y el pedido de publicar el sitio.
+// aparte, historial, imágenes en el almacén, permisos y el pedido de publicar el sitio.
 import { describe, test, expect, beforeAll } from 'vitest';
 import { prepararPruebas } from './ayudas';
 import { validarContenido } from '../src/contenido/esquemas';
 import { leerImagen } from '../src/archivos';
+import { consulta } from './entorno';
 
 let despachos: { url: string; body: unknown }[] = [];
 const p = prepararPruebas((url, init) => {
@@ -56,7 +57,7 @@ describe('imágenes', () => {
     expect(leerImagen(new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg"></svg>'))).toBe(null);
   });
 
-  test('sube a R2, rechaza SVG y no deja borrar una imagen en uso', async () => {
+  test('sube al almacén, rechaza SVG y no deja borrar una imagen en uso', async () => {
     const r = await subir(contenidoCk, PNG);
     expect(r.status).toBe(201);
     const { medio } = (await r.json()) as { medio: { id: string; ancho: number; url: string } };
@@ -121,7 +122,7 @@ describe('ciclo de una entrada', () => {
     await enviar(contenidoCk, `/admin/api/contenido/${id}/archivar`, 'POST');
     expect(((await (await p.llamar('/v1/contenido?tipo=faq')).json()) as { entradas: unknown[] }).entradas).toHaveLength(0);
     expect((await enviar(contenidoCk, `/admin/api/contenido/${id}`, 'DELETE')).status).toBe(409);
-    expect(await p.env.DB.prepare("select count(*) as n from auditoria where accion like 'contenido.%' and entidad_id = ?").bind(id).first<number>('n')).toBeGreaterThanOrEqual(5);
+    expect(await consulta(p.env.DB, "select count(*) as n from auditoria where accion like 'contenido.%' and entidad_id = ?", id).first<number>('n')).toBeGreaterThanOrEqual(5);
   });
 
   test('dos entradas publicadas no pueden usar la misma dirección', async () => {
@@ -157,7 +158,7 @@ describe('publicar el sitio', () => {
   });
 
   test('con token dispara el workflow una sola vez por tanda; producción solo admin', async () => {
-    await p.env.DB.exec('DELETE FROM publicaciones;');
+    await p.env.DB.executeMultiple('DELETE FROM publicaciones;');
     p.env.GITHUB_DISPATCH_TOKEN = 'ghp_prueba';
     p.env.GITHUB_REPO = 'dueno/antidoto-web';
     const r = await enviar(contenidoCk, '/admin/api/publicar', 'POST', { destino: 'vista_previa' });

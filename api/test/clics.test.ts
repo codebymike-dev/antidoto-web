@@ -1,11 +1,12 @@
 // Analítica sin cookies (POST /v1/clic y Métricas del panel) y el límite diario por visitante
-// del chat, contra una D1 local.
+// del chat, contra una base local.
 import { describe, test, expect } from 'vitest';
-import { drizzle } from 'drizzle-orm/d1';
+import { conectar as drizzle } from '../src/db/conexion';
 import { prepararPruebas } from './ayudas';
 import { validarClic } from '../src/clics';
 import { dentroDelLimite } from '../src/limite';
 import { DIA, HORA } from '../src/util';
+import { consulta } from './entorno';
 
 const SITIO = 'https://antidotocolombia.com';
 
@@ -28,7 +29,7 @@ describe('POST /v1/clic', () => {
     expect((await clic({ tipo: 'whatsapp', pagina: '/contacto/' })).status).toBe(204);
     expect((await clic({ tipo: 'whatsapp', pagina: '/contacto/' })).status).toBe(204);
     expect((await clic({ tipo: 'cotizacion_correo', pagina: '/contacto/' })).status).toBe(204);
-    const filas = await p.env.DB.prepare('select tipo, pagina, n from clics order by tipo').all();
+    const filas = await consulta(p.env.DB, 'select tipo, pagina, n from clics order by tipo').all();
     expect(filas.results).toEqual([
       { tipo: 'cotizacion_correo', pagina: '/contacto/', n: 1 },
       { tipo: 'whatsapp', pagina: '/contacto/', n: 2 },

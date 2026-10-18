@@ -1,4 +1,4 @@
-// Versiones de las autorizaciones que acepta la API. El sitio (FTP, a mano) y la API (Worker)
+// Versiones de las autorizaciones que acepta la API. El sitio y la API
 // se despliegan por separado: durante el cambio de un texto, alguna de las dos partes lleva la
 // versión anterior. Por eso se acepta la vigente y las de "anteriores", y se guarda el texto
 // exacto de la versión que la persona vio.

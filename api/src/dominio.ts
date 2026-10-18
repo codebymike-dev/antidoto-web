@@ -1,4 +1,4 @@
-// Constantes del dominio sin dependencias: las comparten el Worker, el esquema de la base y el
+// Constantes del dominio sin dependencias: las comparten la API, el esquema de la base y el
 // panel en el navegador (que no debe arrastrar drizzle a su bundle).
 
 export const ESTADOS = ['nuevo', 'contactado', 'cotizado', 'ganado', 'perdido'] as const;

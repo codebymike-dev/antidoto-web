@@ -1,22 +1,23 @@
-// El Worker sirve el panel (dist-admin/) con su CSP: index.html para cualquier ruta de la
+// La API sirve el panel (dist-admin/) con su CSP: index.html para cualquier ruta de la
 // interfaz y archivos con hash para siempre. La API del panel sigue exigiendo sesión.
 import { describe, test, expect, beforeAll } from 'vitest';
 import { prepararPruebas } from './ayudas';
 import { CSP_PANEL } from '../src/panel';
+import { consulta } from './entorno';
 
 const p = prepararPruebas();
 
 beforeAll(() => {
-  // ASSETS falso: index.html y un archivo; lo demás no existe.
+  // Archivos del panel falsos: index.html y un archivo; lo demás no existe.
   p.env.ASSETS = {
-    fetch: async (entrada: RequestInfo | URL) => {
-      const ruta = new URL(entrada instanceof Request ? entrada.url : String(entrada)).pathname;
+    fetch: async (req: Request) => {
+      const ruta = new URL(req.url).pathname;
       if (ruta === '/admin/index.html') return new Response('<!doctype html><div id="app"></div>', { headers: { 'content-type': 'text/html' } });
       if (ruta === '/admin/portal.html') return new Response('<!doctype html><title>Portal</title><div id="app"></div>', { headers: { 'content-type': 'text/html' } });
       if (ruta === '/admin/assets/index-abc.js') return new Response('console.log(1)', { headers: { 'content-type': 'text/javascript' } });
       return new Response('no', { status: 404 });
     },
-  } as unknown as Fetcher;
+  };
 });
 
 describe('panel', () => {
@@ -80,8 +81,7 @@ describe('inicio y buscador', () => {
 
   test('el buscador respeta los permisos', async () => {
     const t = Date.now();
-    await p.env.DB.prepare("insert into leads (id, creado, actualizado, estado, servicio, nombre, empresa, locale) values ('00000000-0000-4000-8000-0000000000b1', ?, ?, 'nuevo', 'catering', 'Zacarías Buscable', 'Zeta SAS', 'es')")
-      .bind(t, t)
+    await consulta(p.env.DB, "insert into leads (id, creado, actualizado, estado, servicio, nombre, empresa, locale) values ('00000000-0000-4000-8000-0000000000b1', ?, ?, 'nuevo', 'catering', 'Zacarías Buscable', 'Zeta SAS', 'es')", t, t)
       .run();
     const admin = await p.entrarComo('admin-inicio@antidoto.co', 'admin');
     const r = (await (await p.llamar('/admin/api/buscar?q=Zacar', { headers: { cookie: admin } })).json()) as { resultados: { tipo: string; href: string }[] };
@@ -95,12 +95,12 @@ describe('inicio y buscador', () => {
 describe('pendientes sin tareas programadas', () => {
   test('usar el panel corre lo pendiente como mucho una vez cada 5 minutos', async () => {
     const admin = await p.entrarComo('pendientes@antidoto.co', 'admin');
-    await p.env.DB.exec("DELETE FROM configuracion WHERE clave = 'sistema.pendientes'; DELETE FROM limites WHERE clave LIKE 'pendientes:%';");
+    await p.env.DB.executeMultiple("DELETE FROM configuracion WHERE clave = 'sistema.pendientes'; DELETE FROM limites WHERE clave LIKE 'pendientes:%';");
     await p.llamar('/admin/api/yo', { headers: { cookie: admin } });
-    const primera = await p.env.DB.prepare("select actualizado from configuracion where clave = 'sistema.pendientes'").first<number>('actualizado');
+    const primera = await consulta(p.env.DB, "select actualizado from configuracion where clave = 'sistema.pendientes'").first<number>('actualizado');
     expect(primera).toEqual(expect.any(Number));
     await p.llamar('/admin/api/yo', { headers: { cookie: admin } });
-    const segunda = await p.env.DB.prepare("select actualizado from configuracion where clave = 'sistema.pendientes'").first<number>('actualizado');
+    const segunda = await consulta(p.env.DB, "select actualizado from configuracion where clave = 'sistema.pendientes'").first<number>('actualizado');
     expect(segunda).toBe(primera);
   });
 });

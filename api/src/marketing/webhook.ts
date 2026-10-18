@@ -3,7 +3,7 @@
 // Un rebote permanente deja al contacto como "rebotado" y una queja lo da de baja: no se le
 // vuelve a escribir. Los correos transaccionales (sin fila en envios) se ignoran.
 import { eq, and, isNull } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from '../db/conexion';
 import { envios, contactos } from '../db/schema';
 import { darDeBaja } from './suscripciones';
 import type { Env } from '../env';
@@ -37,7 +37,7 @@ interface Evento {
   data?: { email_id?: string; bounce?: { type?: string } };
 }
 
-export async function webhookResend(req: Request, env: Env, db: DrizzleD1Database): Promise<Response> {
+export async function webhookResend(req: Request, env: Env, db: Db): Promise<Response> {
   const cuerpo = await req.text();
   const h = req.headers;
   const valida = await firmaValida(env.RESEND_WEBHOOK_SECRET ?? '', h.get('svix-id') ?? '', h.get('svix-timestamp') ?? '', cuerpo, h.get('svix-signature') ?? '');

@@ -1,6 +1,5 @@
-// La API en Vercel (Node, Fluid Compute): arma el mismo Env que tendría el Worker de Cloudflare con
-// los adaptadores de esta carpeta y llama a manejar() de src/index.ts. Así el código de la API es
-// uno solo para las dos plataformas. La función que la expone es api/index.ts (vercel.json).
+// La API en Vercel (Node, Fluid Compute): arma el Env con Turso, Blob y las variables del proyecto
+// y llama a manejar() de src/index.ts. La función que la expone es entrada-node.ts.
 import { join } from 'node:path';
 // Cliente web (HTTP): sin binarios nativos; basta para Turso (libsql:// o https://).
 import { createClient } from '@libsql/client/web';
@@ -9,14 +8,13 @@ import { manejar } from '../index';
 import type { Env } from '../env';
 import { json } from '../util';
 import { assetsDesdeDisco } from './assets-fs';
-import { r2DesdeBlob } from './blob-r2';
+import { almacenBlob } from './blob';
 import { subidaBlob } from './subida-blob';
-import { d1DesdeLibsql } from './libsql-d1';
 
-/** Los [vars] de wrangler.toml. Las variables de entorno de Vercel con el mismo nombre ganan. */
+/** Valores por defecto. Una variable de entorno con el mismo nombre los reemplaza. */
 export const VARS = {
   ENTORNO: 'produccion',
-  ORIGENES: 'https://antidotocolombia.com,https://antidoto-web.vercel.app,https://antidoto-web.pages.dev',
+  ORIGENES: 'https://antidotocolombia.com,https://antidoto-web.vercel.app',
   MAIL_FROM: 'Antídoto <hola@antidotocolombia.com>',
   MAIL_EQUIPO: 'antidoto.colombia@outlook.com',
   MAIL_FROM_NOVEDADES: 'Antídoto <novedades@antidotocolombia.com>',
@@ -38,6 +36,16 @@ const OPCIONALES = [
   'GITHUB_DISPATCH_TOKEN',
 ] as const;
 
+type Variables = Omit<Env, 'DB' | 'ASSETS' | 'MEDIOS' | 'ARCHIVOS' | 'SUBIDA'>;
+
+/** Las variables de la API: los valores por defecto con lo que traiga el entorno encima. */
+export function variables(p: NodeJS.ProcessEnv): Variables {
+  const v: Variables = { ...VARS };
+  for (const k of Object.keys(VARS) as (keyof typeof VARS)[]) if (p[k]) (v as unknown as Record<string, string>)[k] = p[k]!;
+  for (const k of OPCIONALES) if (p[k]) v[k] = p[k];
+  return v;
+}
+
 let env: Env | null = null;
 
 /** El Env se arma una vez por instancia: Fluid Compute reutiliza la instancia entre peticiones. */
@@ -47,35 +55,20 @@ export function entornoVercel(p: NodeJS.ProcessEnv = process.env): Env {
   if (!url) throw new Error('Falta TURSO_DATABASE_URL');
   const conBlob = !!(p.BLOB_STORE_ID || p.BLOB_READ_WRITE_TOKEN);
   const e: Env = {
-    ...VARS,
-    DB: d1DesdeLibsql(createClient({ url, authToken: p.TURSO_AUTH_TOKEN })),
+    ...variables(p),
+    DB: createClient({ url, authToken: p.TURSO_AUTH_TOKEN }),
     ASSETS: assetsDesdeDisco(join(process.cwd(), 'dist-admin')),
-    MEDIOS: conBlob ? r2DesdeBlob('medios') : undefined,
-    ARCHIVOS: conBlob ? r2DesdeBlob('archivos') : undefined,
+    MEDIOS: conBlob ? almacenBlob('medios') : undefined,
+    ARCHIVOS: conBlob ? almacenBlob('archivos') : undefined,
     SUBIDA: conBlob ? subidaBlob : undefined,
   };
-  for (const k of Object.keys(VARS) as (keyof typeof VARS)[]) if (p[k]) (e as unknown as Record<string, string>)[k] = p[k]!;
-  for (const k of OPCIONALES) if (p[k]) e[k] = p[k];
   if (p === process.env) env = e;
   return e;
 }
 
-/**
- * Los handlers de la API leen la IP de cf-connecting-ip (la pone Cloudflare). En Vercel la IP real
- * viene en x-real-ip, que pone la plataforma; se copia encima de lo que haya mandado el cliente.
- */
-export function conIpDeVercel(req: Request): Request {
-  const h = new Headers(req.headers);
-  h.delete('cf-connecting-ip');
-  const ip = req.headers.get('x-real-ip') ?? req.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
-  if (ip) h.set('cf-connecting-ip', ip);
-  // duplex: Node lo pide para reenviar un cuerpo en stream.
-  return new Request(req, { headers: h, duplex: 'half' } as RequestInit);
-}
-
 export async function manejarVercel(req: Request): Promise<Response> {
   try {
-    return await manejar(conIpDeVercel(req), entornoVercel(), (p) => waitUntil(p));
+    return await manejar(req, entornoVercel(), (p) => waitUntil(p));
   } catch (e) {
     console.error('[api] error sin manejar', e);
     return json({ ok: false, error: 'interno' }, 500);

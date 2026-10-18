@@ -1,8 +1,8 @@
-// Email marketing de punta a punta contra una D1 local: suscripción con doble confirmación,
+// Email marketing de punta a punta contra una base local: suscripción con doble confirmación,
 // campañas con audiencia, envío por lotes, webhook firmado de Resend y baja de un clic.
 import { describe, test, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
-import { drizzle } from 'drizzle-orm/d1';
-import { crearEntorno } from './entorno';
+import { conectar as drizzle } from '../src/db/conexion';
+import { crearEntorno, consulta, lote } from './entorno';
 import { manejar } from '../src/index';
 import { procesarEnvios, POR_LOTE } from '../src/marketing/envios';
 import { convertir, renderizar, personalizar } from '../src/marketing/render';
@@ -60,7 +60,7 @@ beforeEach(() => {
 async function llamar(ruta: string, init: RequestInit & { ip?: string } = {}) {
   const pendientes: Promise<unknown>[] = [];
   const headers = new Headers(init.headers);
-  if (init.ip) headers.set('cf-connecting-ip', init.ip);
+  if (init.ip) headers.set('x-real-ip', init.ip);
   const res = await manejar(new Request(`${APP}${ruta}`, { ...init, headers, redirect: 'manual' }), env, (p) => pendientes.push(p));
   await Promise.all(pendientes);
   return res;
@@ -77,7 +77,7 @@ const suscribirse = (email: string, extra: Record<string, unknown> = {}, ip = '2
 const tokenDe = (texto: string, accion: 'confirmar' | 'baja') =>
   new URL(texto.match(new RegExp(`https://\\S+/v1/suscripcion/${accion}\\?\\S+`))![0]).searchParams.get('t')!;
 
-const contacto = (email: string) => env.DB.prepare('select * from contactos where email = ?').bind(email).first<Record<string, unknown>>();
+const contacto = (email: string) => consulta(env.DB, 'select * from contactos where email = ?', email).first<Record<string, unknown>>();
 
 describe('render', () => {
   test('convierte el formato simple y escapa todo lo demás', () => {
@@ -132,7 +132,7 @@ describe('suscripción', () => {
     expect(bienvenida.headers?.['List-Unsubscribe-Post']).toBe('List-Unsubscribe=One-Click');
     expect(bienvenida.html).toContain(`${SITIO}/servicios/`);
     expect(c?.bienvenida).toEqual(expect.any(Number));
-    const cons = await env.DB.prepare('select * from contacto_consentimientos where contacto_id = ?').bind(c!.id).first<Record<string, unknown>>();
+    const cons = await consulta(env.DB, 'select * from contacto_consentimientos where contacto_id = ?', c!.id).first<Record<string, unknown>>();
     expect(cons).toMatchObject({ version: NOVEDADES, revocado: null });
     expect(cons?.confirmado).toEqual(expect.any(Number));
   });
@@ -161,9 +161,8 @@ describe('suscripción', () => {
 
   test('a quien se quejó por spam no se le vuelve a escribir', async () => {
     const t = Date.now();
-    await env.DB.prepare(
-      "insert into contactos (id, email, locale, estado, origen, intereses, token, creado, actualizado, baja, motivo_baja) values ('77777777-7777-4777-8777-777777777777', 'queja@demo.co', 'es', 'baja', 'pie', '[]', 'tok-queja', ?, ?, ?, 'queja')",
-    ).bind(t, t, t).run();
+    await consulta(env.DB, 
+      "insert into contactos (id, email, locale, estado, origen, intereses, token, creado, actualizado, baja, motivo_baja) values ('77777777-7777-4777-8777-777777777777', 'queja@demo.co', 'es', 'baja', 'pie', '[]', 'tok-queja', ?, ?, ?, 'queja')", t, t, t).run();
     expect((await suscribirse('queja@demo.co', {}, '203.0.113.24')).status).toBe(202);
     expect(correos).toHaveLength(0);
     expect(await contacto('queja@demo.co')).toMatchObject({ estado: 'baja', token: 'tok-queja' });
@@ -222,7 +221,7 @@ describe('campañas', () => {
 
   beforeAll(async () => {
     const t = Date.now();
-    await env.DB.prepare("insert into usuarios (id, email, nombre, rol, activo, creado) values ('44444444-4444-4444-8444-444444444444', 'mk@antidoto.co', 'Mercadeo', 'admin', 1, ?)").bind(t).run();
+    await consulta(env.DB, "insert into usuarios (id, email, nombre, rol, activo, creado) values ('44444444-4444-4444-8444-444444444444', 'mk@antidoto.co', 'Mercadeo', 'admin', 1, ?)", t).run();
     correos = [];
     await llamar('/auth/enlace', { method: 'POST', headers: { origin: APP, 'content-type': 'application/json' }, body: JSON.stringify({ email: 'mk@antidoto.co' }) });
     const tk = new URL(correos[0]!.text.match(/https:\/\/\S+/)![0]).searchParams.get('t')!;
@@ -238,11 +237,10 @@ describe('campañas', () => {
       ['c5@demo.co', 'es', 'pendiente', '["catering"]'],
       ['c6@demo.co', 'es', 'baja', '["catering"]'],
     ];
-    await env.DB.batch(
+    await lote(env.DB, 
       filas.map(([email, locale, estado, intereses], i) =>
-        env.DB.prepare(
-          "insert into contactos (id, email, nombre, locale, estado, origen, intereses, token, creado, actualizado) values (?, ?, ?, ?, ?, 'pie', ?, ?, ?, ?)",
-        ).bind(`5555555${i}-5555-4555-8555-555555555555`, email, `Persona ${i}`, locale, estado, intereses, `tok${i}`, t, t),
+        consulta(env.DB, 
+          "insert into contactos (id, email, nombre, locale, estado, origen, intereses, token, creado, actualizado) values (?, ?, ?, ?, ?, 'pie', ?, ?, ?, ?)", `5555555${i}-5555-4555-8555-555555555555`, email, `Persona ${i}`, locale, estado, intereses, `tok${i}`, t, t),
       ),
     );
   });
@@ -288,9 +286,9 @@ describe('campañas', () => {
 
   test('reintenta si Resend está limitado y parte en lotes de 100', async () => {
     const t = Date.now();
-    await env.DB.batch(
+    await lote(env.DB, 
       Array.from({ length: 230 }, (_, i) =>
-        env.DB.prepare("insert into contactos (id, email, locale, estado, origen, intereses, token, creado, actualizado) values (?, ?, 'en', 'activo', 'pie', '[]', ?, ?, ?)").bind(
+        consulta(env.DB, "insert into contactos (id, email, locale, estado, origen, intereses, token, creado, actualizado) values (?, ?, 'en', 'activo', 'pie', '[]', ?, ?, ?)", 
           `66666666-6666-4666-8666-${String(i).padStart(12, '0')}`,
           `masivo${i}@demo.co`,
           `masivo-${i}`,
@@ -316,7 +314,7 @@ describe('campañas', () => {
   });
 
   test('el webhook firmado registra eventos; un rebote y una queja dan de baja', async () => {
-    const envio = await env.DB.prepare("select e.resend_id, e.contacto_id from envios e join contactos c on c.id = e.contacto_id where c.email = 'c1@demo.co'").first<{ resend_id: string; contacto_id: string }>();
+    const envio = await consulta(env.DB, "select e.resend_id, e.contacto_id from envios e join contactos c on c.id = e.contacto_id where c.email = 'c1@demo.co'").first<{ resend_id: string; contacto_id: string }>();
     const evento = async (type: string, data: Record<string, unknown> = {}, firmar = true) => {
       const cuerpo = JSON.stringify({ type, created_at: new Date().toISOString(), data: { email_id: envio!.resend_id, ...data } });
       const id = `msg_${type}`;
@@ -328,7 +326,7 @@ describe('campañas', () => {
     expect((await evento('email.opened', {}, false)).status).toBe(401);
     expect((await evento('email.delivered')).status).toBe(200);
     expect((await evento('email.opened')).status).toBe(200);
-    const fila = await env.DB.prepare('select entregado, abierto from envios where resend_id = ?').bind(envio!.resend_id).first<Record<string, number>>();
+    const fila = await consulta(env.DB, 'select entregado, abierto from envios where resend_id = ?', envio!.resend_id).first<Record<string, number>>();
     expect(fila?.entregado).toEqual(expect.any(Number));
     expect(fila?.abierto).toEqual(expect.any(Number));
 
@@ -341,13 +339,13 @@ describe('campañas', () => {
   });
 
   test('la baja de un clic funciona sin Origin y registra la campaña', async () => {
-    const campana = await env.DB.prepare("select e.campana_id from envios e join contactos c on c.id = e.contacto_id where c.email = 'c2@demo.co'").first<string>('campana_id');
+    const campana = await consulta(env.DB, "select e.campana_id from envios e join contactos c on c.id = e.contacto_id where c.email = 'c2@demo.co'").first<string>('campana_id');
     const r = await llamar(`/v1/suscripcion/baja?t=tok1&c=${campana}`, { method: 'POST', body: 'List-Unsubscribe=One-Click', headers: { 'content-type': 'application/x-www-form-urlencoded' } });
     expect(r.status).toBe(200);
     expect(await contacto('c2@demo.co')).toMatchObject({ estado: 'baja', motivo_baja: 'enlace' });
-    const envio = await env.DB.prepare("select baja from envios where campana_id = ? and contacto_id = '55555551-5555-4555-8555-555555555555'").bind(campana).first<number>('baja');
+    const envio = await consulta(env.DB, "select baja from envios where campana_id = ? and contacto_id = '55555551-5555-4555-8555-555555555555'", campana).first<number>('baja');
     expect(envio).toEqual(expect.any(Number));
-    const cons = await env.DB.prepare("select count(*) n from contacto_consentimientos where contacto_id = '55555551-5555-4555-8555-555555555555' and revocado is null").first<number>('n');
+    const cons = await consulta(env.DB, "select count(*) n from contacto_consentimientos where contacto_id = '55555551-5555-4555-8555-555555555555' and revocado is null").first<number>('n');
     expect(cons).toBe(0);
   });
 
@@ -359,7 +357,7 @@ describe('campañas', () => {
     fallasLote = [];
     await procesarEnvios(env, drizzle(env.DB));
     expect(lotes).toHaveLength(0);
-    const estado = await env.DB.prepare('select estado from envios where campana_id = ?').bind(campana.id).first<string>('estado');
+    const estado = await consulta(env.DB, 'select estado from envios where campana_id = ?', campana.id).first<string>('estado');
     expect(estado).toBe('cancelado');
   });
 
@@ -368,10 +366,10 @@ describe('campañas', () => {
     expect(r.status).toBe(200);
     const c = await contacto('invitado@demo.co');
     expect(c).toMatchObject({ estado: 'pendiente', origen: 'admin' });
-    expect(await env.DB.prepare('select count(*) n from contacto_consentimientos where contacto_id = ?').bind(c!.id).first<number>('n')).toBe(0);
+    expect(await consulta(env.DB, 'select count(*) n from contacto_consentimientos where contacto_id = ?', c!.id).first<number>('n')).toBe(0);
     expect(correos.at(-1)?.subject).toBe('Confirm your subscription · Antídoto');
     await llamar(`/v1/suscripcion/confirmar?t=${tokenDe(correos.at(-1)!.text, 'confirmar')}`, { method: 'POST' });
-    const cons = await env.DB.prepare('select version, confirmado from contacto_consentimientos where contacto_id = ?').bind(c!.id).first<Record<string, unknown>>();
+    const cons = await consulta(env.DB, 'select version, confirmado from contacto_consentimientos where contacto_id = ?', c!.id).first<Record<string, unknown>>();
     expect(cons).toMatchObject({ version: NOVEDADES, confirmado: expect.any(Number) });
   });
 

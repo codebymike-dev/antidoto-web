@@ -1,4 +1,4 @@
-// Ruteo mínimo con la History API: las rutas viven bajo /admin/ y el Worker devuelve el mismo
+// Ruteo mínimo con la History API: las rutas viven bajo /admin/ y la API devuelve el mismo
 // index.html para todas. Los <a href="/admin/..."> normales se interceptan (sin componente Link).
 import { useEffect, useState } from 'preact/hooks';
 

@@ -1,7 +1,7 @@
-// Ayudas comunes de las pruebas de punta a punta: entorno con D1 local, correos de Resend
-// capturados, llamadas al Worker que esperan el trabajo diferido y sesiones del panel por rol.
+// Ayudas comunes de las pruebas de punta a punta: entorno con base local, correos de Resend
+// capturados, llamadas a la API que esperan el trabajo diferido y sesiones del panel por rol.
 import { beforeAll, afterAll, vi } from 'vitest';
-import { crearEntorno } from './entorno';
+import { crearEntorno, consulta } from './entorno';
 import { manejar } from '../src/index';
 import type { Env } from '../src/env';
 import type { Rol } from '../src/dominio';
@@ -59,7 +59,7 @@ export function prepararPruebas(interceptar?: (url: string, init?: RequestInit) 
   p.llamar = async (ruta, init = {}) => {
     const pendientes: Promise<unknown>[] = [];
     const headers = new Headers(init.headers);
-    if (init.ip) headers.set('cf-connecting-ip', init.ip);
+    if (init.ip) headers.set('x-real-ip', init.ip);
     const res = await manejar(new Request(`${APP}${ruta}`, { ...init, headers, redirect: 'manual' }), p.env, (x) => pendientes.push(x));
     await Promise.all(pendientes);
     return res;
@@ -69,10 +69,9 @@ export function prepararPruebas(interceptar?: (url: string, init?: RequestInit) 
     p.llamar(ruta, { ...init, headers: { origin: APP, cookie, ...(init.body && typeof init.body === 'string' ? { 'content-type': 'application/json' } : {}), ...(init.headers as object) } });
 
   p.entrarComo = async (email, rol = 'admin') => {
-    const existe = await p.env.DB.prepare('select id from usuarios where email = ?').bind(email).first();
+    const existe = await consulta(p.env.DB, 'select id from usuarios where email = ?', email).first();
     if (!existe)
-      await p.env.DB.prepare('insert into usuarios (id, email, nombre, rol, activo, creado) values (?, ?, ?, ?, 1, ?)')
-        .bind(crypto.randomUUID(), email, email.split('@')[0], rol, Date.now())
+      await consulta(p.env.DB, 'insert into usuarios (id, email, nombre, rol, activo, creado) values (?, ?, ?, ?, 1, ?)', crypto.randomUUID(), email, email.split('@')[0], rol, Date.now())
         .run();
     const antes = p.correos.length;
     await p.llamar('/auth/enlace', { method: 'POST', body: JSON.stringify({ email }), headers: { origin: APP, 'content-type': 'application/json' } });

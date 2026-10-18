@@ -6,7 +6,7 @@
 // hoy, el asesor no responde y el chat ofrece solo WhatsApp. Perder una conversación con la IA
 // cuesta poco; una factura sin techo, no.
 import { eq, sql } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from '../db/conexion';
 import { gastoAsesor } from '../db/schema';
 import { leerAjustes } from '../configuracion';
 
@@ -21,7 +21,7 @@ export function topeDiarioUsd(valor: string | undefined): number {
  * Tope y estado vigentes: lo que se fijó en el panel manda sobre ASESOR_TOPE_DIARIO_USD. Lanza si
  * la base no responde, igual que presupuestoRestante (quien llama falla cerrado).
  */
-export async function ajustesAsesor(db: DrizzleD1Database, variable: string | undefined): Promise<{ tope: number; activo: boolean }> {
+export async function ajustesAsesor(db: Db, variable: string | undefined): Promise<{ tope: number; activo: boolean }> {
   const a = await leerAjustes(db, ['asesor.tope_diario_usd', 'asesor.activo']);
   const tope = typeof a['asesor.tope_diario_usd'] === 'number' ? a['asesor.tope_diario_usd'] : topeDiarioUsd(variable);
   return { tope, activo: a['asesor.activo'] !== false };
@@ -33,13 +33,13 @@ export function hoyBogota(ms = Date.now()): string {
 }
 
 /** USD que quedan hoy. Lanza si la base no responde (quien llama falla cerrado). */
-export async function presupuestoRestante(db: DrizzleD1Database, tope: number, ms = Date.now()): Promise<number> {
+export async function presupuestoRestante(db: Db, tope: number, ms = Date.now()): Promise<number> {
   const [fila] = await db.select({ usd: gastoAsesor.usd }).from(gastoAsesor).where(eq(gastoAsesor.dia, hoyBogota(ms)));
   return tope - (fila?.usd ?? 0);
 }
 
 /** Suma un gasto de forma atómica (un solo UPSERT): dos preguntas a la vez no se pisan. */
-export async function sumarGasto(db: DrizzleD1Database, usd: number, ms = Date.now()): Promise<void> {
+export async function sumarGasto(db: Db, usd: number, ms = Date.now()): Promise<void> {
   if (!(usd > 0)) return;
   await db
     .insert(gastoAsesor)

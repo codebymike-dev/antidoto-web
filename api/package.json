@@ -4,18 +4,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
+    "dev": "node scripts/dev.mjs",
     "vercel-build": "npm run admin:build && npm run conocimiento && node scripts/vercel-build.mjs",
-    "turso:migrar": "node scripts/turso-migrar.mjs",
+    "migrar": "node scripts/migrar.mjs",
+    "crear-admin": "node scripts/crear-admin.mjs",
     "migraciones:generar": "drizzle-kit generate",
-    "migraciones:local": "wrangler d1 migrations apply antidoto --local",
-    "migraciones:remoto": "wrangler d1 migrations apply antidoto --remote",
-    "check": "tsc --noEmit && tsc --noEmit -p tsconfig.vercel.json && tsc --noEmit -p test && tsc --noEmit -p admin",
+    "check": "tsc --noEmit && tsc --noEmit -p test && tsc --noEmit -p admin",
     "test": "vitest run",
-    "test:libsql": "BD=libsql vitest run --project api",
     "predev": "npm run admin:build && npm run conocimiento",
-    "predeploy": "npm run admin:build && npm run conocimiento",
     "precheck": "npm run admin:build && npm run conocimiento",
     "pretest": "npm run admin:build && npm run conocimiento",
     "conocimiento": "node scripts/empaquetar-conocimiento.mjs",
@@ -29,7 +25,6 @@
     "drizzle-orm": "^0.45.3"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260930.2",
     "@testing-library/preact": "^3.2.4",
     "@types/node": "^22.20.4",
     "drizzle-kit": "^0.31.11",
@@ -38,7 +33,6 @@
     "preact": "^10.29.8",
     "typescript": "^6.0.3",
     "vite": "^8.3.3",
-    "vitest": "^5.0.3",
-    "wrangler": "^4.145.0"
+    "vitest": "^5.0.3"
   }
 }

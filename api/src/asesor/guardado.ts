@@ -6,7 +6,7 @@
 // Guardar falla ABIERTO (si la base no responde, la respuesta ya salió y se entrega igual), al
 // revés que el tope de gasto, que falla cerrado.
 import { eq, lt, sql } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from '../db/conexion';
 import { conversaciones, mensajesConversacion, gastoAsesor, leads, type ServicioId } from '../db/schema';
 import { DIA, uuid } from '../util';
 import type { Entrada, Respuesta } from './bucle';
@@ -23,7 +23,7 @@ export interface Previa {
 }
 
 /** Lo guardado de una conversación antes de esta pregunta (null si es nueva). Lanza si la base no responde. */
-export async function previaDe(db: DrizzleD1Database, id: string): Promise<Previa | null> {
+export async function previaDe(db: Db, id: string): Promise<Previa | null> {
   const [c] = await db
     .select({ preguntas: conversaciones.preguntas, whatsapp: conversaciones.whatsapp, cotizador: conversaciones.cotizador })
     .from(conversaciones)
@@ -31,7 +31,7 @@ export async function previaDe(db: DrizzleD1Database, id: string): Promise<Previ
   return c ? { preguntas: c.preguntas, derivada: !!(c.whatsapp || c.cotizador) } : null;
 }
 
-export async function guardarTurno(db: DrizzleD1Database, o: { entrada: Entrada; r: Respuesta; previa: Previa | null; ipHash: string | null; t: number }): Promise<void> {
+export async function guardarTurno(db: Db, o: { entrada: Entrada; r: Respuesta; previa: Previa | null; ipHash: string | null; t: number }): Promise<void> {
   const { entrada: e, r, previa, t } = o;
   const id = e.conversacion;
   if (!id) return;
@@ -132,7 +132,7 @@ export async function guardarTurno(db: DrizzleD1Database, o: { entrada: Entrada;
 }
 
 /** Borra una conversación y sus mensajes, y la desvincula del lead. */
-export async function borrarConversacion(db: DrizzleD1Database, id: string): Promise<boolean> {
+export async function borrarConversacion(db: Db, id: string): Promise<boolean> {
   const [, , borradas] = await db.batch([
     db.delete(mensajesConversacion).where(eq(mensajesConversacion.conversacionId, id)),
     db.update(leads).set({ conversacionId: null }).where(eq(leads.conversacionId, id)),
@@ -141,8 +141,8 @@ export async function borrarConversacion(db: DrizzleD1Database, id: string): Pro
   return (borradas as { id: string }[]).length > 0;
 }
 
-/** Borra lo vencido (revisión de pendientes, src/pendientes.ts). Con subconsultas: D1 acepta hasta 100 parámetros por consulta. */
-export async function limpiarConversaciones(db: DrizzleD1Database, t: number): Promise<number> {
+/** Borra lo vencido (revisión de pendientes, src/pendientes.ts). Con subconsultas, para no pasar listas largas de parámetros. */
+export async function limpiarConversaciones(db: Db, t: number): Promise<number> {
   const vencidas = sql`(select ${conversaciones.id} from ${conversaciones} where ${conversaciones.expira} < ${t})`;
   const [, , borradas] = await db.batch([
     db.delete(mensajesConversacion).where(sql`${mensajesConversacion.conversacionId} in ${vencidas}`),

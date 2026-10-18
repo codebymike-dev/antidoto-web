@@ -1,4 +1,4 @@
-// Contenido del sitio en el panel: blog, casos, vacantes, preguntas y clientes; imágenes en R2 y
+// Contenido del sitio en el panel: blog, casos, vacantes, preguntas y clientes; imágenes en Blob y
 // publicación (volver a construir el sitio). Las lecturas públicas para el build están en
 // src/contenido/publico.ts.
 import { and, desc, eq, inArray, isNotNull, isNull, lt, sql } from 'drizzle-orm';
@@ -244,7 +244,7 @@ async function listarMedios(c: Ctx): Promise<Response> {
 }
 
 async function subirMedio(c: Ctx): Promise<Response> {
-  if (!c.env.MEDIOS) return json({ error: 'sin_bucket' }, 503);
+  if (!c.env.MEDIOS) return json({ error: 'sin_almacen' }, 503);
   const largo = Number(c.req.headers.get('content-length'));
   if (largo > MAX_BYTES_IMAGEN + 64 * 1024) return json({ error: 'grande' }, 413);
   const form = await c.req.formData().catch(() => null);
@@ -255,9 +255,9 @@ async function subirMedio(c: Ctx): Promise<Response> {
   const info = leerImagen(bytes);
   if (!info) return json({ error: 'formato' }, 422);
   const id = uuid();
-  const claveR2 = `contenido/${id}.${EXTENSION[info.mime]}`;
-  await c.env.MEDIOS.put(claveR2, bytes, { httpMetadata: { contentType: info.mime, cacheControl: 'public, max-age=31536000, immutable' } });
-  const fila = { id, claveR2, nombre: nombreLimpio(archivo.name), mime: info.mime, bytes: bytes.length, ancho: info.ancho, alto: info.alto, creado: ahora(), autor: c.sesion.usuario.email };
+  const clave = `contenido/${id}.${EXTENSION[info.mime]}`;
+  await c.env.MEDIOS.put(clave, bytes, { contentType: info.mime });
+  const fila = { id, clave, nombre: nombreLimpio(archivo.name), mime: info.mime, bytes: bytes.length, ancho: info.ancho, alto: info.alto, creado: ahora(), autor: c.sesion.usuario.email };
   await c.db.insert(medios).values(fila);
   return auditar(c, json({ medio: { ...fila, url: `/v1/medios/${id}` } }, 201), 'medio.subir', 'medio', id);
 }
@@ -272,7 +272,7 @@ async function borrarMedio(c: Ctx, id: string): Promise<Response> {
     .where(sql`instr(${contenido.datos}, ${id}) > 0 or instr(coalesce(${contenido.publicada}, ''), ${id}) > 0`)
     .limit(1);
   if (enUso.length) return json({ error: 'en_uso' }, 409);
-  await c.env.MEDIOS?.delete(m.claveR2);
+  await c.env.MEDIOS?.delete(m.clave);
   await c.db.delete(medios).where(eq(medios.id, id));
   return auditar(c, json({ ok: true }), 'medio.borrar', 'medio', id);
 }

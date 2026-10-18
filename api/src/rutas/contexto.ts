@@ -1,11 +1,11 @@
 // Contexto común de las rutas del panel. Cada módulo de src/rutas/ recibe el contexto y devuelve
 // una respuesta, o null si la ruta no es suya; manejar() (src/index.ts) los recorre en orden.
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from '../db/conexion';
 import type { Env } from '../env';
 import type { Sesion } from '../auth';
 import { puede, type Permiso } from '../permisos';
 import { registrar } from '../auditoria';
-import { hashIp, json } from '../util';
+import { hashIp, ipCliente, json } from '../util';
 
 export interface Ctx {
   req: Request;
@@ -13,7 +13,7 @@ export interface Ctx {
   ruta: string;
   metodo: string;
   env: Env;
-  db: DrizzleD1Database;
+  db: Db;
   sesion: Sesion;
   appUrl: string;
   diferir: (p: Promise<unknown>) => void;
@@ -31,7 +31,7 @@ export const sinPermiso = (c: Ctx, p: Permiso): Response | null => (puede(c.sesi
 export function auditar(c: Ctx, res: Response, accion: string, entidad: string | null = null, id: string | null = null, detalle: Record<string, unknown> | null = null): Response {
   if (res.ok) {
     c.diferir(
-      hashIp(c.req.headers.get('cf-connecting-ip'), c.env.SAL_IP)
+      hashIp(ipCliente(c.req), c.env.SAL_IP)
         .then((ip) => registrar(c.db, c.sesion, accion, entidad, id, detalle, ip))
         .catch((e) => console.error('[auditoria] no se pudo registrar', accion, e)),
     );

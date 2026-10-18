@@ -5,12 +5,12 @@
 // Gmail y Yahoo. Las páginas de confirmar, baja y preferencias viven en el sitio: aquí el GET
 // redirige allá y el POST hace la acción y vuelve al sitio con el resultado.
 import { and, eq, inArray, sql } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from '../db/conexion';
 import { contactos, consentimientosMarketing, envios, SERVICIOS, INVITADOS, type Contacto, type OrigenContacto, type ServicioId } from '../db/schema';
 import { enviar } from '../correo';
 import { aceptada, vigente, type Version } from '../consentimiento';
 import type { Env } from '../env';
-import { ahora, hashIp, uuid, json, token, escapar, DIA } from '../util';
+import { ahora, hashIp, ipCliente, uuid, json, token, escapar, DIA } from '../util';
 import { enlace, paginaPreferencias, type Locale } from './enlaces';
 import { enviarBienvenida } from './automaticos';
 import { TIEMPO_MINIMO_MS } from '../validar';
@@ -45,7 +45,7 @@ export { enlaceBaja } from './enlaces';
  * estaba: a un contacto activo no se le manda nada, ni a uno con rebote, ni a quien marcó un
  * correo nuestro como spam.
  */
-export async function suscribir(env: Env, db: DrizzleD1Database, s: Solicitud, appUrl: string): Promise<void> {
+export async function suscribir(env: Env, db: Db, s: Solicitud, appUrl: string): Promise<void> {
   const email = s.email.trim().toLowerCase();
   if (!EMAIL.test(email) || email.length > 200) return;
   const t = ahora();
@@ -170,7 +170,7 @@ export function correoConfirmacion(c: Pick<Contacto, 'nombre' | 'locale' | 'orig
 const ORIGENES_SITIO: OrigenContacto[] = ['pie', 'inicio', 'archivo'];
 
 /** POST /v1/suscripciones desde los formularios del sitio. Responde igual pase lo que pase. */
-export async function crearSuscripcion(req: Request, env: Env, db: DrizzleD1Database, appUrl: string, cors: Record<string, string>, diferir: (p: Promise<unknown>) => void) {
+export async function crearSuscripcion(req: Request, env: Env, db: Db, appUrl: string, cors: Record<string, string>, diferir: (p: Promise<unknown>) => void) {
   const ok = json({ ok: true }, 202, cors);
   const bruto = await req.text();
   if (bruto.length > 4096) return json({ ok: false }, 413, cors);
@@ -187,7 +187,7 @@ export async function crearSuscripcion(req: Request, env: Env, db: DrizzleD1Data
   const autorizacion = aceptada('novedades', d.consentimiento);
   if (!autorizacion) return json({ ok: false, errores: ['consentimiento'] }, 422, cors);
 
-  const ipHash = await hashIp(req.headers.get('cf-connecting-ip'), env.SAL_IP);
+  const ipHash = await hashIp(ipCliente(req), env.SAL_IP);
   if (ipHash && !(await dentroDelLimite(db, `suscripcion:${ipHash}`, SUSCRIPCIONES_POR_HORA))) return json({ ok: false, error: 'limite' }, 429, cors);
 
   diferir(
@@ -212,7 +212,7 @@ export async function crearSuscripcion(req: Request, env: Env, db: DrizzleD1Data
 
 // Confirmación, baja y preferencias ---------------------------------------------------------
 
-async function porToken(db: DrizzleD1Database, t: string | null): Promise<Contacto | null> {
+async function porToken(db: Db, t: string | null): Promise<Contacto | null> {
   if (!t || t.length > 100) return null;
   const [c] = await db.select().from(contactos).where(eq(contactos.token, t));
   return c ?? null;
@@ -231,7 +231,7 @@ type Diferir = (p: Promise<unknown>) => void;
  * GET lleva al botón del sitio (los filtros de correo abren los enlaces y no deben confirmar por
  * su cuenta); POST confirma, registra la autorización, manda la bienvenida y vuelve al sitio.
  */
-export async function confirmar(req: Request, db: DrizzleD1Database, env: Env, appUrl: string, diferir: Diferir): Promise<Response> {
+export async function confirmar(req: Request, db: Db, env: Env, appUrl: string, diferir: Diferir): Promise<Response> {
   const url = new URL(req.url);
   const t = url.searchParams.get('t');
   const c = await porToken(db, t);
@@ -244,7 +244,7 @@ export async function confirmar(req: Request, db: DrizzleD1Database, env: Env, a
   if (req.method !== 'POST') return ir(paginaPreferencias(env, locale, { accion: 'confirmar', t: t! }));
 
   const ahoraMs = ahora();
-  const ipHash = await hashIp(req.headers.get('cf-connecting-ip'), env.SAL_IP);
+  const ipHash = await hashIp(ipCliente(req), env.SAL_IP);
   await db.update(contactos).set({ estado: 'activo', confirmado: ahoraMs, baja: null, motivoBaja: null, actualizado: ahoraMs }).where(eq(contactos.id, c.id));
   const [pendiente] = await db
     .select()
@@ -273,7 +273,7 @@ export async function confirmar(req: Request, db: DrizzleD1Database, env: Env, a
   return volver(paginaPreferencias(env, c.locale, { estado: 'confirmado' }));
 }
 
-export async function darDeBaja(db: DrizzleD1Database, c: Contacto, motivo: NonNullable<Contacto['motivoBaja']>, campanaId?: string | null): Promise<void> {
+export async function darDeBaja(db: Db, c: Contacto, motivo: NonNullable<Contacto['motivoBaja']>, campanaId?: string | null): Promise<void> {
   const t = ahora();
   await db.batch([
     db.update(contactos).set({ estado: motivo === 'rebote' ? 'rebotado' : 'baja', baja: t, motivoBaja: motivo, actualizado: t }).where(eq(contactos.id, c.id)),
@@ -288,7 +288,7 @@ export async function darDeBaja(db: DrizzleD1Database, c: Contacto, motivo: NonN
  * GET lleva al botón de baja del sitio. POST da de baja: si es la baja de un clic de RFC 8058
  * (el proveedor de correo, sin navegador) responde 200; si viene del sitio, vuelve a él.
  */
-export async function baja(req: Request, db: DrizzleD1Database, env: Env): Promise<Response> {
+export async function baja(req: Request, db: Db, env: Env): Promise<Response> {
   const url = new URL(req.url);
   const t = url.searchParams.get('t');
   const c = await porToken(db, t);
@@ -315,7 +315,7 @@ export const enmascarar = (email: string) => {
 };
 
 /** GET /v1/suscripcion/datos?t=: lo que la página de preferencias necesita para pintar el formulario. */
-export async function datosPreferencias(req: Request, db: DrizzleD1Database, cors: Record<string, string>): Promise<Response> {
+export async function datosPreferencias(req: Request, db: Db, cors: Record<string, string>): Promise<Response> {
   const c = await porToken(db, new URL(req.url).searchParams.get('t'));
   if (!c || c.motivoBaja === 'supresion') return json({ ok: false }, 404, cors);
   return json(
@@ -336,7 +336,7 @@ export async function datosPreferencias(req: Request, db: DrizzleD1Database, cor
  * /v1/suscripcion/preferencias?t=. GET lleva a la página del sitio. POST (formulario del sitio)
  * guarda temas, idioma y pausa de un contacto activo, y vuelve al sitio.
  */
-export async function preferencias(req: Request, db: DrizzleD1Database, env: Env): Promise<Response> {
+export async function preferencias(req: Request, db: Db, env: Env): Promise<Response> {
   const url = new URL(req.url);
   const t = url.searchParams.get('t');
   const c = await porToken(db, t);

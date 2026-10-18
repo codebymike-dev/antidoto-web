@@ -18,8 +18,8 @@ const SERVICIOS: [string, string, string][] = [
   ['correo', 'Correo (Resend)', 'RESEND_API_KEY: sin ella no salen avisos, enlaces de acceso ni campañas.'],
   ['webhookCorreo', 'Eventos de correo', 'RESEND_WEBHOOK_SECRET: entregas, aperturas, rebotes y quejas.'],
   ['chatIa', 'Chat con IA', 'ANTHROPIC_API_KEY: sin ella el sitio ofrece solo WhatsApp.'],
-  ['imagenes', 'Imágenes del contenido', 'Bucket R2 MEDIOS.'],
-  ['archivos', 'Archivos de proyectos', 'Bucket R2 ARCHIVOS (privado).'],
+  ['imagenes', 'Imágenes del contenido', 'Vercel Blob, medios/.'],
+  ['archivos', 'Archivos de proyectos', 'Vercel Blob, archivos/ (privado).'],
   ['publicacion', 'Publicar desde el panel', 'GITHUB_DISPATCH_TOKEN y GITHUB_REPO.'],
   ['salIp', 'Sal del hash de IP', 'SAL_IP: sin ella el hash es menos privado.'],
 ];

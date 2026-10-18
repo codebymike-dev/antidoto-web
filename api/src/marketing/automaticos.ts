@@ -6,7 +6,7 @@
 //   invitados por el equipo no: ellos no pidieron nada.
 // - Invitaciones de contactos importados: salen por lotes cuando alguien usa el panel, no al importar.
 import { and, eq, gt, inArray, isNull, lt, notInArray } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from '../db/conexion';
 import { automaticos, contactos, INVITADOS, type Automatico, type Contacto } from '../db/schema';
 import { enviar } from '../correo';
 import type { Env } from '../env';
@@ -23,7 +23,7 @@ export type ClaveAutomatico = (typeof CLAVES_AUTOMATICOS)[number];
 export const RECORDATORIO_TRAS = 48 * HORA;
 const RECORDATORIO_HASTA = 7 * DIA;
 const PAUSA_MS = 600;
-/** D1 acepta como mucho 100 variables por consulta: el UPDATE del lote lleva una más que los ids. */
+/** Lotes de hasta 100 variables por consulta: el UPDATE del lote lleva una más que los ids. */
 const LOTE_INVITACIONES = 90;
 
 type Contenido = Pick<Automatico, 'asunto' | 'preheader' | 'cuerpo' | 'activo'>;
@@ -59,7 +59,7 @@ export const esClave = (v: string): v is ClaveAutomatico => (CLAVES_AUTOMATICOS 
 export const localeDeClave = (c: ClaveAutomatico): Locale => (c.endsWith(':en') ? 'en' : 'es');
 
 /** Contenido vigente: el editado en la bandeja o, si no hay, el de por defecto. */
-export async function automatico(db: DrizzleD1Database, clave: ClaveAutomatico): Promise<Contenido & { personalizado: boolean }> {
+export async function automatico(db: Db, clave: ClaveAutomatico): Promise<Contenido & { personalizado: boolean }> {
   const [fila] = await db.select().from(automaticos).where(eq(automaticos.clave, clave));
   return fila ? { ...fila, personalizado: true } : { ...POR_DEFECTO[clave], personalizado: false };
 }
@@ -77,7 +77,7 @@ export function renderAutomatico(env: Env, c: Contenido, locale: Locale, datos: 
 }
 
 /** Bienvenida al confirmar. Sale del remitente de novedades, con baja de un clic. */
-export async function enviarBienvenida(env: Env, db: DrizzleD1Database, c: Contacto, appUrl: string): Promise<boolean> {
+export async function enviarBienvenida(env: Env, db: Db, c: Contacto, appUrl: string): Promise<boolean> {
   const contenido = await automatico(db, `bienvenida:${c.locale}`);
   if (!contenido.activo) return false;
   const baja = enlaceBaja(appUrl, c.token);
@@ -97,7 +97,7 @@ export async function enviarBienvenida(env: Env, db: DrizzleD1Database, c: Conta
 }
 
 /** Cron horario: un solo recordatorio a quien se suscribió en el sitio y no confirmó. */
-export async function recordatorios(env: Env, db: DrizzleD1Database, appUrl: string): Promise<number> {
+export async function recordatorios(env: Env, db: Db, appUrl: string): Promise<number> {
   const t = ahora();
   const filas = await db
     .select()
@@ -125,7 +125,7 @@ export async function recordatorios(env: Env, db: DrizzleD1Database, appUrl: str
 }
 
 /** Cron de 5 minutos: invitaciones de contactos importados, por lotes de la API de Resend. */
-export async function invitaciones(env: Env, db: DrizzleD1Database, appUrl: string): Promise<number> {
+export async function invitaciones(env: Env, db: Db, appUrl: string): Promise<number> {
   if (!env.RESEND_API_KEY) return 0;
   let enviados = 0;
   for (let i = 0; i < 5; i++) {

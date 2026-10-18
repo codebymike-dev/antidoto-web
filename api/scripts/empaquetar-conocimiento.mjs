@@ -86,7 +86,7 @@ const ofertasPublicas = new Set(ofertas.map((o) => o.clave));
 const fuenteClientes = readFileSync(new URL('src/data/clientes.ts', raiz), 'utf8');
 const clientes = [...fuenteClientes.matchAll(/^\s*\['[\w-]+', '([^']+)', '\w+'\],?$/gm)].map((m) => m[1]);
 
-// Textos de interfaz, rutas y contacto: se copian aquí para que el Worker no cargue archivos
+// Textos de interfaz, rutas y contacto: se copian aquí para que la API no cargue archivos
 // .ts del sitio al ejecutarse. En CI solo se instalan las dependencias de api/, y transformar
 // esos archivos exige el tsconfig de Astro de la raíz (falla con TSCONFIG_ERROR). Node 24 los
 // lee directamente (quita los tipos); las funciones de ui.ts no pasan a JSON y el asesor no las usa.

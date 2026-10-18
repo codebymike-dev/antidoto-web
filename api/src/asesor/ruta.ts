@@ -4,12 +4,12 @@
 //   POST /v1/asesor/borrar   { conversacion }: el visitante borra su conversación guardada
 // Las dos solo desde los orígenes del sitio. El POST va en text/plain, como los leads, para no
 // pagar el preflight de CORS en cada pregunta.
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from '../db/conexion';
 import type { Env } from '../env';
 import type { ServicioId } from '../db/schema';
 import { enviar, correoInteresAsesor } from '../correo';
 import { dentroDelLimite } from '../limite';
-import { ahora, DIA, hashIp, json } from '../util';
+import { ahora, DIA, hashIp, ipCliente, json } from '../util';
 import { atender, validarEntrada, UUID_V4 } from './bucle';
 import { MAX_PREGUNTAS } from './prompt';
 import { borrarConversacion, guardarTurno, previaDe, type Previa } from './guardado';
@@ -27,7 +27,7 @@ export const AVISOS_POR_HORA = 2;
 const MAX_CUERPO = 64 * 1024;
 
 /** ¿Puede responder ahora? Falla cerrado: sin clave, apagado desde el panel o si la base no contesta, no. */
-async function disponible(env: Env, db: DrizzleD1Database): Promise<boolean> {
+async function disponible(env: Env, db: Db): Promise<boolean> {
   if (!env.ANTHROPIC_API_KEY) return false;
   try {
     const { tope, activo } = await ajustesAsesor(db, env.ASESOR_TOPE_DIARIO_USD);
@@ -41,7 +41,7 @@ async function disponible(env: Env, db: DrizzleD1Database): Promise<boolean> {
 export async function rutaAsesor(
   req: Request,
   env: Env,
-  db: DrizzleD1Database,
+  db: Db,
   diferir: (p: Promise<unknown>) => void,
   cors: Record<string, string>,
 ): Promise<Response> {
@@ -61,7 +61,7 @@ export async function rutaAsesor(
   if ('error' in entrada) return json({ ok: false, error: entrada.error }, entrada.error === 'limite' ? 429 : 422, cabeceras);
 
   const t = ahora();
-  const ipHash = await hashIp(req.headers.get('cf-connecting-ip'), env.SAL_IP, t);
+  const ipHash = await hashIp(ipCliente(req), env.SAL_IP, t);
   if (!(await dentroDelLimite(db, `asesor:${ipHash ?? 'sin-ip'}`, PREGUNTAS_POR_HORA, t))) {
     return json({ ok: false, error: 'limite' }, 429, cabeceras);
   }
@@ -116,7 +116,7 @@ export async function rutaAsesor(
 }
 
 /** POST /v1/asesor/borrar: borra la conversación con ese id. Solo lo sabe el navegador que la tuvo. */
-export async function rutaBorrar(req: Request, db: DrizzleD1Database, cors: Record<string, string>): Promise<Response> {
+export async function rutaBorrar(req: Request, db: Db, cors: Record<string, string>): Promise<Response> {
   const cabeceras = { ...cors, 'access-control-allow-methods': 'POST, OPTIONS' };
   if (req.method !== 'POST') return json({ ok: false }, 405, cabeceras);
   const d = (await req.text().then((x) => JSON.parse(x.slice(0, 1000))).catch(() => null)) as { conversacion?: unknown } | null;

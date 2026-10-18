@@ -1,13 +1,16 @@
+import type { Client } from '@libsql/client';
+
 export interface Env {
-  DB: D1Database;
+  /** Base de datos: Turso (libSQL) en Vercel, un archivo SQLite en local y en las pruebas. */
+  DB: Client;
   /** Archivos del panel (dist-admin/). Falta en las pruebas que no lo inyectan. */
-  ASSETS?: Fetcher;
+  ASSETS?: ArchivosPanel;
   ENTORNO: string;
   ORIGENES: string;
   MAIL_FROM: string;
   MAIL_EQUIPO: string;
   HORAS_SEGUIMIENTO: string;
-  /** URL pública del Worker; si falta se toma de la petición. Los correos que salen fuera de una petición la necesitan para los enlaces. */
+  /** URL pública de la API; si falta se toma de la petición. Los correos que salen fuera de una petición la necesitan para los enlaces. */
   APP_URL?: string;
   /** Sin esta clave los correos no salen (se registran en el log) y todo lo demás sigue. */
   RESEND_API_KEY?: string;
@@ -27,13 +30,13 @@ export interface Env {
   ANTHROPIC_URL?: string;
   /** Tope de gasto diario del chat con IA, en USD. Por defecto, 1. Desde el panel se puede fijar otro. */
   ASESOR_TOPE_DIARIO_USD?: string;
-  /** Bucket público de imágenes del contenido del sitio (R2). Sin él, el panel no sube imágenes. */
-  MEDIOS?: R2Bucket;
-  /** Bucket PRIVADO de archivos de los entregables de proyectos (solo se descargan con sesión). */
-  ARCHIVOS?: R2Bucket;
+  /** Imágenes del contenido del sitio (Vercel Blob, medios/). Sin él, el panel no sube imágenes. */
+  MEDIOS?: Almacen;
+  /** Archivos PRIVADOS de los entregables de proyectos (Blob, archivos/; solo se descargan con sesión). */
+  ARCHIVOS?: Almacen;
   /**
-   * Solo en Vercel (src/plataforma/vercel.ts): los archivos de entregables suben directo del
-   * navegador a Blob, porque una función de Vercel no recibe cuerpos de más de 4,5 MB.
+   * Los archivos de entregables suben directo del navegador a Blob, porque una función de Vercel
+   * no recibe cuerpos de más de 4,5 MB. Sin Blob (local, pruebas) pasan por la API.
    */
   SUBIDA?: SubidaDirecta;
   /** Token de GitHub (fine-grained, Actions: Read and write) para publicar el sitio desde el panel. */
@@ -53,4 +56,16 @@ export interface SubidaDirecta {
   firmar(req: Request, cuerpo: unknown, prefijo: 'archivos', permitida: (clave: string) => boolean, maxBytes: number): Promise<unknown>;
   /** Tamaño y tipo de un archivo ya subido, o null si no existe. */
   info(prefijo: 'archivos', clave: string): Promise<{ bytes: number; mime: string } | null>;
+}
+
+/** Archivos del panel construidos por Vite, pedidos por ruta. */
+export interface ArchivosPanel {
+  fetch(req: Request): Promise<Response>;
+}
+
+/** Almacenamiento de archivos por clave: Vercel Blob en producción, el disco en local y en las pruebas. */
+export interface Almacen {
+  get(clave: string): Promise<{ body: ReadableStream; size: number; contentType?: string } | null>;
+  put(clave: string, datos: ReadableStream | ArrayBuffer | Uint8Array, opciones?: { contentType?: string }): Promise<void>;
+  delete(claves: string | string[]): Promise<void>;
 }

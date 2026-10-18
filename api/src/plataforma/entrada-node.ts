@@ -16,8 +16,8 @@ export function urlOriginal(host: string, url: string): URL {
   return u;
 }
 
-export default async function manejador(req: IncomingMessage, res: ServerResponse): Promise<void> {
-  const url = urlOriginal(String(req.headers.host ?? 'localhost'), req.url ?? '/');
+/** Petición de Node a Request. */
+export function aWeb(req: IncomingMessage, url: URL): Request {
   const headers = new Headers();
   for (const [k, v] of Object.entries(req.headers)) {
     if (Array.isArray(v)) for (const x of v) headers.append(k, x);
@@ -25,8 +25,11 @@ export default async function manejador(req: IncomingMessage, res: ServerRespons
   }
   const metodo = req.method ?? 'GET';
   const cuerpo = metodo === 'GET' || metodo === 'HEAD' ? undefined : (Readable.toWeb(req) as ReadableStream);
-  const r = await manejarVercel(new Request(url, { method: metodo, headers, body: cuerpo, duplex: 'half' } as RequestInit));
+  return new Request(url, { method: metodo, headers, body: cuerpo, duplex: 'half' } as RequestInit);
+}
 
+/** Response de vuelta a Node. */
+export async function responder(r: Response, res: ServerResponse, metodo: string): Promise<void> {
   res.statusCode = r.status;
   const cookies = r.headers.getSetCookie();
   r.headers.forEach((v, k) => {
@@ -40,4 +43,9 @@ export default async function manejador(req: IncomingMessage, res: ServerRespons
   await new Promise<void>((listo, fallo) => {
     Readable.fromWeb(r.body as import('node:stream/web').ReadableStream).on('error', fallo).pipe(res).on('finish', listo).on('error', fallo);
   });
+}
+
+export default async function manejador(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  const r = await manejarVercel(aWeb(req, urlOriginal(String(req.headers.host ?? 'localhost'), req.url ?? '/')));
+  await responder(r, res, req.method ?? 'GET');
 }

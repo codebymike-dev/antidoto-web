@@ -1,12 +1,12 @@
 // Publicar el sitio desde el panel: el sitio es estático, así que publicar es volver a construirlo.
-// El Worker dispara el workflow de GitHub Actions que construye el sitio y lo publica en Vercel
+// La API dispara el workflow de GitHub Actions que construye el sitio y lo publica en Vercel
 // (workflow_dispatch): preview.yml o deploy.yml. El build lee
 // el contenido publicado de /v1/contenido.
 //
 // Necesita GITHUB_DISPATCH_TOKEN (fine-grained, solo este repo, permiso Actions: Read and write).
 // Sin él, el pedido queda como "sin_configurar" y el panel lo dice.
 import { and, desc, eq, gte, lt } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from './db/conexion';
 import { publicaciones, type Publicacion } from './db/schema';
 import type { Env } from './env';
 import { ahora, uuid, MINUTO } from './util';
@@ -45,7 +45,7 @@ export async function disparar(env: Env, destino: Destino): Promise<string | nul
  * Pide publicar. Si ya hay un pedido al mismo destino de hace menos de VENTANA_AGRUPAR, se usa ese
  * (varios "Publicar" seguidos no lanzan varios builds). Devuelve el pedido y si hay que dispararlo.
  */
-export async function pedirPublicacion(db: DrizzleD1Database, env: Env, destino: Destino, autor: string): Promise<{ pedido: Publicacion; nuevo: boolean }> {
+export async function pedirPublicacion(db: Db, env: Env, destino: Destino, autor: string): Promise<{ pedido: Publicacion; nuevo: boolean }> {
   const t = ahora();
   const [reciente] = await db
     .select()
@@ -63,14 +63,14 @@ export async function pedirPublicacion(db: DrizzleD1Database, env: Env, destino:
     intentos: 0,
     disparada: null,
     runUrl: null,
-    error: configurada(env) ? null : 'Falta configurar GITHUB_DISPATCH_TOKEN y GITHUB_REPO en el Worker.',
+    error: configurada(env) ? null : 'Falta configurar GITHUB_DISPATCH_TOKEN y GITHUB_REPO en las variables de la API.',
   };
   await db.insert(publicaciones).values(pedido);
   return { pedido, nuevo: pedido.estado === 'pendiente' };
 }
 
 /** Dispara un pedido pendiente y anota el resultado. */
-export async function procesarPedido(db: DrizzleD1Database, env: Env, p: Publicacion): Promise<Publicacion> {
+export async function procesarPedido(db: Db, env: Env, p: Publicacion): Promise<Publicacion> {
   const t = ahora();
   try {
     const runUrl = await disparar(env, p.destino);
@@ -87,7 +87,7 @@ export async function procesarPedido(db: DrizzleD1Database, env: Env, p: Publica
 }
 
 /** Cron de cada 5 minutos: reintenta los pedidos que quedaron pendientes (GitHub caído, por ejemplo). */
-export async function reintentarPublicaciones(db: DrizzleD1Database, env: Env): Promise<number> {
+export async function reintentarPublicaciones(db: Db, env: Env): Promise<number> {
   if (!configurada(env)) return 0;
   const pendientes = await db
     .select()

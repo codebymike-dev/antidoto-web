@@ -1,5 +1,5 @@
-// Panel de administración (Preact). Se construye a ../dist-admin/admin/ y el Worker lo sirve con el
-// binding ASSETS (ver wrangler.toml y src/panel.ts), con la misma CSP estricta de siempre: ningún
+// Panel de administración (Preact). Se construye a ../dist-admin/admin/ y la API lo sirve
+// (src/panel.ts) con la misma CSP estricta de siempre: ningún
 // script ni estilo en línea, todo desde /admin/assets/ con hash.
 import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';

@@ -21,7 +21,7 @@ export const MAX_TEXTO_ASESOR = 2_000;
 /** Llamadas al modelo por pregunta: una o dos herramientas, la respuesta y un reintento de la guardia. */
 export const MAX_LLAMADAS = 4;
 
-// Lo mínimo de la API de mensajes de Claude que usa el bucle (sin SDK: el Worker llama con fetch).
+// Lo mínimo de la API de mensajes de Claude que usa el bucle (sin SDK: la API llama con fetch).
 export type Bloque =
   | { type: 'text'; text: string }
   | { type: 'tool_use'; id: string; name: string; input: unknown }

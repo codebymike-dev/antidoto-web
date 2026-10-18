@@ -21,13 +21,19 @@ export function token(): string {
  * Hash de la IP con sal y fecha del día: sirve para limitar envíos y como prueba del
  * consentimiento, sin guardar la IP ni permitir seguir a alguien de un día a otro.
  */
+/**
+ * IP de quien hace la petición. Vercel pone x-real-ip y la reemplaza si el cliente la manda, así
+ * que no se puede falsear desde fuera; en local y en las pruebas la pone quien llama.
+ */
+export const ipCliente = (req: Request): string | null => req.headers.get('x-real-ip');
+
 export function hashIp(ip: string | null, sal: string | undefined, ms = ahora()): Promise<string | null> {
   if (!ip) return Promise.resolve(null);
   const dia = new Date(ms).toISOString().slice(0, 10);
   return sha256(`${sal ?? 'antidoto'}|${dia}|${ip}`);
 }
 
-export function json(data: unknown, status = 200, headers: HeadersInit = {}): Response {
+export function json(data: unknown, status = 200, headers: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(data), {
     status,
     headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', ...headers },

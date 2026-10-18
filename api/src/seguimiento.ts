@@ -1,13 +1,13 @@
 // Cron horario: avisa al equipo de los leads que siguen en "nuevo" pasado el plazo (una sola
 // vez por lead) y limpia enlaces, sesiones y contadores de límites vencidos.
 import { and, eq, isNull, isNotNull, lt, or } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { Db } from './db/conexion';
 import { leads, enlaces, sesiones, limites } from './db/schema';
 import { enviar, correoSeguimiento } from './correo';
 import type { Env } from './env';
 import { ahora, HORA, DIA } from './util';
 
-export async function seguimiento(env: Env, db: DrizzleD1Database): Promise<{ avisados: number }> {
+export async function seguimiento(env: Env, db: Db): Promise<{ avisados: number }> {
   const t = ahora();
   const horas = Math.max(1, Number(env.HORAS_SEGUIMIENTO) || 24);
   const pendientes = await db
