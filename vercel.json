@@ -1,7 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": null,
-  "installCommand": "npm ci && npm ci --prefix api",
-  "buildCommand": "node scripts/vercel-build.mjs",
+  "builds": [{ "src": "package.json", "use": "@vercel/static-build" }],
   "ignoreCommand": "[ -n \"$VERCEL_GIT_PREVIOUS_SHA\" ] && git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- ."
 }
