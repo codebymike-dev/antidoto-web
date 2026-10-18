@@ -119,12 +119,13 @@ let ajustes: Promise<AjustesSitio> | undefined;
 /**
  * Regalo de bienvenida y video del hero: lo fijado en el panel (Ajustes) y, si no hay, lo de
  * src/data/site.ts. Igual que el contenido, un build en CI con PUBLIC_API_URL falla si la API no
- * responde.
+ * responde. En Vercel la API todavía no está publicada mientras el sitio se construye: se lee de la
+ * que scripts/vercel-build.mjs levanta en local (CMS_API_URL), como en src/lib/cms/loader.ts.
  */
 export function obtenerAjustes(): Promise<AjustesSitio> {
   ajustes ??= (async () => {
     const base: AjustesSitio = { regaloNovedades: REGALO_NOVEDADES, videoHero: VIDEO_HERO };
-    const api = String(import.meta.env.PUBLIC_API_URL ?? '').replace(/\/$/, '');
+    const api = String(process.env.CMS_API_URL || import.meta.env.PUBLIC_API_URL || '').replace(/\/$/, '');
     if (!api) return base;
     try {
       const r = await fetch(`${api}/v1/ajustes`, { signal: AbortSignal.timeout(15_000) });
