@@ -12,3 +12,11 @@ export const WORDMARK_SIN_LIQUIDO = `<path d="M1096.47,1309.36h84.96c.14-72.61.2
 
 /** Círculo que ocupa el líquido dentro del frasco. */
 export const LIQUIDO = { cx: 3019.12, cy: 1118.03, r: 88.37 };
+
+/** Caja que llena el líquido del frasco (el círculo de LIQUIDO), para animar su nivel. */
+export const CAJA_LIQUIDO = {
+  x0: LIQUIDO.cx - LIQUIDO.r,
+  x1: LIQUIDO.cx + LIQUIDO.r,
+  arriba: LIQUIDO.cy - LIQUIDO.r,
+  abajo: LIQUIDO.cy + LIQUIDO.r,
+};

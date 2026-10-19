@@ -1,0 +1,21 @@
+---
+// El frasco del logo, recortado del wordmark con el mismo recorte del favicon (cuerpo y cuello),
+// nunca dibujado aparte. El líquido llena su círculo interior; el servidor lo pinta lleno y un
+// script puede mover su nivel con olaRuta() sobre `[data-liquido]`.
+import { WORDMARK_SIN_LIQUIDO, LIQUIDO, CAJA_LIQUIDO } from '../data/logo';
+import { olaRuta } from '../lib/motion/liquido';
+---
+<svg class="frasco" viewBox="2818 780 402 540" aria-hidden="true" focusable="false">
+  <defs>
+    <clipPath id="frasco-recorte"><circle cx="3019.12" cy="1118.03" r="193" /><rect x="2930" y="780" width="180" height="200" /></clipPath>
+    <clipPath id="frasco-interior"><circle cx={LIQUIDO.cx} cy={LIQUIDO.cy} r={LIQUIDO.r} /></clipPath>
+  </defs>
+  <g class="vidrio" clip-path="url(#frasco-recorte)" set:html={WORDMARK_SIN_LIQUIDO} />
+  <g clip-path="url(#frasco-interior)"><path class="liquido" data-liquido d={olaRuta(1, CAJA_LIQUIDO)} /></g>
+</svg>
+
+<style>
+  .frasco { display: block; width: 100%; height: auto; overflow: visible; }
+  .vidrio { fill: var(--color-ink); }
+  .liquido { fill: var(--color-antidote); }
+</style>
