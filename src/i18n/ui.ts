@@ -1530,12 +1530,6 @@ export function t(locale: Locale) {
   return ui[locale];
 }
 
-/** Idioma de la página en los scripts del navegador, leído del atributo lang de <html>. */
-export function localeDocumento(): Locale {
-  const l = document.documentElement.lang.slice(0, 2);
-  return (LOCALES as readonly string[]).includes(l) ? (l as Locale) : 'es';
-}
-
 /** Los demás idiomas del sitio, en el orden de LOCALES. */
 export function otrosIdiomas(locale: Locale): Locale[] {
   return LOCALES.filter((l) => l !== locale);

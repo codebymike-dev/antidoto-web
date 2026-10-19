@@ -1,5 +1,5 @@
 // Lectura de CSV para importar contactos. Funciones puras, con pruebas.
-import { SERVICIOS as LISTA, type ServicioId } from '@api/dominio';
+import { SERVICIOS as LISTA, aLocale, type Locale, type ServicioId } from '@api/dominio';
 import { SERVICIOS } from './textos';
 
 /** CSV con comillas y separador coma o punto y coma (Excel en español usa punto y coma). */
@@ -51,7 +51,7 @@ export interface FilaImportar {
   email: string;
   nombre?: string;
   empresa?: string;
-  locale: 'es' | 'en';
+  locale: Locale;
   intereses: ServicioId[];
 }
 
@@ -69,7 +69,7 @@ export function contactosDeCsv(texto: string): FilaImportar[] {
       email: o.email ?? '',
       ...(o.nombre ? { nombre: o.nombre } : {}),
       ...(o.empresa ? { empresa: o.empresa } : {}),
-      locale: /^en/i.test(o.locale ?? '') ? 'en' : 'es',
+      locale: aLocale((o.locale ?? '').trim().slice(0, 2).toLowerCase()),
       intereses: (o.intereses ?? '')
         .split(/[|,]/)
         .map((x) => SERVICIO_POR_NOMBRE[x.trim().toLowerCase()])

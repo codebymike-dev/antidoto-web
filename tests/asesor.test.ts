@@ -72,10 +72,11 @@ describe('chat con IA en el navegador', () => {
     expect(enlaceCotizador('/contacto/', null)).toBe('/contacto/');
   });
 
-  it('los textos del chat existen en los dos idiomas, sin voseo ni rayas', () => {
+  it('los textos del chat existen en los tres idiomas, sin voseo ni rayas', () => {
     expect(Object.keys(ui.es.asesor).sort()).toEqual(Object.keys(ui.en.asesor).sort());
+    expect(Object.keys(ui.pt.asesor).sort()).toEqual(Object.keys(ui.es.asesor).sort());
     const todo = JSON.stringify(ui.es.asesor);
     expect(todo).not.toMatch(VOSEO);
-    expect(todo + JSON.stringify(ui.en.asesor)).not.toMatch(new RegExp(`[${String.fromCharCode(0x2014, 0x2013)}]`));
+    expect(todo + JSON.stringify(ui.en.asesor) + JSON.stringify(ui.pt.asesor)).not.toMatch(new RegExp(`[${String.fromCharCode(0x2014, 0x2013)}]`));
   });
 });

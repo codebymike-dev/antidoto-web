@@ -28,6 +28,7 @@ import { iniciarEnvio } from './envios';
 import { enlaceWeb } from './enlaces';
 import { automatico, renderAutomatico, esClave, localeDeClave, CLAVES_AUTOMATICOS } from './automaticos';
 import { ahora, uuid, json, token, DIA } from '../util';
+import { aLocale, type Locale } from '../dominio';
 
 const POR_PAGINA = 50;
 const intereses = (v: unknown): ServicioId[] =>
@@ -113,7 +114,7 @@ export async function invitarContacto(req: Request, env: Env, db: Db, appUrl: st
       email,
       nombre: typeof d.nombre === 'string' ? d.nombre : null,
       empresa: typeof d.empresa === 'string' ? d.empresa : null,
-      locale: d.locale === 'en' ? 'en' : 'es',
+      locale: aLocale(d.locale),
       origen: 'admin',
       intereses: intereses(d.intereses),
     },
@@ -172,7 +173,7 @@ export function validarCampana(d: unknown): { ok: true; campos: CamposCampana } 
       asunto,
       cuerpo,
       preheader: typeof e.preheader === 'string' ? e.preheader.trim().slice(0, 200) || null : null,
-      locale: e.locale === 'en' ? 'en' : 'es',
+      locale: aLocale(e.locale),
       intereses: intereses(e.intereses),
       publica: e.publica === true,
       // Prueba A/B: solo si hay un segundo asunto distinto del primero.
@@ -285,7 +286,7 @@ export async function borrarCampana(id: string, db: Db): Promise<Response> {
 export async function vistaCampana(id: string, env: Env, db: Db, appUrl: string): Promise<Response> {
   const [c] = await db.select().from(campanas).where(eq(campanas.id, id));
   if (!c) return new Response('No existe', { status: 404 });
-  const { html } = renderizar(c, { nombre: c.locale === 'en' ? 'Alex' : 'Laura' }, `${appUrl}/v1/suscripcion/baja?t=ejemplo`, {
+  const { html } = renderizar(c, { nombre: ({ es: 'Laura', en: 'Alex', pt: 'Ana' } as const)[c.locale] }, `${appUrl}/v1/suscripcion/baja?t=ejemplo`, {
     preferencias: `${appUrl}/v1/suscripcion/preferencias?t=ejemplo`,
     web: enlaceWeb(appUrl, c.id),
     responsable: env.MAIL_DIRECCION,
@@ -464,7 +465,7 @@ export async function importarContactos(req: Request, db: Db): Promise<Response>
   if (!Array.isArray(d.filas) || !d.filas.length) return json({ errores: ['filas'] }, 422);
   if (d.filas.length > MAX_IMPORTACION) return json({ errores: ['maximo'], maximo: MAX_IMPORTACION }, 413);
   const vistos = new Set<string>();
-  const validas: { email: string; nombre: string | null; empresa: string | null; locale: 'es' | 'en'; intereses: ServicioId[] }[] = [];
+  const validas: { email: string; nombre: string | null; empresa: string | null; locale: Locale; intereses: ServicioId[] }[] = [];
   let invalidos = 0;
   for (const f of d.filas as Record<string, unknown>[]) {
     const email = typeof f?.email === 'string' ? f.email.trim().toLowerCase() : '';
@@ -475,7 +476,7 @@ export async function importarContactos(req: Request, db: Db): Promise<Response>
     if (vistos.has(email)) continue;
     vistos.add(email);
     const texto = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, 120) : null);
-    validas.push({ email, nombre: texto(f.nombre), empresa: texto(f.empresa), locale: f.locale === 'en' ? 'en' : 'es', intereses: intereses(f.intereses) });
+    validas.push({ email, nombre: texto(f.nombre), empresa: texto(f.empresa), locale: aLocale(f.locale), intereses: intereses(f.intereses) });
   }
   // Los que ya existen se buscan por partes, de hasta 100 variables por consulta.
   const existentes = new Set<string>();

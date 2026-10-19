@@ -78,6 +78,13 @@ describe('correos', () => {
     expect(c.texto).toContain('equipo@antidoto.co');
   });
 
+  test('la confirmación en portugués y el aviso al equipo nombran el idioma', () => {
+    const c = correoLeadCliente({ ...lead, locale: 'pt' }, 'equipo@antidoto.co');
+    expect(c.asunto).toBe('Recebemos sua solicitação · Antídoto');
+    expect(c.texto).toContain('Serviço: Produção audiovisual');
+    expect(correoLeadEquipo({ ...lead, locale: 'pt' }, 'https://api.test').texto).toContain('Idioma: Portugués');
+  });
+
   test('la confirmación no repite texto libre del formulario', () => {
     const c = correoLeadCliente({ ...lead, nombre: 'Gana dinero en spam.example', empresa: 'Visita spam.example', ciudad: 'spam.example' }, 'equipo@antidoto.co');
     expect(c.html).not.toContain('spam.example');
@@ -86,8 +93,8 @@ describe('correos', () => {
 });
 
 test('acepta la versión vigente y las anteriores, nada más', () => {
-  const v1 = { version: 'v1', es: 'Texto 1', en: 'Text 1' };
-  const bloque = { version: 'v2', es: 'Texto 2', en: 'Text 2', anteriores: [v1] };
+  const v1 = { version: 'v1', es: 'Texto 1', en: 'Text 1', pt: 'Texto 1' };
+  const bloque = { version: 'v2', es: 'Texto 2', en: 'Text 2', pt: 'Texto 2', anteriores: [v1] };
   expect(buscarVersion(bloque, 'v2')?.es).toBe('Texto 2');
   expect(buscarVersion(bloque, 'v1')).toBe(v1);
   expect(buscarVersion(bloque, 'v0')).toBe(null);

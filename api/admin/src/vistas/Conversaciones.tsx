@@ -1,6 +1,6 @@
 // Conversaciones del chat con IA del sitio: lista filtrable, detalle tipo chat y métricas.
 // Los teléfonos y correos llegan tapados desde la API; se guardan 90 días.
-import { SERVICIOS as LISTA_SERVICIOS, type ServicioId, type Estado } from '@api/dominio';
+import { SERVICIOS as LISTA_SERVICIOS, NOMBRE_IDIOMA, type ServicioId, type Estado, type Locale } from '@api/dominio';
 import { api, mensajeError, useDatos } from '../api';
 import { navegar, ponerQuery, useUbicacion } from '../ruteo';
 import { usePuede } from '../sesion';
@@ -45,7 +45,7 @@ interface Fila {
   id: string;
   creada: number;
   actualizada: number;
-  locale: 'es' | 'en';
+  locale: Locale;
   paginaInicial: string | null;
   origen: string | null;
   servicio: ServicioId | null;
@@ -242,7 +242,7 @@ function Detalle({ id, alCerrar, alBorrar }: { id: string; alCerrar: () => void;
             ['Empezó en', PAGINAS[c.paginaInicial ?? ''] ?? c.paginaInicial],
             ['Siguió en', c.paginaUltima !== c.paginaInicial ? (PAGINAS[c.paginaUltima ?? ''] ?? c.paginaUltima) : null],
             ['Desde', c.origen === 'facilitador' ? 'Facilitador del mundo pixel' : 'Burbuja del chat'],
-            ['Idioma', c.locale === 'en' ? 'Inglés' : 'Español'],
+            ['Idioma', NOMBRE_IDIOMA[c.locale]],
             ['Última actividad', fechaLarga(c.actualizada)],
             ['Tokens', `${numero(c.tokensEntrada + c.cacheLectura)} de entrada · ${numero(c.tokensSalida)} de salida`],
             ['Se borra el', fecha(c.expira)],

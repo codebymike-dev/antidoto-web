@@ -43,9 +43,11 @@ export function leerContacto(v: unknown): { servicio?: Clave } | string {
 const TELEFONO = /\+?\d[\d\s().-]{5,}\d/g;
 const CORREO = /[^\s@<>()]+@[^\s@<>()]+\.[^\s@<>()]{2,}/g;
 
+const TAPADOS: Record<Locale, [string, string]> = { es: ['[teléfono]', '[correo]'], en: ['[phone]', '[email]'], pt: ['[telefone]', '[e-mail]'] };
+
 /** Tapa teléfonos y correos: ningún dato de contacto llega al modelo ni sale en un resumen. */
 export function taparDatos(texto: string, locale: Locale): string {
-  const [tel, correo] = locale === 'es' ? ['[teléfono]', '[correo]'] : ['[phone]', '[email]'];
+  const [tel, correo] = TAPADOS[locale];
   return texto
     .replace(CORREO, correo)
     .replace(TELEFONO, (m) => {
@@ -54,12 +56,18 @@ export function taparDatos(texto: string, locale: Locale): string {
     });
 }
 
+const WHATSAPP: Record<Locale, { saludo: string; duda: string }> = {
+  es: { saludo: 'Hola Antídoto, vengo de antidotocolombia.com. Hablé con su asistente y quiero seguir con ustedes.', duda: 'Me queda la duda' },
+  en: { saludo: 'Hi Antídoto, I come from antidotocolombia.com. I talked to your assistant and want to continue with you.', duda: 'Still unsure about' },
+  pt: { saludo: 'Olá, Antídoto! Venho de antidotocolombia.com. Falei com o assistente de vocês e quero continuar a conversa.', duda: 'Ainda tenho a dúvida' },
+};
+
 /**
  * Mensaje que se precarga en WhatsApp. Lo compone el servidor: el modelo solo aporta qué
  * necesita la persona y qué quedó pendiente.
  */
 export function mensajeWhatsapp(p: PedidoWhatsapp, locale: Locale): string {
-  const es = locale === 'es';
+  const w = WHATSAPP[locale];
   // Si el modelo coló una cifra de dinero o un dato de contacto en el resumen, se descarta ese
   // campo entero: lo que llega a WhatsApp tiene que poder respaldarse.
   const limpio = (s: string | undefined) => {
@@ -69,14 +77,10 @@ export function mensajeWhatsapp(p: PedidoWhatsapp, locale: Locale): string {
   };
   const necesidad = limpio(p.necesidad);
   const pendiente = limpio(p.pendiente);
-  const lineas = [
-    es
-      ? 'Hola Antídoto, vengo de antidotocolombia.com. Hablé con su asistente y quiero seguir con ustedes.'
-      : 'Hi Antídoto, I come from antidotocolombia.com. I talked to your assistant and want to continue with you.',
-  ];
+  const lineas = [w.saludo];
   // Sin etiqueta delante: el modelo ya lo escribe en primera persona.
   if (necesidad) lineas.push('', necesidad);
-  if (pendiente) lineas.push(`${es ? 'Me queda la duda' : 'Still unsure about'}: ${pendiente}`);
+  if (pendiente) lineas.push(`${w.duda}: ${pendiente}`);
   return lineas.join('\n');
 }
 

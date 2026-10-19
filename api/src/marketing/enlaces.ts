@@ -4,7 +4,8 @@
 import type { Env } from '../env';
 
 export type Accion = 'confirmar' | 'baja' | 'preferencias';
-export type Locale = 'es' | 'en';
+export type { Locale } from '../dominio';
+import type { Locale } from '../dominio';
 
 export const enlace = (appUrl: string, accion: Accion, t: string, campana?: string) =>
   `${appUrl}/v1/suscripcion/${accion}?t=${encodeURIComponent(t)}${campana ? `&c=${encodeURIComponent(campana)}` : ''}`;
@@ -17,8 +18,8 @@ export const enlaceWeb = (appUrl: string, campana: string) => `${appUrl}/v1/nove
 export const sitioUrl = (env: Pick<Env, 'SITIO_URL'>) => (env.SITIO_URL || 'https://antidotocolombia.com').replace(/\/$/, '');
 
 /** Rutas del sitio (src/i18n/ui.ts: rutaPreferencias y rutaNovedades). */
-const PREFERENCIAS: Record<Locale, string> = { es: '/novedades/preferencias/', en: '/en/news/preferences/' };
-const NOVEDADES: Record<Locale, string> = { es: '/novedades/', en: '/en/news/' };
+const PREFERENCIAS: Record<Locale, string> = { es: '/novedades/preferencias/', en: '/en/news/preferences/', pt: '/pt/novidades/preferencias/' };
+const NOVEDADES: Record<Locale, string> = { es: '/novedades/', en: '/en/news/', pt: '/pt/novidades/' };
 
 export const paginaPreferencias = (env: Pick<Env, 'SITIO_URL'>, locale: Locale, params: Record<string, string>) =>
   `${sitioUrl(env)}${PREFERENCIAS[locale]}?${new URLSearchParams(params)}`;

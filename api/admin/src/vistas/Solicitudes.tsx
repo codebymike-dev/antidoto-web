@@ -1,7 +1,7 @@
 // Solicitudes del cotizador: filtros por estado y servicio, búsqueda, tabla paginada y ficha
 // lateral con la gestión comercial, el historial y la autorización de datos.
 import { useState } from 'preact/hooks';
-import { ESTADOS as LISTA_ESTADOS, SERVICIOS as LISTA_SERVICIOS, type Estado } from '@api/dominio';
+import { ESTADOS as LISTA_ESTADOS, SERVICIOS as LISTA_SERVICIOS, NOMBRE_IDIOMA, type Estado } from '@api/dominio';
 import { api, mensajeError, useDatos } from '../api';
 import { navegar, ponerQuery, useUbicacion } from '../ruteo';
 import { usePuede } from '../sesion';
@@ -214,7 +214,7 @@ function Ficha({ datos, alCerrar, alGuardar }: { datos: DetalleLead; alCerrar: (
           ['Ciudad', l.ciudad],
           ['Origen', origen],
           ['Página', l.pagina],
-          ['Idioma', l.locale === 'en' ? 'Inglés' : 'Español'],
+          ['Idioma', NOMBRE_IDIOMA[l.locale]],
           ['Chat con IA', l.conversacionId && puede('asesor.ver') ? <a href={`/admin/conversaciones/${l.conversacionId}`}>Ver la conversación previa</a> : null],
           ['Organización', l.organizacionId && puede('proyectos.ver') ? <a href={`/admin/organizaciones/${l.organizacionId}`}>Abrir ficha</a> : null],
         ]}

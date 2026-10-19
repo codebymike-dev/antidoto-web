@@ -1,6 +1,6 @@
 // Contactos de la lista de novedades: filtros, ficha, invitar e importar desde CSV.
 import { useState } from 'preact/hooks';
-import { ESTADOS_CONTACTO as LISTA_ESTADOS } from '@api/dominio';
+import { ESTADOS_CONTACTO as LISTA_ESTADOS, LOCALES } from '@api/dominio';
 import { api, mensajeError, useDatos, ErrorApi } from '../api';
 import { navegar, ponerQuery, useUbicacion } from '../ruteo';
 import { usePuede } from '../sesion';
@@ -239,8 +239,9 @@ function Invitar({ alListo }: { alListo: () => void }) {
         </Campo>
         <Campo etiqueta="Idioma">
           <select name="locale">
-            <option value="es">Español</option>
-            <option value="en">Inglés</option>
+            {LOCALES.map((l) => (
+              <option value={l}>{IDIOMAS[l]}</option>
+            ))}
           </select>
         </Campo>
         <Boton type="submit" variante="primario">

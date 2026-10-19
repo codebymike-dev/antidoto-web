@@ -2,6 +2,7 @@
 // lista de errores, sin tocar la base.
 import { SERVICIOS, type ServicioId } from './db/schema';
 import { aceptada, type Version } from './consentimiento';
+import { aLocale, type Locale } from './dominio';
 
 export interface LeadEntrada {
   servicio: ServicioId;
@@ -14,7 +15,7 @@ export interface LeadEntrada {
   empresa: string | null;
   email: string | null;
   telefono: string | null;
-  locale: 'es' | 'en';
+  locale: Locale;
   pagina: string | null;
   referente: string | null;
   utmSource: string | null;
@@ -112,7 +113,7 @@ export function validarLead(entrada: unknown): Resultado {
     else errores.push('personas');
   }
 
-  const locale = d.locale === 'en' ? 'en' : 'es';
+  const locale = aLocale(d.locale);
   if (errores.length || !servicio || !nombre || !autorizacion) return { ok: false, bot: false, errores };
 
   const utm = (d.utm && typeof d.utm === 'object' ? d.utm : {}) as Record<string, unknown>;

@@ -3,6 +3,7 @@
 // idioma. Guardar deja un borrador; publicar pide todo en los dos idiomas.
 import { useEffect, useState } from 'preact/hooks';
 import { ESQUEMAS, IDIOMAS, TIPOS_CONTENIDO, type Campo as TCampo, type Idioma, type TipoContenido } from '@api/contenido/esquemas';
+import { NOMBRE_IDIOMA } from '@api/dominio';
 import { api, mensajeError, useDatos, ErrorApi } from '../api';
 import { navegar, useUbicacion } from '../ruteo';
 import { usePuede } from '../sesion';
@@ -32,7 +33,7 @@ interface Detalle {
   medios: Record<string, Medio>;
 }
 
-const IDIOMA = { es: 'Español', en: 'Inglés' } as const;
+const IDIOMA = NOMBRE_IDIOMA;
 
 export default function EditorContenido({ params }: { params: string[] }) {
   const id = params[0]!;
@@ -52,7 +53,7 @@ function Formulario({ tipo, detalle, alCambiar }: { tipo: TipoContenido; detalle
   const e = detalle?.entrada;
   const [clave, setClave] = useState(e?.clave ?? '');
   const [datos, setDatos] = useState<Record<string, unknown>>(e?.datos ?? {});
-  const [textos, setTextos] = useState<Partial<Record<Idioma, Record<string, unknown>>>>(e?.textos ?? { es: {}, en: {} });
+  const [textos, setTextos] = useState<Partial<Record<Idioma, Record<string, unknown>>>>(e?.textos ?? Object.fromEntries(IDIOMAS.map((i) => [i, {}])));
   const [idioma, setIdioma] = useState<Idioma>('es');
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [sucio, setSucio] = useState(false);

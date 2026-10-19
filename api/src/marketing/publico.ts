@@ -8,10 +8,11 @@ import type { Env } from '../env';
 import { renderizar } from './render';
 import { paginaNovedades } from './enlaces';
 import { json } from '../util';
+import { aLocale } from '../dominio';
 
 /** GET /v1/novedades?locale=es: campañas públicas ya enviadas, de la más nueva a la más vieja. */
 export async function listarPublicas(url: URL, db: Db, cors: Record<string, string>): Promise<Response> {
-  const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'es';
+  const locale = aLocale(url.searchParams.get('locale'));
   const filas = await db
     .select({ id: campanas.id, asunto: campanas.asunto, preheader: campanas.preheader, fecha: campanas.iniciada })
     .from(campanas)

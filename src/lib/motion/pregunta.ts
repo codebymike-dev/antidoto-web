@@ -5,7 +5,8 @@
 //
 // No es motion: funciona también con movimiento reducido. En ese caso (o si el motor aún no cargó)
 // responde la burbuja quieta del PNG.
-import { ui, localeDocumento } from '../../i18n/ui';
+import { ui } from '../../i18n/ui';
+import { localeDocumento } from '../../i18n/navegador';
 import { enlaceCotizador, enlaceWhatsapp, textoPlano } from '../asesor';
 import { EVENTO_ABRIR, preguntarAsesor } from '../conversacion';
 import { llenarBurbuja, type Accion } from './lienzo';

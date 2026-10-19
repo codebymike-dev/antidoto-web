@@ -15,8 +15,9 @@ import { enlace, enlaceBaja, enlacePreferencias, sitioUrl, type Locale } from '.
 import { correoConfirmacion } from './suscripciones';
 import { enviarLote } from './envios';
 import { ahora, HORA, DIA } from '../util';
+import { aLocale } from '../dominio';
 
-export const CLAVES_AUTOMATICOS = ['bienvenida:es', 'bienvenida:en'] as const;
+export const CLAVES_AUTOMATICOS = ['bienvenida:es', 'bienvenida:en', 'bienvenida:pt'] as const;
 export type ClaveAutomatico = (typeof CLAVES_AUTOMATICOS)[number];
 
 /** Horas que espera el recordatorio, y hasta cuándo se manda (después ya no tiene sentido). */
@@ -53,10 +54,22 @@ const POR_DEFECTO: Record<ClaveAutomatico, Contenido> = {
     ].join('\n\n'),
     activo: true,
   },
+  'bienvenida:pt': {
+    asunto: 'Boas-vindas às novidades da Antídoto',
+    preheader: 'Obrigado por confirmar. Isto é o que vai chegar para você.',
+    cuerpo: [
+      '# Você já está na lista',
+      'Obrigado por confirmar. A partir de agora escrevemos com novidades, conteúdos e propostas para quem forma, cuida e celebra suas equipes.',
+      'Enquanto isso, conheça o que fazemos:',
+      '[[Ver serviços|{{sitio}}/pt/servicos/]]',
+      'Se algo disso combina com um desafio da sua organização, responda a este e-mail e contamos como trabalhamos.',
+    ].join('\n\n'),
+    activo: true,
+  },
 };
 
 export const esClave = (v: string): v is ClaveAutomatico => (CLAVES_AUTOMATICOS as readonly string[]).includes(v);
-export const localeDeClave = (c: ClaveAutomatico): Locale => (c.endsWith(':en') ? 'en' : 'es');
+export const localeDeClave = (c: ClaveAutomatico): Locale => aLocale(c.split(':')[1]);
 
 /** Contenido vigente: el editado en la bandeja o, si no hay, el de por defecto. */
 export async function automatico(db: Db, clave: ClaveAutomatico): Promise<Contenido & { personalizado: boolean }> {

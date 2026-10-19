@@ -11,7 +11,8 @@ import { enviar } from '../correo';
 import { aceptada, vigente, type Version } from '../consentimiento';
 import type { Env } from '../env';
 import { ahora, hashIp, ipCliente, uuid, json, token, escapar, DIA } from '../util';
-import { enlace, paginaPreferencias, type Locale } from './enlaces';
+import { enlace, paginaPreferencias } from './enlaces';
+import { LOCALES, aLocale, type Locale } from '../dominio';
 import { enviarBienvenida } from './automaticos';
 import { TIEMPO_MINIMO_MS } from '../validar';
 import { dentroDelLimite } from '../limite';
@@ -25,7 +26,7 @@ export interface Solicitud {
   email: string;
   nombre?: string | null;
   empresa?: string | null;
-  locale: 'es' | 'en';
+  locale: Locale;
   origen: OrigenContacto;
   intereses?: ServicioId[];
   leadId?: string | null;
@@ -133,32 +134,47 @@ export async function suscribir(env: Env, db: Db, s: Solicitud, appUrl: string):
   await enviar(env, { para: email, ...correoConfirmacion(destinatario, enlace(appUrl, 'confirmar', contacto.token)) });
 }
 
+/** Textos del correo de confirmación (y su único recordatorio) en cada idioma. */
+const CONFIRMAR: Record<Locale, { hola: (nombre: string | null) => string; invitado: string; propio: string; boton: string; notaRecordatorio: string; nota: string; asuntoRecordatorio: string; asunto: string }> = {
+  es: {
+    hola: (n) => (n ? `Hola ${n},` : 'Hola,'),
+    invitado: 'El equipo de Antídoto te invita a recibir por correo nuestras novedades, contenidos y propuestas. Si quieres, confírmalo con el botón.',
+    propio: 'Confirma que quieres recibir por correo novedades, contenidos y propuestas de Antídoto.',
+    boton: 'Confirmar suscripción',
+    notaRecordatorio: 'Es el único recordatorio que te enviamos. Si no confirmas, no te volvemos a escribir.',
+    nota: 'Si no lo pediste, ignora este correo: no te vamos a escribir.',
+    asuntoRecordatorio: 'Recordatorio: confirma tu suscripción · Antídoto',
+    asunto: 'Confirma tu suscripción · Antídoto',
+  },
+  en: {
+    hola: (n) => (n ? `Hi ${n},` : 'Hi,'),
+    invitado: 'The Antídoto team invites you to receive our news, content and offers by email. If you want to, confirm with the button.',
+    propio: 'Confirm that you want to receive news, content and offers from Antídoto by email.',
+    boton: 'Confirm subscription',
+    notaRecordatorio: 'This is the only reminder we will send. If you do not confirm, we will not write to you again.',
+    nota: 'If you did not ask for this, ignore this email: we will not write to you.',
+    asuntoRecordatorio: 'Reminder: confirm your subscription · Antídoto',
+    asunto: 'Confirm your subscription · Antídoto',
+  },
+  pt: {
+    hola: (n) => (n ? `Olá, ${n},` : 'Olá,'),
+    invitado: 'A equipe da Antídoto convida você a receber por e-mail nossas novidades, conteúdos e propostas. Se quiser, confirme com o botão.',
+    propio: 'Confirme que você quer receber por e-mail novidades, conteúdos e propostas da Antídoto.',
+    boton: 'Confirmar inscrição',
+    notaRecordatorio: 'Este é o único lembrete que enviamos. Se você não confirmar, não escreveremos de novo.',
+    nota: 'Se você não pediu isto, ignore este e-mail: não vamos escrever para você.',
+    asuntoRecordatorio: 'Lembrete: confirme sua inscrição · Antídoto',
+    asunto: 'Confirme sua inscrição · Antídoto',
+  },
+};
+
 export function correoConfirmacion(c: Pick<Contacto, 'nombre' | 'locale' | 'origen'>, href: string, recordatorio = false) {
-  const en = c.locale === 'en';
-  const invitado = INVITADOS.includes(c.origen);
-  const hola = c.nombre ? (en ? `Hi ${c.nombre},` : `Hola ${c.nombre},`) : en ? 'Hi,' : 'Hola,';
-  const cuerpo = en
-    ? invitado
-      ? 'The Antídoto team invites you to receive our news, content and offers by email. If you want to, confirm with the button.'
-      : 'Confirm that you want to receive news, content and offers from Antídoto by email.'
-    : invitado
-      ? 'El equipo de Antídoto te invita a recibir por correo nuestras novedades, contenidos y propuestas. Si quieres, confírmalo con el botón.'
-      : 'Confirma que quieres recibir por correo novedades, contenidos y propuestas de Antídoto.';
-  const boton = en ? 'Confirm subscription' : 'Confirmar suscripción';
-  const nota = recordatorio
-    ? en
-      ? 'This is the only reminder we will send. If you do not confirm, we will not write to you again.'
-      : 'Es el único recordatorio que te enviamos. Si no confirmas, no te volvemos a escribir.'
-    : en
-      ? 'If you did not ask for this, ignore this email: we will not write to you.'
-      : 'Si no lo pediste, ignora este correo: no te vamos a escribir.';
-  const asunto = recordatorio
-    ? en
-      ? 'Reminder: confirm your subscription · Antídoto'
-      : 'Recordatorio: confirma tu suscripción · Antídoto'
-    : en
-      ? 'Confirm your subscription · Antídoto'
-      : 'Confirma tu suscripción · Antídoto';
+  const x = CONFIRMAR[c.locale];
+  const hola = x.hola(c.nombre);
+  const cuerpo = INVITADOS.includes(c.origen) ? x.invitado : x.propio;
+  const boton = x.boton;
+  const nota = recordatorio ? x.notaRecordatorio : x.nota;
+  const asunto = recordatorio ? x.asuntoRecordatorio : x.asunto;
   return {
     asunto,
     html: `<!doctype html><html><body style="margin:0;background:#F1EFE9;font-family:Helvetica,Arial,sans-serif;color:#0F181D"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border-radius:14px"><tr><td style="padding:28px;border-top:4px solid #3BC8F3;border-radius:14px;font-size:15px;line-height:1.55"><p style="margin:0 0 4px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#0C5C7D">Antídoto</p><p style="margin:12px 0">${escapar(hola)}</p><p style="margin:0 0 8px">${escapar(cuerpo)}</p><p style="margin:20px 0"><a href="${escapar(href)}" style="display:inline-block;background:#0F181D;color:#fff;text-decoration:none;padding:12px 20px;border-radius:999px;font-weight:600">${escapar(boton)}</a></p><p style="margin:0;color:#5b6b70;font-size:13px">${escapar(nota)}</p></td></tr></table></td></tr></table></body></html>`,
@@ -197,7 +213,7 @@ export async function crearSuscripcion(req: Request, env: Env, db: Db, appUrl: s
       {
         email,
         nombre: typeof d.nombre === 'string' ? d.nombre : null,
-        locale: d.locale === 'en' ? 'en' : 'es',
+        locale: aLocale(d.locale),
         origen: ORIGENES_SITIO.includes(d.origen as OrigenContacto) ? (d.origen as OrigenContacto) : 'pie',
         intereses: limpiarIntereses(d.intereses),
         ipHash,
@@ -218,7 +234,7 @@ async function porToken(db: Db, t: string | null): Promise<Contacto | null> {
   return c ?? null;
 }
 
-const localeDe = (req: Request): Locale => (/^en\b/i.test(req.headers.get('accept-language') ?? '') ? 'en' : 'es');
+const localeDe = (req: Request): Locale => aLocale((req.headers.get('accept-language') ?? '').slice(0, 2).toLowerCase());
 
 /** GET: lleva al sitio. Es un 302 para que el navegador no lo recuerde. */
 const ir = (url: string) => new Response(null, { status: 302, headers: { location: url, 'cache-control': 'no-store', 'referrer-policy': 'no-referrer' } });
@@ -346,7 +362,7 @@ export async function preferencias(req: Request, db: Db, env: Env): Promise<Resp
   if (c.estado !== 'activo') return volver(paginaPreferencias(env, locale, { estado: c.estado === 'pendiente' ? 'invalido' : 'baja' }));
 
   const f = await req.formData().catch(() => new FormData());
-  const nuevoLocale: Locale = f.get('locale') === 'en' ? 'en' : f.get('locale') === 'es' ? 'es' : c.locale;
+  const nuevoLocale: Locale = LOCALES.includes(f.get('locale') as Locale) ? (f.get('locale') as Locale) : c.locale;
   const dias = Number(f.get('pausa'));
   const pausa = PAUSAS.includes(dias as (typeof PAUSAS)[number]) ? dias : 0;
   const momento = ahora();

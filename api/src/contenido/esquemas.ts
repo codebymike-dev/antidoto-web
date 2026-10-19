@@ -1,8 +1,9 @@
 // Tipos de contenido que se editan desde el panel y se publican en el sitio. Cada tipo declara
-// sus campos comunes (iguales en los dos idiomas) y los de cada idioma. Lo comparten la API
+// sus campos comunes (iguales en todos los idiomas) y los de cada idioma. Lo comparten la API
 // (validación) y el panel (formularios), y copia las reglas de src/content.config.ts del sitio.
 //
-// Módulo PURO, sin dependencias.
+// Módulo PURO: solo depende de las constantes de dominio.ts.
+import { LOCALES, type Locale } from '../dominio';
 
 export const TIPOS_CONTENIDO = ['blog', 'caso', 'vacante', 'faq', 'cliente', 'juego'] as const;
 export type TipoContenido = (typeof TIPOS_CONTENIDO)[number];
@@ -198,8 +199,9 @@ export const ESQUEMAS: Record<TipoContenido, Esquema> = {
   },
 };
 
-export const IDIOMAS = ['es', 'en'] as const;
-export type Idioma = (typeof IDIOMAS)[number];
+/** Los idiomas del sitio (LOCALES de dominio.ts): para publicar, una entrada traducible los pide todos. */
+export const IDIOMAS = LOCALES;
+export type Idioma = Locale;
 
 export interface DatosContenido {
   clave: string;
@@ -250,7 +252,7 @@ function validarCampo(c: Campo, v: unknown, publicar: boolean): { valor: unknown
 
 /**
  * Limpia y valida una entrada. Un borrador puede estar incompleto (solo se revisa el formato);
- * para publicar, todos los campos requeridos, en los dos idiomas si el tipo se traduce.
+ * para publicar, todos los campos requeridos, en todos los idiomas si el tipo se traduce.
  */
 export function validarContenido(tipo: TipoContenido, d: unknown, publicar = false): { ok: true; limpio: DatosContenido } | { ok: false; errores: Errores } {
   const e = ESQUEMAS[tipo];

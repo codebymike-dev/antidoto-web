@@ -3,6 +3,7 @@
 import type { Env } from './env';
 import type { Lead } from './db/schema';
 import { escapar } from './util';
+import { NOMBRE_IDIOMA, type Locale } from './dominio';
 
 export interface Correo {
   para: string | string[];
@@ -43,13 +44,41 @@ export async function enviar(env: Env, c: Correo): Promise<boolean> {
   }
 }
 
-export const NOMBRE_SERVICIO: Record<Lead['servicio'], { es: string; en: string }> = {
-  formaciones: { es: 'Formaciones vivenciales', en: 'Experiential training' },
-  audiovisual: { es: 'Producción audiovisual', en: 'Video production' },
-  catering: { es: 'Catering corporativo', en: 'Corporate catering' },
-  diseno: { es: 'Diseño de productos y experiencias', en: 'Product and experience design' },
-  ia: { es: 'Capacitación en IA para el trabajo', en: 'AI training for work' },
-  sgsst: { es: 'SG-SST (seguridad y salud en el trabajo)', en: 'Occupational health and safety (SG-SST)' },
+export const NOMBRE_SERVICIO: Record<Lead['servicio'], Record<Locale, string>> = {
+  formaciones: { es: 'Formaciones vivenciales', en: 'Experiential training', pt: 'Treinamentos vivenciais' },
+  audiovisual: { es: 'Producción audiovisual', en: 'Video production', pt: 'Produção audiovisual' },
+  catering: { es: 'Catering corporativo', en: 'Corporate catering', pt: 'Catering corporativo' },
+  diseno: { es: 'Diseño de productos y experiencias', en: 'Product and experience design', pt: 'Design de produtos e experiências' },
+  ia: { es: 'Capacitación en IA para el trabajo', en: 'AI training for work', pt: 'Capacitação em IA para o trabalho' },
+  sgsst: { es: 'SG-SST (seguridad y salud en el trabajo)', en: 'Occupational health and safety (SG-SST)', pt: 'SG-SST (segurança e saúde no trabalho)' },
+};
+
+/** Textos de la confirmación a quien pidió la cotización, en su idioma. */
+const CONFIRMACION: Record<Locale, { campos: [string, string, string]; hola: string; recibido: string; derechos: (equipo: string) => string; asunto: string; titulo: string }> = {
+  es: {
+    campos: ['Servicio', 'Fecha', 'Personas'],
+    hola: 'Hola,',
+    recibido: 'Recibimos tu solicitud de cotización. Nuestro equipo te va a contactar pronto.',
+    derechos: (equipo) => `Puedes pedirnos consultar, corregir o eliminar tus datos en cualquier momento respondiendo este correo o escribiendo a ${equipo}.`,
+    asunto: 'Recibimos tu solicitud · Antídoto',
+    titulo: 'Recibimos tu solicitud',
+  },
+  en: {
+    campos: ['Service', 'Date', 'People'],
+    hola: 'Hi,',
+    recibido: 'We received your quote request. Our team will contact you soon.',
+    derechos: (equipo) => `You can ask us to see, correct or delete your data at any time by replying to this email or writing to ${equipo}.`,
+    asunto: 'We received your request · Antídoto',
+    titulo: 'We received your request',
+  },
+  pt: {
+    campos: ['Serviço', 'Data', 'Pessoas'],
+    hola: 'Olá,',
+    recibido: 'Recebemos sua solicitação de orçamento. Nossa equipe vai entrar em contato em breve, em português.',
+    derechos: (equipo) => `Você pode nos pedir para consultar, corrigir ou eliminar seus dados a qualquer momento respondendo a este e-mail ou escrevendo para ${equipo}.`,
+    asunto: 'Recebemos sua solicitação · Antídoto',
+    titulo: 'Recebemos sua solicitação',
+  },
 };
 
 /** Marco común: tinta sobre blanco, con el cian de marca solo en el acento. */
@@ -91,7 +120,7 @@ export function correoInteresAsesor(d: {
   servicio: Lead['servicio'] | null;
   necesidad: string | null;
   pagina: string | null;
-  locale: 'es' | 'en';
+  locale: Locale;
 }): Omit<Correo, 'para'> {
   const servicio = d.servicio ? NOMBRE_SERVICIO[d.servicio].es : null;
   const que = d.accion === 'whatsapp' ? 'preparó un mensaje para WhatsApp' : 'pidió el enlace al cotizador para dejar sus datos';
@@ -99,7 +128,7 @@ export function correoInteresAsesor(d: {
     ['Servicio', servicio],
     ['Lo que necesita', d.necesidad],
     ['Página', d.pagina],
-    ['Idioma', d.locale === 'en' ? 'Inglés' : 'Español'],
+    ['Idioma', NOMBRE_IDIOMA[d.locale]],
   ];
   const nota = 'Si escribe por WhatsApp, el mensaje llega con este mismo resumen. El chat no guarda la conversación.';
   return {
@@ -123,7 +152,7 @@ export function correoLeadEquipo(lead: Lead, appUrl: string): Omit<Correo, 'para
     ['Fecha', lead.fecha],
     ['Personas', lead.personas],
     ['Ciudad', lead.ciudad],
-    ['Idioma', lead.locale === 'en' ? 'Inglés' : 'Español'],
+    ['Idioma', NOMBRE_IDIOMA[lead.locale]],
     ['Origen', [lead.utmSource, lead.utmMedium, lead.utmCampaign].filter(Boolean).join(' / ') || lead.referente || 'Directo'],
     ['Página', lead.pagina],
   ];
@@ -147,23 +176,16 @@ export function correoLeadEquipo(lead: Lead, appUrl: string): Omit<Correo, 'para
  * su propio mensaje con el dominio de Antídoto.
  */
 export function correoLeadCliente(lead: Lead, equipo: string): Omit<Correo, 'para'> {
-  const en = lead.locale === 'en';
+  const c = CONFIRMACION[lead.locale];
   const servicio = NOMBRE_SERVICIO[lead.servicio][lead.locale];
-  const pares: [string, string | number | null][] = en
-    ? [['Service', servicio], ['Date', lead.fecha], ['People', lead.personas]]
-    : [['Servicio', servicio], ['Fecha', lead.fecha], ['Personas', lead.personas]];
-  const hola = en ? 'Hi,' : 'Hola,';
-  const recibido = en
-    ? 'We received your quote request. Our team will contact you soon.'
-    : 'Recibimos tu solicitud de cotización. Nuestro equipo te va a contactar pronto.';
-  const derechos = en
-    ? `You can ask us to see, correct or delete your data at any time by replying to this email or writing to ${equipo}.`
-    : `Puedes pedirnos consultar, corregir o eliminar tus datos en cualquier momento respondiendo este correo o escribiendo a ${equipo}.`;
+  const pares: [string, string | number | null][] = [[c.campos[0], servicio], [c.campos[1], lead.fecha], [c.campos[2], lead.personas]];
+  const { hola, recibido } = c;
+  const derechos = c.derechos(equipo);
   return {
-    asunto: en ? 'We received your request · Antídoto' : 'Recibimos tu solicitud · Antídoto',
+    asunto: c.asunto,
     responderA: equipo,
     html: marco(
-      en ? 'We received your request' : 'Recibimos tu solicitud',
+      c.titulo,
       `<p style="margin:0 0 12px">${escapar(hola)}</p><p style="margin:0 0 8px">${escapar(recibido)}</p>${filas(pares)}<p style="margin:0;color:#5b6b70;font-size:13px">${escapar(derechos)}</p>`,
     ),
     texto: `${hola}\n\n${recibido}\n\n${textoPlano(pares)}\n\n${derechos}`,

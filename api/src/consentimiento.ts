@@ -3,12 +3,9 @@
 // versión anterior. Por eso se acepta la vigente y las de "anteriores", y se guarda el texto
 // exacto de la versión que la persona vio.
 import datos from '../../src/data/consentimiento.json';
+import type { Locale } from './dominio';
 
-export interface Version {
-  version: string;
-  es: string;
-  en: string;
-}
+export type Version = { version: string } & Record<Locale, string>;
 
 export type Bloque = Version & { anteriores?: Version[] };
 

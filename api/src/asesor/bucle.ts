@@ -9,6 +9,7 @@
 // El modelo se inyecta (`Dependencias`) para probar el bucle sin red.
 // Módulo PURO.
 import type { Locale } from '../../../src/i18n/ui';
+import { LOCALES } from '../dominio';
 import { UI as ui } from './publico.gen';
 import { CIFRAS_PUBLICAS, type Clave } from './conocimiento';
 import { sumarUso, USO_CERO, type Uso, type UsageApi } from './costo';
@@ -57,7 +58,7 @@ export function validarEntrada(cuerpo: unknown): Entrada | ErrorEntrada {
   if (Object.keys(o).some((k) => !['locale', 'pagina', 'mensajes', 'conversacion', 'origen'].includes(k))) return formato;
   if (o.conversacion !== undefined && (typeof o.conversacion !== 'string' || !UUID_V4.test(o.conversacion))) return formato;
   if (o.origen !== undefined && o.origen !== 'panel' && o.origen !== 'facilitador') return formato;
-  if (o.locale !== 'es' && o.locale !== 'en') return formato;
+  if (!LOCALES.includes(o.locale as Locale)) return formato;
   if (o.pagina !== undefined && !(PAGINAS as readonly unknown[]).includes(o.pagina)) return formato;
   if (!Array.isArray(o.mensajes) || o.mensajes.length === 0) return formato;
   if (o.mensajes.length > MAX_PREGUNTAS * 2 - 1) return { error: 'limite' };
@@ -74,7 +75,7 @@ export function validarEntrada(cuerpo: unknown): Entrada | ErrorEntrada {
   }
   if (mensajes.at(-1)!.rol !== 'usuario') return formato;
   return {
-    locale: o.locale,
+    locale: o.locale as Locale,
     pagina: o.pagina as Pagina | undefined,
     mensajes,
     ...(o.conversacion ? { conversacion: o.conversacion as string } : {}),
@@ -106,18 +107,22 @@ export interface Respuesta {
 const RESPALDO: Record<Locale, string> = {
   es: 'Prefiero no darte una respuesta que no pueda respaldar. Escríbele al equipo de Antídoto por WhatsApp y te confirman.',
   en: "I'd rather not give you an answer I can't back up. Message the Antídoto team on WhatsApp and they'll confirm.",
+  pt: 'Prefiro não dar uma resposta que eu não possa sustentar. Fale com a equipe da Antídoto pelo WhatsApp e eles confirmam.',
 };
+
+/** Palabra de los rangos numéricos ("3 a 5"). */
+const HASTA: Record<Locale, string> = { es: 'a', en: 'to', pt: 'a' };
 
 const RANGO = new RegExp(`(\\d)\\s*[${RAYA_LARGA}${RAYA_MEDIA}]\\s*(?=[$\\d])`, 'g');
 const RAYA = new RegExp(`\\s*[${RAYA_LARGA}${RAYA_MEDIA}]\\s*`, 'g');
 
 /**
  * Quita las rayas del texto del modelo. El sitio no las usa, y la instrucción del prompt no
- * basta: Haiku las pone por costumbre. Un rango numérico pasa a "3 a 5" / "3 to 5"; cualquier
+ * basta: Haiku las pone por costumbre. Un rango numérico pasa a "3 a 5" ("3 to 5" en inglés); cualquier
  * otra raya, a coma.
  */
 export function sinRayas(texto: string, locale: Locale): string {
-  return texto.replace(RANGO, `$1 ${locale === 'es' ? 'a' : 'to'} `).replace(RAYA, ', ');
+  return texto.replace(RANGO, `$1 ${HASTA[locale]} `).replace(RAYA, ', ');
 }
 
 // Formas de voseo que Haiku se cuela aunque el prompt lo prohíba ("¿para cuándo lo pensás?",

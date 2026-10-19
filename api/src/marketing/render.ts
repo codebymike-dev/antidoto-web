@@ -10,6 +10,7 @@
 //
 // En línea: **negrita**, *cursiva*, [texto](https://…) y {{nombre}} (o "hola" si no hay nombre).
 import { escapar } from '../util';
+import type { Locale } from '../dominio';
 
 export interface Datos {
   nombre?: string | null;
@@ -19,16 +20,18 @@ export interface Pieza {
   asunto: string;
   preheader?: string | null;
   cuerpo: string;
-  locale: 'es' | 'en';
+  locale: Locale;
 }
 
 const URL_SEGURA = /^(https?:\/\/|mailto:)[^\s"'<>]+$/i;
 const segura = (u: string) => (URL_SEGURA.test(u) ? u : null);
 
 /** Reemplaza {{nombre}}. Sin nombre usa una forma neutra según el idioma. */
-export function personalizar(texto: string, datos: Datos, locale: 'es' | 'en'): string {
+const SIN_NOMBRE: Record<Locale, string> = { es: 'hola', en: 'there', pt: 'olá' };
+
+export function personalizar(texto: string, datos: Datos, locale: Locale): string {
   const nombre = datos.nombre?.trim().split(/\s+/)[0];
-  return texto.replace(/\{\{\s*nombre\s*\}\}/g, nombre || (locale === 'en' ? 'there' : 'hola'));
+  return texto.replace(/\{\{\s*nombre\s*\}\}/g, nombre || SIN_NOMBRE[locale]);
 }
 
 /** Formato en línea sobre texto YA escapado. */
@@ -81,7 +84,7 @@ export function convertir(cuerpo: string): { html: string; texto: string } {
   return { html: html.join('\n'), texto: texto.join('\n\n') };
 }
 
-const PIE = {
+const PIE: Record<Locale, Record<'motivo' | 'baja' | 'preferencias' | 'web' | 'suscribir' | 'suscribirBoton' | 'responsable', string>> = {
   es: {
     motivo: 'Recibes este correo porque te suscribiste a las novedades de Antídoto.',
     baja: 'Darte de baja',
@@ -99,6 +102,15 @@ const PIE = {
     suscribir: 'Get this news in your inbox:',
     suscribirBoton: 'subscribe here',
     responsable: 'Antídoto · Creative studio for organizations · Colombia',
+  },
+  pt: {
+    motivo: 'Você recebe este e-mail porque se inscreveu nas novidades da Antídoto.',
+    baja: 'Cancelar inscrição',
+    preferencias: 'Escolher temas ou pausar',
+    web: 'Ver no navegador',
+    suscribir: 'Receba estas novidades no seu e-mail:',
+    suscribirBoton: 'inscreva-se aqui',
+    responsable: 'Antídoto · Estúdio criativo empresarial · Colômbia',
   },
 };
 

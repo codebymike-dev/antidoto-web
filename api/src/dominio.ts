@@ -1,6 +1,14 @@
 // Constantes del dominio sin dependencias: las comparten la API, el esquema de la base y el
 // panel en el navegador (que no debe arrastrar drizzle a su bundle).
 
+/** Idiomas del sitio: los mismos de LOCALES en src/i18n/ui.ts. */
+export const LOCALES = ['es', 'en', 'pt'] as const;
+export type Locale = (typeof LOCALES)[number];
+/** El idioma que llega en una petición, o español si no es uno del sitio. */
+export const aLocale = (v: unknown): Locale => (LOCALES.includes(v as Locale) ? (v as Locale) : 'es');
+/** Nombre de cada idioma en español, para el panel y los correos al equipo. */
+export const NOMBRE_IDIOMA: Record<Locale, string> = { es: 'Español', en: 'Inglés', pt: 'Portugués' };
+
 export const ESTADOS = ['nuevo', 'contactado', 'cotizado', 'ganado', 'perdido'] as const;
 export type Estado = (typeof ESTADOS)[number];
 

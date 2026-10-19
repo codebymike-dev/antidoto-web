@@ -39,6 +39,16 @@ describe('validarLead', () => {
     });
   });
 
+  test('guarda el idioma del sitio y cualquier otro valor cuenta como español', () => {
+    const idioma = (locale: unknown) => {
+      const r = validarLead({ ...base, locale });
+      return r.ok ? r.lead.locale : null;
+    };
+    expect(idioma('pt')).toBe('pt');
+    expect(idioma('en')).toBe('en');
+    expect(idioma('fr')).toBe('es');
+  });
+
   test('la trampa llena o un envío demasiado rápido cuentan como bot', () => {
     expect(validarLead({ ...base, web: 'http://spam' })).toEqual({ ok: false, bot: true });
     expect(validarLead({ ...base, t: 300 })).toEqual({ ok: false, bot: true });

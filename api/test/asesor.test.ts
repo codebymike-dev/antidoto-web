@@ -25,8 +25,20 @@ describe('prompt y conocimiento', () => {
     expect(systemPrompt('en')).not.toContain('voseo');
     expect(systemPrompt('en')).toContain('Responde SIEMPRE en inglés');
   });
+  test('la versión en portugués responde en portugués de Brasil y presenta el SG-SST como norma colombiana', () => {
+    const pt = systemPrompt('pt');
+    expect(pt).toContain('Responde SIEMPRE en portugués de Brasil');
+    expect(pt).toContain('"você"');
+    expect(pt).toContain('exige la ley colombiana');
+    expect(pt).not.toContain('voseo');
+    const c = conocimiento('pt');
+    expect(c).toContain('## Quem é a Antídoto');
+    expect(c).toContain('Treinamentos vivenciais');
+    expect(c).toContain('https://antidotocolombia.com/pt/servicos/');
+    expect(c).toContain('Secretaria Distrital de Saúde de Bogotá');
+  });
   test('el conocimiento no trae voseo, rayas ni datos pendientes entre corchetes', () => {
-    for (const l of ['es', 'en'] as const) {
+    for (const l of ['es', 'en', 'pt'] as const) {
       const c = conocimiento(l);
       expect(c).not.toMatch(VOSEO);
       expect(c).not.toContain(RAYA_LARGA);
@@ -117,6 +129,10 @@ describe('herramientas', () => {
     const conPrecio = mensajeWhatsapp({ necesidad: 'Necesito catering por $2.000.000', pendiente: 'Mi número es 3001234567' }, 'es');
     expect(conPrecio).not.toContain('2.000.000');
     expect(conPrecio).not.toContain('3001234567');
+    const pt = mensajeWhatsapp({ necesidad: 'Preciso de um treinamento para 40 pessoas.', pendiente: 'Pode ser virtual?' }, 'pt');
+    expect(pt).toContain('Olá, Antídoto!');
+    expect(pt).toContain('Ainda tenho a dúvida: Pode ser virtual?');
+    expect(taparDatos('Meu e-mail é a@b.co', 'pt')).toBe('Meu e-mail é [e-mail]');
   });
 });
 
@@ -124,6 +140,8 @@ describe('validarEntrada', () => {
   const ok = { locale: 'es', pagina: 'catering', mensajes: [{ rol: 'usuario', texto: 'Hola' }] };
   test('acepta una conversación válida', () => {
     expect(validarEntrada(ok)).toEqual(ok);
+    expect(validarEntrada({ ...ok, locale: 'pt' })).toEqual({ ...ok, locale: 'pt' });
+    expect(validarEntrada({ ...ok, locale: 'fr' })).toEqual({ error: 'formato' });
   });
   test('rechaza roles no alternados, último mensaje del asesor, textos largos y campos extra', () => {
     expect(validarEntrada({ ...ok, mensajes: [{ rol: 'asesor', texto: 'Hola' }] })).toEqual({ error: 'formato' });

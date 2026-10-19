@@ -44,16 +44,25 @@ const entradas = readdirSync(dirServicios)
   .filter((f) => f.endsWith('.md'))
   .map((f) => leerFrontmatter(readFileSync(new URL(f, dirServicios), 'utf8')));
 
-// Igual que el build de producción (src/lib/servicios.ts): un borrador en cualquiera de los dos
+// Idiomas del sitio (LOCALES de src/i18n/ui.ts).
+const { ui, rutas, LOCALES } = await import(new URL('src/i18n/ui.ts', raiz).href);
+
+/** Las entradas de una clave en cada idioma, o null si falta alguno o alguno es borrador. */
+function porIdioma(lista, clave) {
+  const par = Object.fromEntries(LOCALES.map((l) => [l, lista.find((e) => e.clave === clave && e.idioma === l)]));
+  return LOCALES.every((l) => par[l] && !par[l].borrador) ? par : null;
+}
+const textos = (par, texto) => Object.fromEntries(LOCALES.map((l) => [l, texto(par[l])]));
+
+// Igual que el build de producción (src/lib/servicios.ts): un borrador en cualquiera de los
 // idiomas saca el servicio entero.
 const claves = [...new Set(entradas.map((e) => e.clave))];
 const servicios = claves
   .map((clave) => {
-    const es = entradas.find((e) => e.clave === clave && e.idioma === 'es');
-    const en = entradas.find((e) => e.clave === clave && e.idioma === 'en');
-    if (!es || !en || es.borrador || en.borrador) return null;
+    const par = porIdioma(entradas, clave);
+    if (!par) return null;
     const texto = (e) => ({ titulo: e.title, slug: e.slug, resumen: e.lead, datos: e.facts ?? [], incluye: e.includes ?? [] });
-    return { clave, orden: es.orden ?? 99, es: texto(es), en: texto(en) };
+    return { clave, orden: par.es.orden ?? 99, ...textos(par, texto) };
   })
   .filter(Boolean)
   .sort((a, b) => a.orden - b.orden)
@@ -68,11 +77,10 @@ const entradasOfertas = readdirSync(dirOfertas, { recursive: true })
 const lineas = new Set(servicios.map((s) => s.clave));
 const ofertas = [...new Set(entradasOfertas.map((e) => e.clave))]
   .map((clave) => {
-    const es = entradasOfertas.find((e) => e.clave === clave && e.idioma === 'es');
-    const en = entradasOfertas.find((e) => e.clave === clave && e.idioma === 'en');
-    if (!es || !en || es.borrador || en.borrador || !lineas.has(es.linea)) return null;
+    const par = porIdioma(entradasOfertas, clave);
+    if (!par || !lineas.has(par.es.linea)) return null;
     const texto = (e) => ({ titulo: e.title, slug: e.slug, resumen: e.lead, para: e.para ?? [] });
-    return { clave, linea: es.linea, orden: es.orden ?? 99, es: texto(es), en: texto(en) };
+    return { clave, linea: par.es.linea, orden: par.es.orden ?? 99, ...textos(par, texto) };
   })
   .filter(Boolean)
   .sort((a, b) => a.orden - b.orden)
@@ -90,7 +98,6 @@ const clientes = [...fuenteClientes.matchAll(/^\s*\['[\w-]+', '([^']+)', '\w+'\]
 // .ts del sitio al ejecutarse. En CI solo se instalan las dependencias de api/, y transformar
 // esos archivos exige el tsconfig de Astro de la raíz (falla con TSCONFIG_ERROR). Node 24 los
 // lee directamente (quita los tipos); las funciones de ui.ts no pasan a JSON y el asesor no las usa.
-const { ui, rutas } = await import(new URL('src/i18n/ui.ts', raiz).href);
 const { SITE, EMPRESA, LICENCIA } = await import(new URL('src/data/site.ts', raiz).href);
 const contacto = { url: SITE.url, phoneDisplay: SITE.phoneDisplay, llamadasDisplay: SITE.llamadasDisplay, email: SITE.email, ubicacion: EMPRESA.ubicacion };
 
@@ -99,7 +106,7 @@ const contacto = { url: SITE.url, phoneDisplay: SITE.phoneDisplay, llamadasDispl
 // tampoco publica.
 const { FAQ, esPendiente } = await import(new URL('src/data/faq.ts', raiz).href);
 const temasLinea = new Set(entradas.map((e) => e.clave));
-const faq = FAQ.filter((p) => (!temasLinea.has(p.tema) || lineas.has(p.tema)) && !esPendiente(p.es[1])).map(({ clave, tema, es, en }) => ({ clave, tema, es, en }));
+const faq = FAQ.filter((p) => (!temasLinea.has(p.tema) || lineas.has(p.tema)) && !esPendiente(p.es[1])).map((p) => ({ clave: p.clave, tema: p.tema, ...Object.fromEntries(LOCALES.map((l) => [l, p[l]])) }));
 
 // Soluciones por área (src/data/soluciones.ts): título y descripción de ui.inicio.paraQuien,
 // como en su página, y solo las ofertas publicadas.
@@ -113,15 +120,15 @@ const soluciones = SOLUCIONES.map((sol) => ({
 
 const salida = `// Generado por scripts/empaquetar-conocimiento.mjs desde src/content/servicios/, src/content/ofertas/,
 // src/data/clientes.ts, src/data/faq.ts, src/data/soluciones.ts, src/i18n/ui.ts y src/data/site.ts. No editar.
-import type { ui as Ui, rutas as Rutas } from '../../../src/i18n/ui';
+import type { ui as Ui, rutas as Rutas, Locale } from '../../../src/i18n/ui';
 
 export const SERVICIOS_PUBLICOS = ${JSON.stringify(servicios, null, 2)} as const;
 export const CLIENTES_PUBLICOS: readonly string[] = ${JSON.stringify(clientes)};
 /** Textos de ui.ts sin sus funciones (JSON): el asesor solo lee datos. */
 export const UI = ${JSON.stringify(ui)} as unknown as typeof Ui;
-export const RUTAS = ${JSON.stringify({ servicios: rutas.servicios, contacto: rutas.contacto, faq: rutas.faq, sgsst: rutas.sgsst, actividades: rutas.actividades, soluciones: solucionesBase })} as Pick<typeof Rutas, 'servicios' | 'contacto' | 'faq' | 'sgsst' | 'actividades'> & { soluciones: Record<'es' | 'en', string> };
-export const FAQ_PUBLICA: readonly { clave: string; tema: string; es: readonly [string, string]; en: readonly [string, string] }[] = ${JSON.stringify(faq)};
-export const SOLUCIONES_PUBLICAS: readonly { clave: string; perfil: number; slug: Record<'es' | 'en', string>; ofertas: readonly string[] }[] = ${JSON.stringify(soluciones)};
+export const RUTAS = ${JSON.stringify({ servicios: rutas.servicios, contacto: rutas.contacto, faq: rutas.faq, sgsst: rutas.sgsst, actividades: rutas.actividades, soluciones: solucionesBase })} as Pick<typeof Rutas, 'servicios' | 'contacto' | 'faq' | 'sgsst' | 'actividades'> & { soluciones: Record<Locale, string> };
+export const FAQ_PUBLICA: readonly ({ clave: string; tema: string } & Record<Locale, readonly [string, string]>)[] = ${JSON.stringify(faq)};
+export const SOLUCIONES_PUBLICAS: readonly { clave: string; perfil: number; slug: Record<Locale, string>; ofertas: readonly string[] }[] = ${JSON.stringify(soluciones)};
 export const SITE = ${JSON.stringify(contacto)} as const;
 export const LICENCIA = ${JSON.stringify(LICENCIA)} as const;
 `;

@@ -4,6 +4,7 @@ import { inArray } from 'drizzle-orm';
 import type { Db } from './db/conexion';
 import { configuracion } from './db/schema';
 import { ahora } from './util';
+import { LOCALES, type Locale } from './dominio';
 
 type Validador = (v: unknown) => { ok: true; valor: unknown } | { ok: false };
 
@@ -21,7 +22,7 @@ const regalo: Validador = (v) => {
   if (!v || typeof v !== 'object' || Array.isArray(v)) return { ok: false };
   const o = v as Record<string, unknown>;
   const texto = (x: unknown) => typeof x === 'string' && x.trim().length > 0 && x.length <= 120;
-  return texto(o.es) && texto(o.en) ? { ok: true, valor: { es: (o.es as string).trim(), en: (o.en as string).trim() } } : { ok: false };
+  return LOCALES.every((l) => texto(o[l])) ? { ok: true, valor: Object.fromEntries(LOCALES.map((l) => [l, (o[l] as string).trim()])) } : { ok: false };
 };
 
 /** Video del hero (src/data/site.ts: VIDEO_HERO): MP4 obligatorio y WebM opcional. */
@@ -38,7 +39,7 @@ export const AJUSTES = {
   'asesor.tope_diario_usd': { validar: numero(0, 20), defecto: null as number | null },
   'asesor.activo': { validar: booleano, defecto: true },
   /** Lo lee el build del sitio (/v1/ajustes): cambia al publicar. */
-  'sitio.regalo_novedades': { validar: regalo, defecto: null as { es: string; en: string } | null },
+  'sitio.regalo_novedades': { validar: regalo, defecto: null as Record<Locale, string> | null },
   'sitio.video_hero': { validar: video, defecto: null as { mp4: string; webm?: string } | null },
 } satisfies Record<string, { validar: Validador; defecto: unknown }>;
 export type ClaveAjuste = keyof typeof AJUSTES;

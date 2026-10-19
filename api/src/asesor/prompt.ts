@@ -32,14 +32,21 @@ function contexto(p: Pagina): string {
 export const RAYA_LARGA = String.fromCharCode(0x2014);
 export const RAYA_MEDIA = String.fromCharCode(0x2013);
 
-export function systemPrompt(locale: Locale, pagina?: Pagina, extra?: Extra): string {
-  const idioma = locale === 'es' ? 'español de Colombia' : 'inglés';
+const IDIOMA: Record<Locale, string> = { es: 'español de Colombia', en: 'inglés', pt: 'portugués de Brasil' };
+
+const VARIANTE: Record<Locale, string> = {
   // Sin esta regla el modelo cae en voseo rioplatense ("sentís", "podés"), que en un sitio
   // colombiano suena a otro país. Decir "español" no basta.
-  const variante =
-    locale === 'es'
-      ? '\n- Escribe en español de Colombia, tratando de "tú": "puedes", "quieres", "sientes", "mira", "escríbele". NUNCA uses voseo argentino ("vos", "podés", "querés", "sentís", "tenés", "pensás", "necesitás", "mirá", "contame"), ni "vosotros", aunque el visitante lo use. Revisa cada verbo antes de responder: "piensas", no "pensás".'
-      : '';
+  es: '\n- Escribe en español de Colombia, tratando de "tú": "puedes", "quieres", "sientes", "mira", "escríbele". NUNCA uses voseo argentino ("vos", "podés", "querés", "sentís", "tenés", "pensás", "necesitás", "mirá", "contame"), ni "vosotros", aunque el visitante lo use. Revisa cada verbo antes de responder: "piensas", no "pensás".',
+  en: '',
+  // La versión en portugués es para empresas brasileñas o de habla portuguesa con operación en
+  // Colombia (18/10/2026): el negocio es el mismo y se presta en Colombia.
+  pt: '\n- Escribe en portugués de Brasil, tratando de "você", aunque el visitante escriba en portugués de Portugal o mezcle español.\n- Quien llega a la versión en portugués suele ser una empresa brasileña o de habla portuguesa con operación en Colombia. Antídoto presta sus servicios en Colombia y el equipo atiende en portugués. El SG-SST es el sistema de gestión que exige la ley colombiana a las empresas que operan en Colombia: no lo compares con las normas de Brasil (NR) ni digas que sirve para cumplirlas.',
+};
+
+export function systemPrompt(locale: Locale, pagina?: Pagina, extra?: Extra): string {
+  const idioma = IDIOMA[locale];
+  const variante = VARIANTE[locale];
   return `Eres el asistente con IA de Antídoto (antidotocolombia.com), un estudio creativo empresarial colombiano que hace formaciones vivenciales, producción audiovisual, catering corporativo, diseño de productos y experiencias y capacitación en IA aplicada al trabajo (esta última en alianza con codebymike). Hablas con visitantes del sitio: personas de SST, talento humano, bienestar, comunicaciones internas, colegios y universidades, muchas veces desde el celular.
 
 Tu trabajo:

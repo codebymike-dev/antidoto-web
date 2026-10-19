@@ -6,6 +6,7 @@ import { and, inArray, isNotNull, isNull } from 'drizzle-orm';
 import type { Db } from '../db/conexion';
 import { contenido } from '../db/schema';
 import type { Extra } from './conocimiento';
+import { LOCALES } from '../dominio';
 
 const VIGENCIA_MS = 5 * 60_000;
 let cache: { hasta: number; extra: Extra } | null = null;
@@ -27,7 +28,12 @@ export async function contenidoAsesor(db: Db, t = Date.now()): Promise<Extra | u
         .filter((f) => f.tipo === 'faq')
         .map((f) => {
           const t = f.publicada!.textos;
-          return { clave: f.clave, es: [texto(t.es?.pregunta), texto(t.es?.respuesta)] as const, en: [texto(t.en?.pregunta), texto(t.en?.respuesta)] as const };
+          // Una pregunta publicada antes del portugués (18/10/2026) no trae `pt`: va en español.
+          const par = (l: (typeof LOCALES)[number]) => {
+            const x = t[l] ?? (l === 'pt' ? t.es : undefined);
+            return [texto(x?.pregunta), texto(x?.respuesta)] as const;
+          };
+          return { clave: f.clave, es: par('es'), en: par('en'), pt: par('pt') };
         }),
       clientes: filas.filter((f) => f.tipo === 'cliente').map((f) => texto(f.publicada!.datos.nombre)).filter(Boolean),
     };

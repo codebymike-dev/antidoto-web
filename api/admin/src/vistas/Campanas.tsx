@@ -1,4 +1,5 @@
 // Campañas de novedades, correos automáticos y plantillas.
+import type { Locale } from '@api/dominio';
 import { mensajeError, api, useDatos } from '../api';
 import { usePuede } from '../sesion';
 import { ESTADOS_CAMPANA, IDIOMAS, SERVICIOS } from '../textos';
@@ -10,7 +11,7 @@ import { Icono } from '../ui/iconos';
 
 export const TONO_CAMPANA: Record<string, string> = { borrador: 'apagado', programada: 'info', enviando: 'alerta', enviada: 'exito', cancelada: 'apagado' };
 const NOMBRES_AUTOMATICOS: Record<string, string> = { bienvenida: 'Bienvenida' };
-export const nombreAutomatico = (a: { clave: string; locale: 'es' | 'en' }) => `${NOMBRES_AUTOMATICOS[a.clave.split(':')[0]!] ?? a.clave} en ${IDIOMAS[a.locale].toLowerCase()}`;
+export const nombreAutomatico = (a: { clave: string; locale: Locale }) => `${NOMBRES_AUTOMATICOS[a.clave.split(':')[0]!] ?? a.clave} en ${IDIOMAS[a.locale].toLowerCase()}`;
 
 export default function Campanas() {
   const puede = usePuede();

@@ -1,7 +1,7 @@
 // Formas de las respuestas de la API. Los tipos de filas salen del esquema (import type: no
 // arrastran drizzle al bundle).
 import type { Lead as FilaLead, Contacto as FilaContacto, Campana as FilaCampana, Usuario } from '@api/db/schema';
-import type { Estado, EstadoContacto } from '@api/dominio';
+import type { Estado, EstadoContacto, Locale } from '@api/dominio';
 
 export type Lead = Omit<FilaLead, 'ipHash'>;
 
@@ -96,11 +96,11 @@ export interface Plantilla {
   asunto: string;
   preheader: string | null;
   cuerpo: string;
-  locale: 'es' | 'en';
+  locale: Locale;
 }
 export interface Automatico {
   clave: string;
-  locale: 'es' | 'en';
+  locale: Locale;
   asunto: string;
   preheader: string | null;
   cuerpo: string;

@@ -168,6 +168,7 @@ describe('correos automáticos', () => {
     expect(lista.automaticos.map((a) => [a.clave, a.personalizado])).toEqual([
       ['bienvenida:es', false],
       ['bienvenida:en', false],
+      ['bienvenida:pt', false],
     ]);
 
     const guardar = await admin('/admin/api/automaticos/bienvenida:es', { method: 'PUT', body: JSON.stringify({ asunto: 'Tu guía de regalo', cuerpo: '[[Descargar la guía|{{sitio}}/guia.pdf]]', activo: true }) });

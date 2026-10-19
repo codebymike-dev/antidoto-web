@@ -1,6 +1,6 @@
 // Una campaña: editor (borrador), programada o resultados (enviando, enviada, cancelada).
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { SERVICIOS as LISTA_SERVICIOS } from '@api/dominio';
+import { SERVICIOS as LISTA_SERVICIOS, LOCALES } from '@api/dominio';
 import { api, mensajeError, useDatos, ErrorApi } from '../api';
 import { navegar } from '../ruteo';
 import { usePuede } from '../sesion';
@@ -238,12 +238,11 @@ function Editor({ c, audiencia, alGuardar }: { c: TCampana | null; audiencia: nu
           <div class="fila-campos">
             <Campo etiqueta="Idioma">
               <select name="locale">
-                <option value="es" selected={(c?.locale ?? 'es') === 'es'}>
-                  Español
-                </option>
-                <option value="en" selected={c?.locale === 'en'}>
-                  Inglés
-                </option>
+                {LOCALES.map((l) => (
+                  <option value={l} selected={(c?.locale ?? 'es') === l}>
+                    {IDIOMAS[l]}
+                  </option>
+                ))}
               </select>
             </Campo>
           </div>

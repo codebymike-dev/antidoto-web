@@ -1,5 +1,5 @@
 // Nombres visibles de los catálogos del dominio. El panel es solo en español.
-import type { Estado, ServicioId, Rol, EstadoContacto, EstadoCampana } from '@api/dominio';
+import { NOMBRE_IDIOMA, type Estado, type ServicioId, type Rol, type EstadoContacto, type EstadoCampana } from '@api/dominio';
 
 export const ESTADOS: Record<Estado, string> = {
   nuevo: 'Nuevo',
@@ -41,7 +41,7 @@ export const ESTADOS_CAMPANA: Record<EstadoCampana, string> = {
   cancelada: 'Cancelada',
 };
 
-export const IDIOMAS: Record<'es' | 'en', string> = { es: 'Español', en: 'Inglés' };
+export const IDIOMAS = NOMBRE_IDIOMA;
 
 export const ORIGENES_CONTACTO: Record<string, string> = {
   pie: 'Pie del sitio',

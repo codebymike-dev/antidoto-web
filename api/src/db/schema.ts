@@ -2,7 +2,7 @@
 // el historial de cada lead y el acceso del equipo al admin con enlace mágico.
 // Fechas en milisegundos desde epoch (UTC). Los ids son UUID generados en la API.
 import { sqliteTable, text, integer, real, index, uniqueIndex, primaryKey } from 'drizzle-orm/sqlite-core';
-import { ESTADOS, SERVICIOS, ROLES, ESTADOS_CONTACTO, ESTADOS_CAMPANA, TIPOS_CLIC } from '../dominio';
+import { ESTADOS, SERVICIOS, ROLES, ESTADOS_CONTACTO, ESTADOS_CAMPANA, TIPOS_CLIC, LOCALES } from '../dominio';
 
 export { ESTADOS, SERVICIOS, ROLES, ESTADOS_CONTACTO, ESTADOS_CAMPANA };
 import type { ServicioId } from '../dominio';
@@ -31,7 +31,7 @@ export const leads = sqliteTable(
     telefono: text('telefono'),
 
     // De dónde vino.
-    locale: text('locale', { enum: ['es', 'en'] }).notNull(),
+    locale: text('locale', { enum: LOCALES }).notNull(),
     pagina: text('pagina'),
     referente: text('referente'),
     utmSource: text('utm_source'),
@@ -206,7 +206,7 @@ export const contactos = sqliteTable(
     email: text('email').notNull().unique(),
     nombre: text('nombre'),
     empresa: text('empresa'),
-    locale: text('locale', { enum: ['es', 'en'] }).notNull(),
+    locale: text('locale', { enum: LOCALES }).notNull(),
     estado: text('estado', { enum: ESTADOS_CONTACTO }).notNull().default('pendiente'),
     origen: text('origen', { enum: ORIGENES_CONTACTO }).notNull(),
     /** Servicios de interés (ids de SERVICIOS), en JSON. */
@@ -255,7 +255,7 @@ export const campanas = sqliteTable('campanas', {
   preheader: text('preheader'),
   /** Cuerpo en el formato de texto simple de src/marketing/render.ts. */
   cuerpo: text('cuerpo').notNull(),
-  locale: text('locale', { enum: ['es', 'en'] }).notNull(),
+  locale: text('locale', { enum: LOCALES }).notNull(),
   /** Si tiene servicios, solo va a contactos interesados en alguno; vacío es para todos. */
   intereses: text('intereses', { mode: 'json' }).$type<ServicioId[]>().notNull().default([]),
   estado: text('estado', { enum: ESTADOS_CAMPANA }).notNull().default('borrador'),
@@ -322,7 +322,7 @@ export const plantillas = sqliteTable('plantillas', {
   asunto: text('asunto').notNull(),
   preheader: text('preheader'),
   cuerpo: text('cuerpo').notNull(),
-  locale: text('locale', { enum: ['es', 'en'] }).notNull(),
+  locale: text('locale', { enum: LOCALES }).notNull(),
   autor: text('autor').notNull(),
   creada: integer('creada').notNull(),
 });
@@ -367,7 +367,7 @@ export const conversaciones = sqliteTable(
     id: text('id').primaryKey(),
     creada: integer('creada').notNull(),
     actualizada: integer('actualizada').notNull(),
-    locale: text('locale', { enum: ['es', 'en'] }).notNull(),
+    locale: text('locale', { enum: LOCALES }).notNull(),
     paginaInicial: text('pagina_inicial'),
     paginaUltima: text('pagina_ultima'),
     /** panel (burbuja del sitio) o facilitador (mundo pixel). */

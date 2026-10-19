@@ -131,7 +131,9 @@ export function obtenerAjustes(): Promise<AjustesSitio> {
       const r = await fetch(`${api}/v1/ajustes`, { signal: AbortSignal.timeout(15_000) });
       if (!r.ok) throw new Error(`la API respondió ${r.status}`);
       const d = (await r.json()) as Partial<AjustesSitio>;
-      return { regaloNovedades: d.regaloNovedades ?? base.regaloNovedades, videoHero: d.videoHero ?? base.videoHero };
+      // Un regalo guardado antes del portugués (18/10/2026) no trae `pt`: sale con el nombre en español.
+      const regalo = d.regaloNovedades ?? base.regaloNovedades;
+      return { regaloNovedades: regalo && { ...regalo, pt: regalo.pt ?? regalo.es }, videoHero: d.videoHero ?? base.videoHero };
     } catch (e) {
       if (estricto()) throw new Error(`[cms] No se pudieron leer los ajustes del sitio: ${(e as Error).message}`);
       return base;

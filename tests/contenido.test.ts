@@ -7,8 +7,6 @@ import type { Servicio } from '../src/lib/servicios';
 
 const base = (clave: string, idioma: Locale, extra: Partial<EntradaBase & { n: number }> = {}) => ({ clave, idioma, slug: `${clave}-${idioma}`, n: 1, ...extra });
 const nombre = (c: string) => `La entrada "${c}"`;
-// Los tres idiomas de una entrada, con los mismos extras.
-const trio = (clave: string, extra: Partial<EntradaBase & { n: number }> = {}) => [base(clave, 'es', extra), base(clave, 'en', extra), base(clave, 'pt', extra)];
 
 describe('emparejarPorClave', () => {
   it('une los idiomas y conserva el orden de aparición', () => {

@@ -35,11 +35,11 @@ async function subir(ck: string, bytes: Uint8Array, nombre = 'foto.png', tipo = 
 }
 
 describe('esquemas', () => {
-  test('un borrador puede ir incompleto; publicar exige todo en los dos idiomas', () => {
+  test('un borrador puede ir incompleto; publicar exige todo en todos los idiomas', () => {
     expect(validarContenido('faq', { clave: 'horarios', datos: { tema: 'general' }, textos: { es: { pregunta: '¿Horario?' } } }).ok).toBe(true);
     const r = validarContenido('faq', { clave: 'horarios', datos: { tema: 'general' }, textos: { es: { pregunta: '¿Horario?', respuesta: 'De 8 a 5.' } } }, true);
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(Object.keys(r.errores).sort()).toEqual(['en.pregunta', 'en.respuesta']);
+    if (!r.ok) expect(Object.keys(r.errores).sort()).toEqual(['en.pregunta', 'en.respuesta', 'pt.pregunta', 'pt.respuesta']);
   });
   test('formato: clave, slug, fecha y opciones', () => {
     const r = validarContenido('blog', { clave: 'Mal Clave', datos: { fecha: '2026-13-45', categoria: 'otra' }, textos: { es: { slug: 'Con Espacios' } } });
@@ -80,7 +80,11 @@ describe('ciclo de una entrada', () => {
     tipo: 'faq',
     clave: 'horarios',
     datos: { tema: 'general', destacada: false },
-    textos: { es: { pregunta: '¿En qué horario atienden?', respuesta }, en: { pregunta: 'What are your hours?', respuesta: 'Monday to Friday.' } },
+    textos: {
+      es: { pregunta: '¿En qué horario atienden?', respuesta },
+      en: { pregunta: 'What are your hours?', respuesta: 'Monday to Friday.' },
+      pt: { pregunta: 'Qual é o horário de atendimento?', respuesta: 'De segunda a sexta.' },
+    },
   });
 
   test('comercial no edita contenido; contenido sí', async () => {
@@ -135,6 +139,7 @@ describe('ciclo de una entrada', () => {
       textos: {
         es: { title: 'Jugar para aprender', slug: 'jugar-para-aprender', lead: 'Por qué funciona.', alt: 'Un equipo jugando', cuerpo: '## Hola\n\nTexto.' },
         en: { title: 'Play to learn', slug: 'play-to-learn', lead: 'Why it works.', alt: 'A team playing', cuerpo: '## Hi\n\nText.' },
+        pt: { title: 'Jogar para aprender', slug: 'jogar-para-aprender', lead: 'Por que funciona.', alt: 'Uma equipe jogando', cuerpo: '## Olá\n\nTexto.' },
       },
     });
     const a = ((await (await enviar(contenidoCk, '/admin/api/contenido', 'POST', art('jugar'))).json()) as { entrada: { id: string } }).entrada.id;
@@ -188,8 +193,8 @@ describe('el asesor ve lo publicado en el panel', () => {
     const clave = FAQ_PUBLICA[0]!.clave;
     const texto = conocimiento('es', {
       faq: [
-        { clave: 'horario-panel', es: ['¿Atienden sábados?', 'Sí, con cita.'], en: ['Saturdays?', 'Yes, by appointment.'] },
-        { clave, es: ['Pregunta reemplazada', 'Respuesta nueva del panel.'], en: ['Replaced', 'New answer.'] },
+        { clave: 'horario-panel', es: ['¿Atienden sábados?', 'Sí, con cita.'], en: ['Saturdays?', 'Yes, by appointment.'], pt: ['Atendem aos sábados?', 'Sim, com hora marcada.'] },
+        { clave, es: ['Pregunta reemplazada', 'Respuesta nueva del panel.'], en: ['Replaced', 'New answer.'], pt: ['Pergunta substituída', 'Resposta nova do painel.'] },
       ],
       clientes: ['Acme Andina'],
     });

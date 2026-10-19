@@ -138,11 +138,15 @@ describe('service worker', () => {
   });
 
   it('sin red y sin copia muestra la página offline del idioma', async () => {
-    const sw = montar({ '/offline/': 'sin red', '/en/offline/': 'offline' });
+    const sw = montar({ '/offline/': 'sin red', '/en/offline/': 'offline', '/pt/offline/': 'sem conexão' });
     await sw.instalar();
     sw.red.enLinea = false;
     expect(await sw.navegar('/nosotros/')).toBe('sin red');
     expect(await sw.navegar('/en/about/')).toBe('offline');
+    expect(await sw.navegar('/pt/sobre/')).toBe('sem conexão');
+    expect(await sw.navegar('/pt')).toBe('sem conexão');
+    // Una ruta en español que empieza por las mismas letras no es portugués.
+    expect(await sw.navegar('/ptolomeo/')).toBe('sin red');
   });
 
   it('si la precarga de navegación falla, usa la red igual', async () => {

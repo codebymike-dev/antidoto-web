@@ -34,17 +34,21 @@ export function sinPendientes(s: string): string | null {
 
 /** Preguntas y clientes publicados desde el panel (src/asesor/publicado.ts): se suman a los del sitio. */
 export interface Extra {
-  faq: readonly { clave: string; es: readonly [string, string]; en: readonly [string, string] }[];
+  faq: readonly ({ clave: string } & Record<Locale, readonly [string, string]>)[];
   clientes: readonly string[];
 }
+
+/** Rótulos del conocimiento en cada idioma: el modelo responde en el idioma de la página. */
+const ETIQUETAS: Record<Locale, Record<'quien' | 'clave' | 'servicios' | 'incluye' | 'datos' | 'pagina' | 'ofertas' | 'para' | 'recomendadas' | 'perfiles' | 'pasos' | 'actividades' | 'faq' | 'pend' | 'clientes' | 'sinClientes' | 'cifras' | 'fundadora' | 'historia' | 'contacto' | 'aliados' | 'sgsst' | 'cubre' | 'noCubre' | 'juegos' | 'whatsapp' | 'llamadas' | 'correo' | 'donde' | 'cotizador', string>> = {
+  es: { quien: 'Quién es Antídoto', clave: 'clave', servicios: 'Servicios', incluye: 'Incluye', datos: 'Datos', pagina: 'Página', ofertas: 'Programas y ofertas', para: 'para', recomendadas: 'Ofertas recomendadas', perfiles: 'Para quién (soluciones por área)', pasos: 'Cómo trabajamos', actividades: 'Actividades digitales', faq: 'Preguntas frecuentes', pend: 'Pendiente de confirmar: el equipo lo responde por WhatsApp.', clientes: 'Clientes publicados en el sitio', sinClientes: 'El sitio no publica nombres de clientes. No nombres ninguno.', cifras: 'Cifras publicadas', fundadora: 'Fundadora', historia: 'Historia', contacto: 'Contacto', aliados: 'Aliados', sgsst: 'SG-SST y licencia en Seguridad y Salud en el Trabajo', cubre: 'La licencia cubre solo estos campos de acción', noCubre: 'Sistemas de gestión y auditorías (NO hacen parte de la licencia; nunca digas que Antídoto certifica: la certificación ISO la otorga el organismo certificador)', juegos: 'Juegos (Misiones Antídoto): los participantes entran con el código de su actividad en', whatsapp: 'WhatsApp (solo mensajes)', llamadas: 'Llamadas', correo: 'Correo', donde: 'Dónde', cotizador: 'Cotizador' },
+  en: { quien: 'Who Antídoto is', clave: 'key', servicios: 'Services', incluye: 'Includes', datos: 'Facts', pagina: 'Page', ofertas: 'Programs and offers', para: 'for', recomendadas: 'Recommended offers', perfiles: 'Who it is for (solutions by area)', pasos: 'How we work', actividades: 'Digital activities', faq: 'FAQ', pend: 'Not confirmed yet: the team answers this on WhatsApp.', clientes: 'Clients published on the site', sinClientes: 'The site does not publish client names. Do not name any.', cifras: 'Published figures', fundadora: 'Founder', historia: 'History', contacto: 'Contact', aliados: 'Partners', sgsst: 'OHS (SG-SST) and occupational health and safety license', cubre: 'The license only covers these fields of practice', noCubre: 'Management systems and audits (NOT part of the license; never say Antídoto certifies: ISO certification is granted by the certification body)', juegos: 'Games (Misiones Antídoto): participants join with their activity code at', whatsapp: 'WhatsApp (messages only)', llamadas: 'Calls', correo: 'Email', donde: 'Where', cotizador: 'Quote form' },
+  pt: { quien: 'Quem é a Antídoto', clave: 'chave', servicios: 'Serviços', incluye: 'Inclui', datos: 'Dados', pagina: 'Página', ofertas: 'Programas e ofertas', para: 'para', recomendadas: 'Ofertas recomendadas', perfiles: 'Para quem (soluções por área)', pasos: 'Como trabalhamos', actividades: 'Atividades digitais', faq: 'Perguntas frequentes', pend: 'Ainda não confirmado: a equipe responde isso pelo WhatsApp.', clientes: 'Clientes publicados no site', sinClientes: 'O site não publica nomes de clientes. Não cite nenhum.', cifras: 'Números publicados', fundadora: 'Fundadora', historia: 'História', contacto: 'Contato', aliados: 'Parceiros', sgsst: 'SG-SST (norma colombiana) e licença em Segurança e Saúde no Trabalho', cubre: 'A licença cobre só estes campos de ação', noCubre: 'Sistemas de gestão e auditorias (NÃO fazem parte da licença; nunca diga que a Antídoto certifica: a certificação ISO é concedida pelo organismo certificador)', juegos: 'Jogos (Misiones Antídoto): os participantes entram com o código da sua atividade em', whatsapp: 'WhatsApp (só mensagens)', llamadas: 'Ligações', correo: 'E-mail', donde: 'Onde', cotizador: 'Orçamento' },
+};
 
 export function conocimiento(locale: Locale, extra?: Extra): string {
   const s = ui[locale];
   const i = s.inicio;
-  const es = locale === 'es';
-  const L = es
-    ? { servicios: 'Servicios', incluye: 'Incluye', datos: 'Datos', pagina: 'Página', ofertas: 'Programas y ofertas', para: 'para', recomendadas: 'Ofertas recomendadas', perfiles: 'Para quién (soluciones por área)', pasos: 'Cómo trabajamos', actividades: 'Actividades digitales', faq: 'Preguntas frecuentes', pend: 'Pendiente de confirmar: el equipo lo responde por WhatsApp.', clientes: 'Clientes publicados en el sitio', sinClientes: 'El sitio no publica nombres de clientes. No nombres ninguno.', cifras: 'Cifras publicadas', fundadora: 'Fundadora', historia: 'Historia', contacto: 'Contacto', aliados: 'Aliados', sgsst: 'SG-SST y licencia en Seguridad y Salud en el Trabajo', cubre: 'La licencia cubre solo estos campos de acción', noCubre: 'Sistemas de gestión y auditorías (NO hacen parte de la licencia; nunca digas que Antídoto certifica: la certificación ISO la otorga el organismo certificador)', juegos: 'Juegos (Misiones Antídoto): los participantes entran con el código de su actividad en' }
-    : { servicios: 'Services', incluye: 'Includes', datos: 'Facts', pagina: 'Page', ofertas: 'Programs and offers', para: 'for', recomendadas: 'Recommended offers', perfiles: 'Who it is for (solutions by area)', pasos: 'How we work', actividades: 'Digital activities', faq: 'FAQ', pend: 'Not confirmed yet: the team answers this on WhatsApp.', clientes: 'Clients published on the site', sinClientes: 'The site does not publish client names. Do not name any.', cifras: 'Published figures', fundadora: 'Founder', historia: 'History', contacto: 'Contact', aliados: 'Partners', sgsst: 'OHS (SG-SST) and occupational health and safety license', cubre: 'The license only covers these fields of practice', noCubre: 'Management systems and audits (NOT part of the license; never say Antídoto certifies: ISO certification is granted by the certification body)', juegos: 'Games (Misiones Antídoto): participants join with their activity code at' };
+  const L = ETIQUETAS[locale];
 
   const lista = (xs: readonly string[]) => xs.map(sinPendientes).filter(Boolean).map((x) => `- ${x}`).join('\n');
   const base = `${SITE.url}${rutas.servicios[locale]}`;
@@ -58,7 +62,7 @@ export function conocimiento(locale: Locale, extra?: Extra): string {
     const titulos = new Set<string>(sv.ofertas.map((o) => o[locale].titulo));
     const incluye = t.incluye.filter((x) => !titulos.has(x));
     return [
-      `### ${t.titulo} (${es ? 'clave' : 'key'}: ${sv.clave})`,
+      `### ${t.titulo} (${L.clave}: ${sv.clave})`,
       t.resumen,
       ...(incluye.length ? [`${L.incluye}:`, lista(incluye)] : []),
       `${L.datos}:`,
@@ -97,7 +101,7 @@ export function conocimiento(locale: Locale, extra?: Extra): string {
     .join('\n');
   const sg = s.sgsst;
 
-  return `## ${es ? 'Quién es Antídoto' : 'Who Antídoto is'}
+  return `## ${L.quien}
 ${s.nosotrosLead}
 ${i.lead}
 ${i.servicios.lead}
@@ -145,5 +149,5 @@ ${L.pagina}: ${SITE.url}${rutas.faq[locale]}
 ${faq}
 
 ## ${L.contacto}
-${es ? 'WhatsApp (solo mensajes)' : 'WhatsApp (messages only)'}: ${SITE.phoneDisplay}. ${es ? 'Llamadas' : 'Calls'}: ${SITE.llamadasDisplay}. ${es ? 'Correo' : 'Email'}: ${SITE.email}. ${es ? 'Dónde' : 'Where'}: ${SITE.ubicacion[locale]}. ${es ? 'Cotizador' : 'Quote form'}: ${SITE.url}${rutas.contacto[locale]}`;
+${L.whatsapp}: ${SITE.phoneDisplay}. ${L.llamadas}: ${SITE.llamadasDisplay}. ${L.correo}: ${SITE.email}. ${L.donde}: ${SITE.ubicacion[locale]}. ${L.cotizador}: ${SITE.url}${rutas.contacto[locale]}`;
 }
