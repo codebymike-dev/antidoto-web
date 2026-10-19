@@ -55,7 +55,8 @@ const perfiles = s.inicio.paraQuien.perfiles;
 // Los buscadores cortan el título hacia los 60 caracteres y reescriben las descripciones muy cortas.
 const titulo = `${txt.title} | ${lineaTxt.title} | Antídoto`;
 const titleSeo = titulo.length > 60 ? `${txt.title} | Antídoto` : titulo;
-const descripcion = txt.lead.length < 90 ? `${txt.lead} ${p.oferta.contexto(lineaTxt.title)}` : txt.lead;
+const conContexto = `${txt.lead} ${p.oferta.contexto(lineaTxt.title)}`;
+const descripcion = txt.lead.length < 90 && conContexto.length <= 160 ? conContexto : txt.lead;
 ---
 <Base
   locale={locale}
