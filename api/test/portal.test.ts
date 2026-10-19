@@ -62,6 +62,14 @@ describe('portal', () => {
     expect(p.correos.length).toBe(antes);
   });
 
+  test('el acceso del cliente queda en la auditoría con su organización y sin su correo', async () => {
+    const r = await consulta(p.env.DB, "select usuario_email, entidad, entidad_id from auditoria where accion = 'portal.entrar'").first<Record<string, unknown>>();
+    expect(r).toMatchObject({ usuario_email: null, entidad: 'organizacion' });
+    const fallo = await p.llamar('/portal/auth/entrar', { method: 'POST', body: new URLSearchParams({ t: 'falso' }), headers: { origin: APP } });
+    expect(fallo.headers.get('location')).toBe(`${APP}/portal/?error=enlace`);
+    expect(await consulta(p.env.DB, "select count(*) n from auditoria where accion = 'portal.fallida'").first<number>('n')).toBe(1);
+  });
+
   test('las sesiones no se cruzan: la del cliente no abre el panel ni la del equipo el portal', async () => {
     expect((await p.llamar('/admin/api/yo', { headers: { cookie: cliente } })).status).toBe(401);
     expect((await p.llamar('/portal/api/yo', { headers: { cookie: admin } })).status).toBe(401);

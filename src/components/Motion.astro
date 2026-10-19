@@ -1,12 +1,14 @@
 ---
 // Núcleo de motion (GSAP, ScrollTrigger, SplitText y Lenis) y los gestos comunes a todas las
-// páginas: titulares, botones magnéticos y entradas de grupos.
+// páginas: titulares, botones magnéticos, entradas de grupos, dosis de los resaltados y paralaje.
 ---
 <script>
   import '../lib/motion/core';
-  import { titulares, magneticos, entradas } from '../lib/motion/efectos';
+  import { titulares, magneticos, entradas, resaltados, paralaje } from '../lib/motion/efectos';
 
   titulares();
   magneticos();
   entradas();
+  resaltados();
+  paralaje();
 </script>

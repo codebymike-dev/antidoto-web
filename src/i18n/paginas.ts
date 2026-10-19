@@ -62,6 +62,8 @@ export const paginas = {
       soluciones: ['Recomendada ', 'para'],
       cotizarEsta: 'Cotizar esta oferta',
       wa: (oferta: string, linea: string) => `Hola Antídoto, quiero cotizar ${enFrase(oferta)} (${enFrase(linea)}).`,
+      /** Cierre de la meta descripción cuando el lead se queda corto para los buscadores. */
+      contexto: (linea: string) => `${linea} de Antídoto, estudio creativo empresarial de Bogotá.`,
     },
 
     soluciones: {
@@ -72,6 +74,7 @@ export const paginas = {
       solucion: 'Cómo lo resolvemos',
       ofertas: ['Lo que ', 'recomendamos'],
       clientes: 'Han confiado en nosotros',
+      contexto: 'Soluciones de Antídoto, estudio creativo empresarial de Bogotá.',
     },
 
     portafolio: {
@@ -261,6 +264,7 @@ export const paginas = {
       soluciones: ['Recommended ', 'for'],
       cotizarEsta: 'Get a quote for this',
       wa: (oferta: string, linea: string) => `Hi Antídoto, I would like a quote for ${enFrase(oferta)} (${enFrase(linea)}).`,
+      contexto: (linea: string) => `${linea} by Antídoto, a creative studio from Bogotá.`,
     },
 
     soluciones: {
@@ -271,6 +275,7 @@ export const paginas = {
       solucion: 'How we solve it',
       ofertas: ['What we ', 'recommend'],
       clientes: 'They have trusted us',
+      contexto: 'Solutions by Antídoto, a creative studio from Bogotá.',
     },
 
     portafolio: {
@@ -460,6 +465,7 @@ export const paginas = {
       soluciones: ['Recomendada ', 'para'],
       cotizarEsta: 'Orçamento desta oferta',
       wa: (oferta: string, linea: string) => `Olá, Antídoto! Quero um orçamento de ${enFrase(oferta)} (${enFrase(linea)}).`,
+      contexto: (linea: string) => `${linea} da Antídoto, estúdio criativo empresarial de Bogotá.`,
     },
 
     soluciones: {
@@ -470,6 +476,7 @@ export const paginas = {
       solucion: 'Como resolvemos',
       ofertas: ['O que ', 'recomendamos'],
       clientes: 'Confiaram em nós',
+      contexto: 'Soluções da Antídoto, estúdio criativo empresarial de Bogotá.',
     },
 
     portafolio: {

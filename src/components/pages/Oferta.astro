@@ -52,12 +52,16 @@ const jsonLd = grafo(
   ...(faq.length ? [faqSchema(faq)] : []),
 );
 const perfiles = s.inicio.paraQuien.perfiles;
+// Los buscadores cortan el título hacia los 60 caracteres y reescriben las descripciones muy cortas.
+const titulo = `${txt.title} | ${lineaTxt.title} | Antídoto`;
+const titleSeo = titulo.length > 60 ? `${txt.title} | Antídoto` : titulo;
+const descripcion = txt.lead.length < 90 ? `${txt.lead} ${p.oferta.contexto(lineaTxt.title)}` : txt.lead;
 ---
 <Base
   locale={locale}
   pagina="servicios"
-  title={`${txt.title} | ${lineaTxt.title} | Antídoto`}
-  description={txt.lead}
+  title={titleSeo}
+  description={descripcion}
   alternates={porIdioma((l) => ofertaPath(linea, oferta, l))}
   waMessage={msg}
   jsonLd={jsonLd}

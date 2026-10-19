@@ -14,51 +14,9 @@ import { iniciarEstudio, type ControlEstudio } from './estudio';
 import { iniciarSala, type ControlSala } from './sala';
 import { iniciarPaseo } from './paseo';
 import { hablanteQuieto, iniciarPregunta } from './pregunta';
+import { alAsomar, dosis } from './efectos';
 
 gsap.registerPlugin(SplitText);
-
-/** Corre `fn` una sola vez cuando `el` asoma. (No `once: true`: ver tropiezos de la skill.) */
-function alAsomar(el: Element, fn: () => void, start = 'top 85%') {
-  let hecho = false;
-  ScrollTrigger.create({
-    trigger: el,
-    start,
-    onEnter: () => {
-      if (hecho) return;
-      hecho = true;
-      fn();
-    },
-  });
-}
-
-/**
- * Resaltado de un título: el fondo cian se vacía y una copia del texto en tinta sube como
- * líquido; al llenarse se quita la copia y queda el resaltado real. Solo en una línea: si el
- * resaltado se parte, la copia no calzaría y se deja quieto.
- */
-function dosis(res: HTMLElement, cuando: 'asomar' | number) {
-  if (res.getClientRects().length > 1) return;
-  const quitar = () => {
-    res.classList.remove('dosis-pendiente');
-    res.querySelector(':scope > .dosis-lleno')?.remove();
-  };
-  pieza(
-    'dosis',
-    () => {
-      const lleno = document.createElement('span');
-      lleno.className = 'dosis-lleno';
-      lleno.setAttribute('aria-hidden', 'true');
-      lleno.textContent = res.textContent;
-      res.classList.add('dosis-pendiente');
-      res.appendChild(lleno);
-      lleno.style.clipPath = ola(0);
-      const correr = (delay = 0) => llenar(lleno, { duracion: 0.9, delay, alTerminar: quitar });
-      if (cuando === 'asomar') alAsomar(res, () => correr(0.15), 'top 82%');
-      else correr(cuando);
-    },
-    quitar,
-  );
-}
 
 /**
  * Hero: el titular sube palabra a palabra y su resaltado recibe la dosis; el estudio pixel entra
@@ -362,23 +320,6 @@ function oleaje(seccion: HTMLElement) {
   );
 }
 
-/**
- * Profundidad ligada al scroll (no es un bucle: responde a la persona). Las fotos `[data-paralaje]`
- * se desplazan dentro de su marco, ampliadas lo justo para no dejar huecos.
- */
-function paralaje() {
-  document.querySelectorAll<HTMLElement>('[data-paralaje]').forEach((marco) => {
-    const fotos = marco.querySelectorAll<HTMLElement>('img');
-    pieza(
-      'paralaje',
-      () => {
-        gsap.fromTo(fotos, { yPercent: -7, scale: 1.16 }, { yPercent: 7, scale: 1.16, ease: 'none', scrollTrigger: { trigger: marco, start: 'top bottom', end: 'bottom top', scrub: true } });
-      },
-      () => gsap.set(fotos, { clearProps: 'transform' }),
-    );
-  });
-}
-
 export function iniciarInicio() {
   const h = document.querySelector<HTMLElement>('[data-hero]');
   if (h) {
@@ -405,7 +346,6 @@ export function iniciarInicio() {
   });
   const r = document.querySelector<HTMLElement>('[data-resultados]');
   if (r) resultados(r);
-  document.querySelectorAll<HTMLElement>('main section:not([data-hero]) .resaltado').forEach((r) => dosis(r, 'asomar'));
   dolores();
   const p = document.querySelector<HTMLElement>('[data-pasos]');
   if (p) pasos(p);
@@ -413,5 +353,4 @@ export function iniciarInicio() {
   document.querySelectorAll<HTMLElement>('[data-odometro]').forEach((f) => odometro(f));
   const c = document.querySelector<HTMLElement>('[data-cierre]');
   if (c) oleaje(c);
-  paralaje();
 }

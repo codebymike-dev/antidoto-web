@@ -180,6 +180,10 @@ describe('bandeja', () => {
     expect(r1.headers.get('location')).toBe('/admin/');
     const r2 = await post('/auth/entrar', { body: new URLSearchParams({ t }) }, '');
     expect(r2.headers.get('location')).toBe(`${APP}/admin/?error=enlace`);
+    // El acceso queda con su usuario; el intento con el enlace ya gastado, sin usuario.
+    const entrada = await consulta(env.DB, "select usuario_email, entidad, entidad_id from auditoria where accion = 'sesion.entrar' order by creado desc").first<Record<string, unknown>>();
+    expect(entrada).toMatchObject({ usuario_email: 'dueña@antidoto.co', entidad: 'sesion' });
+    expect(await consulta(env.DB, "select count(*) n from auditoria where accion = 'sesion.fallida' and usuario_id is null").first<number>('n')).toBe(1);
   });
 
   test('entra y ve la bandeja', async () => {

@@ -1,5 +1,8 @@
-// Gestos comunes a todas las páginas: titulares que se arman y botones magnéticos.
+// Gestos comunes a todas las páginas: titulares que se arman, botones magnéticos, entradas de
+// grupos, la dosis de líquido en los resaltados y el paralaje de las fotos.
 import { gsap, ScrollTrigger, pieza } from './core';
+import { ola } from './liquido';
+import { llenar } from './llenar';
 import { SplitText } from 'gsap/SplitText';
 
 gsap.registerPlugin(SplitText);
@@ -86,6 +89,71 @@ export function entradas(raiz: ParentNode = document) {
         });
       },
       () => gsap.set(hijos, { clearProps: 'transform,opacity' }),
+    );
+  });
+}
+
+/** Corre `fn` una sola vez cuando `el` asoma. (No `once: true`: ver tropiezos de la skill.) */
+export function alAsomar(el: Element, fn: () => void, start = 'top 85%') {
+  let hecho = false;
+  ScrollTrigger.create({
+    trigger: el,
+    start,
+    onEnter: () => {
+      if (hecho) return;
+      hecho = true;
+      fn();
+    },
+  });
+}
+
+/**
+ * Resaltado de un título: el fondo cian se vacía y una copia del texto en tinta sube como
+ * líquido; al llenarse se quita la copia y queda el resaltado real. Solo en una línea: si el
+ * resaltado se parte, la copia no calzaría y se deja quieto.
+ */
+export function dosis(res: HTMLElement, cuando: 'asomar' | number) {
+  if (res.getClientRects().length > 1) return;
+  const quitar = () => {
+    res.classList.remove('dosis-pendiente');
+    res.querySelector(':scope > .dosis-lleno')?.remove();
+  };
+  pieza(
+    'dosis',
+    () => {
+      const lleno = document.createElement('span');
+      lleno.className = 'dosis-lleno';
+      lleno.setAttribute('aria-hidden', 'true');
+      lleno.textContent = res.textContent;
+      res.classList.add('dosis-pendiente');
+      res.appendChild(lleno);
+      lleno.style.clipPath = ola(0);
+      const correr = (delay = 0) => llenar(lleno, { duracion: 0.9, delay, alTerminar: quitar });
+      if (cuando === 'asomar') alAsomar(res, () => correr(0.15), 'top 82%');
+      else correr(cuando);
+    },
+    quitar,
+  );
+}
+
+/** Resaltados de los títulos de sección: cada uno recibe su dosis al asomar (el del hero la recibe en inicio.ts). */
+export function resaltados() {
+  document.querySelectorAll<HTMLElement>('main section:not([data-hero]) .resaltado').forEach((r) => dosis(r, 'asomar'));
+}
+
+/**
+ * Profundidad ligada al scroll (no es un bucle: responde a la persona). Las fotos `[data-paralaje]`
+ * se desplazan dentro de su marco, ampliadas lo justo para no dejar huecos.
+ */
+export function paralaje() {
+  document.querySelectorAll<HTMLElement>('[data-paralaje]').forEach((marco) => {
+    const fotos = marco.querySelectorAll<HTMLElement>('img');
+    pieza(
+      'paralaje',
+      () => {
+        gsap.fromTo(fotos, { yPercent: -7, scale: 1.16 }, { yPercent: 7, scale: 1.16, ease: 'none', scrollTrigger: { trigger: marco, start: 'top bottom', end: 'bottom top', scrub: true } });
+      },
+      () => gsap.set(fotos, { clearProps: 'transform' }),
     );
   });
 }

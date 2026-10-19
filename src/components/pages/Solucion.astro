@@ -40,8 +40,8 @@ const migas: Array<[string, string]> = [
 <Base
   locale={locale}
   pagina="soluciones"
-  title={`${titulo} | Antídoto`}
-  description={lead}
+  title={`${titulo} | ${s.seo.soluciones[0]}`}
+  description={lead.length < 90 ? `${lead} ${p.soluciones.contexto}` : lead}
   alternates={porIdioma((l) => solucionPath(solucion, l))}
   jsonLd={grafo(migasSchema(migas))}
   og={{ ruta: ogRuta('solucion', solucion.clave, locale), alt: `${titulo} | Antídoto` }}
