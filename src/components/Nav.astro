@@ -221,6 +221,7 @@ const pag = (href: string) => (href === actual ? 'page' : undefined);
      no caben logo, sello, menú, selector de idioma y Cotizar. En pantallas medianas lo cubren el hero
      y el ítem SG-SST; en el menú móvil va dentro del panel. */
   @media (min-width: 1600px) { .barra { max-width: 1600px; } }
+  .marca :global(.sello-nav) { white-space: nowrap; }
   @media (max-width: 1599px) { .marca :global(.sello-nav) { display: none; } }
   .links :global(.sello-panel) { display: none; }
   @media (max-width: 1200px) { .links :global(.sello-panel) { display: inline-flex; align-self: flex-start; margin-top: 12px; } }
