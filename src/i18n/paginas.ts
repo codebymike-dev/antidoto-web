@@ -53,6 +53,7 @@ export const paginas = {
       otras: ['Otras ', 'líneas'],
       datos: 'En cifras',
       verOferta: 'Ver oferta',
+      recomendamos: 'Recomendamos',
     },
 
     oferta: {
@@ -255,6 +256,7 @@ export const paginas = {
       otras: ['Other ', 'lines'],
       datos: 'In figures',
       verOferta: 'See offering',
+      recomendamos: 'We recommend',
     },
 
     oferta: {
@@ -456,6 +458,7 @@ export const paginas = {
       otras: ['Outras ', 'linhas'],
       datos: 'Em números',
       verOferta: 'Ver oferta',
+      recomendamos: 'Recomendamos',
     },
 
     oferta: {

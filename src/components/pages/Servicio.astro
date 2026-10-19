@@ -118,10 +118,20 @@ const perfiles = s.inicio.paraQuien.perfiles;
           <h2 id="para-t">{p.linea.paraQuien[0]}<span class="resaltado">{p.linea.paraQuien[1]}</span></h2>
           <p>{p.linea.paraQuienLead}</p>
         </div>
-        <ul class="rejilla-tarjetas" data-entra>
-          {soluciones.map((sol) => (
-            <li><TarjetaIndice href={solucionPath(sol, locale)} titulo={perfiles[sol.perfil][0]} texto={perfiles[sol.perfil][1]} cta={s.inicio.paraQuien.verSoluciones} /></li>
-          ))}
+        <ul class="rejilla-tarjetas" data-entra data-areas>
+          {soluciones.map((sol) => {
+            const suyas = ofertas.filter((o) => sol.ofertas.includes(o.id));
+            return (
+              <li data-ofertas={suyas.map((o) => o.id).join(' ')}>
+                <TarjetaIndice href={solucionPath(sol, locale)} titulo={perfiles[sol.perfil][0]} texto={perfiles[sol.perfil][1]} cta={s.inicio.paraQuien.verSoluciones}>
+                  <span class="fichas">
+                    <span class="fichas-r">{p.linea.recomendamos}</span>
+                    {suyas.map((o) => <span class="ficha">{o[locale].title}</span>)}
+                  </span>
+                </TarjetaIndice>
+              </li>
+            );
+          })}
         </ul>
       </div>
     </section>
@@ -170,6 +180,15 @@ const perfiles = s.inicio.paraQuien.perfiles;
   <BloqueCta locale={locale} servicio={servicio.id} mensaje={msg} />
 </Base>
 
+<script>
+  import { senalarDosis } from '../../lib/motion/recetario';
+
+  // Al apuntar un área de "Para quién", sus ofertas se señalan en el recetario.
+  const recetario = document.querySelector<HTMLElement>('[data-recetario]');
+  const areas = document.querySelectorAll<HTMLElement>('[data-areas] > li');
+  if (recetario) senalarDosis(areas, recetario);
+</script>
+
 <style>
   .hechos { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
   .hechos li { padding: 6px 12px; border-radius: 999px; background: var(--color-paper); border: 1px solid var(--color-line-soft); font-size: 14px; font-weight: 500; }
@@ -181,6 +200,14 @@ const perfiles = s.inicio.paraQuien.perfiles;
   .aliado { margin-top: 20px; padding: 22px 26px; border-radius: 22px; background: var(--color-ink); color: var(--color-paper); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 24px; }
   .aliado p { margin: 0; max-width: 60ch; }
   .aliado .boton { color: var(--color-paper); border-color: currentColor; }
+  /* Fichas de "Para quién": las ofertas de esta línea que recomendamos a cada área. */
+  .fichas { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px; }
+  .fichas-r { width: 100%; font-size: 13px; font-weight: 600; color: var(--color-deep); }
+  .ficha { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; background: var(--color-mist); border: 1px solid var(--color-line-soft); font-size: 13.5px; font-weight: 500; color: var(--color-ink); }
+  .ficha::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--color-antidote); flex: none; }
+  :global(.tarjeta:hover) .fichas-r, :global(.tarjeta:focus-visible) .fichas-r { color: var(--color-ink); }
+  :global(.tarjeta:hover) .ficha, :global(.tarjeta:focus-visible) .ficha { background: var(--color-paper); border-color: var(--color-paper); }
+  :global(.tarjeta:hover) .ficha::before, :global(.tarjeta:focus-visible) .ficha::before { background: var(--color-ink); }
   .dos { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 40px; align-items: start; }
   .mas { align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; color: var(--color-deep); font-weight: 600; }
   @media (max-width: 900px) { .dos { grid-template-columns: 1fr; gap: 0; } }

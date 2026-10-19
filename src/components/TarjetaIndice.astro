@@ -1,6 +1,7 @@
 ---
 // Tarjeta de los índices (servicios, ofertas, soluciones, casos, artículos). Toda la tarjeta es
-// un enlace. Al apuntar o enfocar, el cian sube desde abajo como el líquido del frasco.
+// un enlace. Al apuntar o enfocar, el cian sube desde abajo como el líquido del frasco. El slot
+// recibe contenido extra bajo el texto (las fichas de "Para quién" en la línea).
 import type { ImageMetadata } from 'astro';
 import { Image } from 'astro:assets';
 
@@ -30,6 +31,7 @@ const H = `h${nivel}` as 'h2' | 'h3';
     {etiqueta && <span class="etiqueta">{etiqueta}</span>}
     <H class="t" style={vt ? `view-transition-name: ${vt}` : undefined}>{titulo}</H>
     {texto && <span class="d">{texto}</span>}
+    <slot />
     {cta && <span class="cta">{cta}</span>}
   </span>
 </a>
