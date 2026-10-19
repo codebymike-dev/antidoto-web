@@ -10,6 +10,7 @@ const servicio: Servicio = {
   borrador: false,
   es: texto('produccion-audiovisual', 'Producción audiovisual'),
   en: texto('video-production', 'Video production'),
+  pt: texto('producao-audiovisual', 'Produção audiovisual'),
 };
 
 describe('servicioSchema', () => {

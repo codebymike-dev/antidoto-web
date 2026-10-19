@@ -10,6 +10,7 @@ const servicio: Servicio = {
   borrador: false,
   es: texto('produccion-audiovisual', 'Producción audiovisual'),
   en: texto('video-production', 'Video production'),
+  pt: texto('producao-audiovisual', 'Produção audiovisual'),
 };
 
 describe('llmsTxt', () => {
@@ -21,9 +22,10 @@ describe('llmsTxt', () => {
     expect(txt).toMatch(/^## Optional$/m);
   });
 
-  it('enlaza cada servicio con URL absoluta en los dos idiomas', () => {
+  it('enlaza cada servicio con URL absoluta en cada idioma', () => {
     expect(txt).toContain('- [Producción audiovisual](https://antidotocolombia.com/servicios/produccion-audiovisual/): Producción audiovisual.\n  - Hecho.\n  - Incluye: Incluye.');
     expect(txt).toContain('- [Video production](https://antidotocolombia.com/en/services/video-production/)');
+    expect(txt).toContain('- [Produção audiovisual](https://antidotocolombia.com/pt/servicos/producao-audiovisual/)');
   });
 
   it('nombra los clientes y no usa guiones largos ni semilargos', () => {
