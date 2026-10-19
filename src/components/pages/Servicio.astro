@@ -9,6 +9,7 @@ import CabeceraPagina from '../CabeceraPagina.astro';
 import TarjetaIndice from '../TarjetaIndice.astro';
 import ListaFaq from '../ListaFaq.astro';
 import BloqueCta from '../BloqueCta.astro';
+import Recetario from '../linea/Recetario.astro';
 import WhatsappIcon from '../WhatsappIcon.astro';
 import { obtenerServicios, servicioPath, type Servicio } from '../../data/servicios';
 import { obtenerOfertas, obtenerCasos, obtenerPreguntas, ofertaPath, casoPath } from '../../data/contenido';
@@ -34,6 +35,7 @@ const servicios = await obtenerServicios();
 const otras = servicios.filter((x) => x.id !== servicio.id);
 const ofertas = await obtenerOfertas(servicio.id);
 const claves = ofertas.map((o) => o.id);
+const recetario = ofertas.map((o) => ({ id: o.id, href: ofertaPath(servicio, o, locale), titulo: o[locale].title, lead: o[locale].lead, vt: `oferta-${o.id}-title` }));
 const soluciones = SOLUCIONES.filter((sol) => sol.ofertas.some((o) => claves.includes(o)));
 const casos = (await obtenerCasos()).filter((c) => c.es.linea === servicio.id);
 const tema = (TEMAS_FAQ as readonly string[]).includes(servicio.id) ? (servicio.id as TemaFaq) : undefined;
@@ -96,13 +98,7 @@ const perfiles = s.inicio.paraQuien.perfiles;
           <h2 id="ofertas-t">{p.linea.ofertas[0]}<span class="resaltado">{p.linea.ofertas[1]}</span></h2>
           <p>{p.linea.ofertasLead}</p>
         </div>
-        <ul class="rejilla-tarjetas" data-entra>
-          {ofertas.map((o, i) => (
-            <li>
-              <TarjetaIndice href={ofertaPath(servicio, o, locale)} titulo={o[locale].title} texto={o[locale].lead} etiqueta={`0${i + 1}`} cta={p.linea.verOferta} vt={`oferta-${o.id}-title`} />
-            </li>
-          ))}
-        </ul>
+        <Recetario items={recetario} cta={p.linea.verOferta} />
       </div>
     </section>
   )}
