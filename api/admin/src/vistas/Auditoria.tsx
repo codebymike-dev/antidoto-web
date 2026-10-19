@@ -29,7 +29,7 @@ const ACCIONES: Record<string, string> = {
   'usuario.editar': 'Cambió el acceso de una persona',
   'sesion.revocar': 'Cerró una de sus sesiones',
   'sesion.entrar': 'Entró al panel',
-  'sesion.fallida': 'Intentó entrar al panel con un enlace inválido o vencido',
+  'sesion.fallida': 'Intento de entrada al panel con un enlace inválido o vencido',
   'sesion.salir': 'Cerró su sesión',
   'sesion.salir_todas': 'Cerró todas sus sesiones',
   'config.cambiar': 'Cambió los ajustes',
@@ -51,13 +51,20 @@ const ACCIONES: Record<string, string> = {
   'portal.invitar': 'Dio acceso al portal a un cliente',
   'portal.quitar': 'Quitó el acceso al portal a un cliente',
   'portal.entrar': 'Un cliente entró al portal',
-  'portal.fallida': 'Intentaron entrar al portal con un enlace inválido o vencido',
+  'portal.fallida': 'Intento de entrada al portal con un enlace inválido o vencido',
   'contacto_cliente.suprimir': 'Suprimió los datos de un contacto de cliente',
   'contenido.borrar': 'Borró un borrador de contenido',
   'contenido.desarchivar': 'Sacó contenido del archivo',
   'contactos.exportar': 'Exportó los contactos a CSV',
   'proyectos.exportar': 'Exportó los proyectos a CSV',
   'conversaciones.exportar': 'Exportó las conversaciones a CSV',
+};
+
+// Quién aparece en los registros sin usuario del equipo (los accesos sin sesión, src/auditoria.ts).
+const SIN_USUARIO: Record<string, string> = {
+  'sesion.fallida': 'Sin sesión',
+  'portal.fallida': 'Sin sesión',
+  'portal.entrar': 'Cliente del portal',
 };
 
 const ENLACES: Record<string, (id: string) => string> = {
@@ -132,7 +139,7 @@ export default function Auditoria() {
                 {d.datos.registros.map((r) => (
                   <tr>
                     <td class="suave sin-salto">{fechaLarga(r.creado)}</td>
-                    <td>{r.usuarioEmail ?? 'Sistema'}</td>
+                    <td>{r.usuarioEmail ?? SIN_USUARIO[r.accion] ?? 'Sistema'}</td>
                     <td>
                       {r.entidad && r.entidadId && ENLACES[r.entidad] ? <a href={ENLACES[r.entidad]!(r.entidadId)}>{ACCIONES[r.accion] ?? r.accion}</a> : (ACCIONES[r.accion] ?? r.accion)}
                     </td>
