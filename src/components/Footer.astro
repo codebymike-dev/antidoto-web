@@ -109,6 +109,8 @@ const api = (import.meta.env.PUBLIC_API_URL ?? '').replace(/\/$/, '');
   .foot { background: var(--color-ink); color: var(--color-fg-soft); font-size: 15px; }
   .pie { padding-block: 56px calc(36px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 32px; }
   .grid { display: grid; grid-template-columns: minmax(0, 1.6fr) repeat(4, minmax(0, 1fr)); gap: 32px; }
+  /* El correo es una sola palabra larga: sin esto empuja la página a lo ancho entre 1020 y 1240 px. */
+  .grid a { overflow-wrap: anywhere; }
   @media (max-width: 1020px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .marca { grid-column: 1 / -1; } }
   @media (max-width: 520px) { .grid { grid-template-columns: 1fr; } }
   .marca { display: flex; flex-direction: column; gap: 14px; }
