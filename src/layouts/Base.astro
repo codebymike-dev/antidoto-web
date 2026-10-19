@@ -8,6 +8,7 @@ import Motion from '../components/Motion.astro';
 import Asesor from '../components/Asesor.astro';
 import { t, LOCALES, otrosIdiomas, type Locale, type Pagina } from '../i18n/ui';
 import { SITE } from '../data/site';
+import { jsonLdSeguro } from '../data/schema';
 
 interface Props {
   locale: Locale;
@@ -84,7 +85,7 @@ const otros = otrosIdiomas(locale);
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
     <meta name="twitter:image:alt" content={ogAlt} />
-    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+    {jsonLd && <script type="application/ld+json" set:html={jsonLdSeguro(jsonLd)} />}
   </head>
   <body data-scroll={scroll}>
     <a class="skip" href="#main">{s.skip}</a>
