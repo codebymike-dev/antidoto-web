@@ -13,7 +13,10 @@ const RE_SESION = /^\/admin\/api\/yo\/sesiones\/([0-9a-f-]{36})\/revocar$/;
 export async function rutasEquipo(c: Ctx): Promise<Response | null> {
   const { ruta, metodo, url, db, req, sesion } = c;
 
-  if (ruta === '/auth/salir' && metodo === 'POST') return salir(db, sesion, url.searchParams.has('todas'));
+  if (ruta === '/auth/salir' && metodo === 'POST') {
+    const todas = url.searchParams.has('todas');
+    return auditar(c, await salir(db, sesion, todas), todas ? 'sesion.salir_todas' : 'sesion.salir', 'sesion', sesion.id);
+  }
   if (ruta === '/admin/api/yo' && metodo === 'GET') {
     const { id, email, nombre, rol } = sesion.usuario;
     return json({ id, email, nombre, rol, permisos: permisosDe(rol) });

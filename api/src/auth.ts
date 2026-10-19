@@ -6,6 +6,7 @@ import type { Db } from './db/conexion';
 import { enlaces, sesiones, usuarios, type Usuario } from './db/schema';
 import { enviar, correoEnlaceAcceso } from './correo';
 import { dentroDelLimite } from './limite';
+import { registrarAcceso } from './auditoria';
 import type { Env } from './env';
 import { ahora, sha256, token, json, uuid, HORA, DIA } from './util';
 
@@ -77,11 +78,14 @@ export function paginaEntrar(req: Request): Response {
   return new Response(null, { status: 303, headers: { location: `/admin/entrar#t=${encodeURIComponent(t)}`, 'cache-control': 'no-store', 'referrer-policy': 'no-referrer' } });
 }
 
-/** POST /auth/entrar: gasta el enlace y abre la sesión. */
-export async function entrar(req: Request, db: Db): Promise<Response> {
+/** POST /auth/entrar: gasta el enlace y abre la sesión. Los accesos y los intentos fallidos quedan en la auditoría. */
+export async function entrar(req: Request, env: Env, db: Db): Promise<Response> {
   const f = await req.formData().catch(() => null);
   const secreto = String(f?.get('t') ?? '');
-  const volver = (motivo: string) => Response.redirect(`${new URL(req.url).origin}/admin/?error=${motivo}`, 303);
+  const volver = async (motivo: string) => {
+    await registrarAcceso(db, req, env.SAL_IP, 'sesion.fallida', null);
+    return Response.redirect(`${new URL(req.url).origin}/admin/?error=${motivo}`, 303);
+  };
   if (!secreto) return volver('enlace');
 
   const t = ahora();
@@ -99,9 +103,10 @@ export async function entrar(req: Request, db: Db): Promise<Response> {
   if (!u) return volver('enlace');
 
   const secretoSesion = token();
+  const idSesion = uuid();
   await db.insert(sesiones).values({
     hash: await sha256(secretoSesion),
-    id: uuid(),
+    id: idSesion,
     usuarioId: u.id,
     creada: t,
     expira: t + DIAS_SESION * DIA,
@@ -109,6 +114,7 @@ export async function entrar(req: Request, db: Db): Promise<Response> {
     userAgent: req.headers.get('user-agent')?.slice(0, 300) ?? null,
     revocada: null,
   });
+  await registrarAcceso(db, req, env.SAL_IP, 'sesion.entrar', u, 'sesion', idSesion);
   return new Response(null, {
     status: 303,
     headers: { location: '/admin/', 'set-cookie': cookieSesion(secretoSesion, DIAS_SESION * 86_400), 'cache-control': 'no-store' },

@@ -128,13 +128,13 @@ export async function manejar(req: Request, env: Env, diferir: (p: Promise<unkno
 
   if (ruta === '/auth/enlace' && metodo === 'POST') return pedirEnlace(req, env, db, appUrl);
   if (ruta === '/portal/auth/enlace' && metodo === 'POST') return pedirEnlaceCliente(req, env, db, appUrl);
-  if (ruta === '/portal/auth/entrar' && metodo === 'POST') return entrarCliente(req, db);
+  if (ruta === '/portal/auth/entrar' && metodo === 'POST') return entrarCliente(req, env, db);
   if (ruta === '/portal/auth/salir' || ruta.startsWith('/portal/api/')) {
     const sesion = await sesionCliente(req, db);
     if (!sesion) return json({ error: 'sesion' }, 401);
     return rutasPortal({ req, ruta, metodo, env, db, sesion, appUrl, diferir });
   }
-  if (ruta === '/auth/entrar' && metodo === 'POST') return entrar(req, db);
+  if (ruta === '/auth/entrar' && metodo === 'POST') return entrar(req, env, db);
 
   if (ruta === '/auth/salir' || ruta.startsWith('/admin/api/') || ruta === '/admin/leads.csv') {
     const sesion = await sesionActual(req, db);

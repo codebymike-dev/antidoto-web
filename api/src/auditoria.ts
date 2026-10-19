@@ -3,14 +3,14 @@
 import { and, desc, eq, gte, lt, sql, type SQL } from 'drizzle-orm';
 import type { Db } from './db/conexion';
 import { auditoria } from './db/schema';
-import type { Sesion } from './auth';
-import { ahora, uuid, json } from './util';
+import type { Usuario } from './db/schema';
+import { ahora, uuid, json, hashIp, ipCliente } from './util';
 
 const POR_PAGINA = 50;
 
 export function registrar(
   db: Db,
-  sesion: Sesion | null,
+  sesion: { usuario: Pick<Usuario, 'id' | 'email'> } | null,
   accion: string,
   entidad: string | null = null,
   entidadId: string | null = null,
@@ -28,6 +28,26 @@ export function registrar(
     detalle,
     ipHash,
   });
+}
+
+/**
+ * Anota un acceso o un intento fallido, que llegan sin sesión (src/auth.ts, src/portal/auth.ts).
+ * Falla abierto: entrar no depende de la bitácora.
+ */
+export async function registrarAcceso(
+  db: Db,
+  req: Request,
+  sal: string | undefined,
+  accion: string,
+  usuario: Pick<Usuario, 'id' | 'email'> | null,
+  entidad: string | null = null,
+  entidadId: string | null = null,
+): Promise<void> {
+  try {
+    await registrar(db, usuario ? { usuario } : null, accion, entidad, entidadId, null, await hashIp(ipCliente(req), sal));
+  } catch (e) {
+    console.error('[auditoria] no se pudo registrar el acceso', accion, e);
+  }
 }
 
 /** GET /admin/api/auditoria?entidad=&entidadId=&usuario=&accion=&desde=&hasta=&pagina= */

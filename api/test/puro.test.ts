@@ -39,8 +39,11 @@ test('origenPermitido', () => {
   const env = { ORIGENES: 'https://antidotocolombia.com, https://antidoto-web.vercel.app' };
   expect(origenPermitido('https://antidotocolombia.com', env)).toBe(true);
   expect(origenPermitido('https://antidoto-web.vercel.app.evil.com', env)).toBe(false);
-  expect(origenPermitido('https://antidoto-web-git-rama-equipo.vercel.app', env)).toBe(true);
-  expect(origenPermitido('https://antidoto-web-a1b2c3-equipo.vercel.app', env)).toBe(true);
+  expect(origenPermitido('https://antidoto-web-git-rama-code-by-mike-sandbox.vercel.app', env)).toBe(true);
+  expect(origenPermitido('https://antidoto-web-a1b2c3-code-by-mike-sandbox.vercel.app', env)).toBe(true);
+  // Un proyecto ajeno llamado antidoto-web-algo, en otra cuenta de Vercel.
+  expect(origenPermitido('https://antidoto-web-git-rama-equipo.vercel.app', env)).toBe(false);
+  expect(origenPermitido('https://antidoto-web-x.vercel.app', env)).toBe(false);
   expect(origenPermitido('https://otro-antidoto-web-x.vercel.app', env)).toBe(false);
   expect(origenPermitido('https://antidoto-web-x.vercel.app.evil.com', env)).toBe(false);
   expect(origenPermitido('http://localhost:4321', env)).toBe(false);

@@ -78,9 +78,9 @@ describe('POST /v1/leads', () => {
   });
 
   test('responde el preflight con CORS del origen', async () => {
-    const r = await llamar('/v1/leads', { method: 'OPTIONS', headers: { origin: 'https://antidoto-web-git-rama-equipo.vercel.app' } });
+    const r = await llamar('/v1/leads', { method: 'OPTIONS', headers: { origin: 'https://antidoto-web-git-rama-code-by-mike-sandbox.vercel.app' } });
     expect(r.status).toBe(204);
-    expect(r.headers.get('access-control-allow-origin')).toBe('https://antidoto-web-git-rama-equipo.vercel.app');
+    expect(r.headers.get('access-control-allow-origin')).toBe('https://antidoto-web-git-rama-code-by-mike-sandbox.vercel.app');
   });
 
   test('guarda el lead con su consentimiento y avisa a los dos lados', async () => {

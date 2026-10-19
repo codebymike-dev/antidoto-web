@@ -7,6 +7,7 @@ import type { Db } from '../db/conexion';
 import { enlacesCliente, sesionesCliente, usuariosCliente, organizaciones, type UsuarioCliente } from '../db/schema';
 import { enviar, correoEnlacePortal } from '../correo';
 import { dentroDelLimite } from '../limite';
+import { registrarAcceso } from '../auditoria';
 import type { Env } from '../env';
 import { ahora, sha256, token, json, HORA, DIA } from '../util';
 
@@ -52,11 +53,14 @@ export function paginaEntrarCliente(req: Request): Response {
   return new Response(null, { status: 303, headers: { location: `/portal/entrar#t=${encodeURIComponent(t)}`, 'cache-control': 'no-store', 'referrer-policy': 'no-referrer' } });
 }
 
-/** POST /portal/auth/entrar: gasta el enlace y abre la sesión del cliente. */
-export async function entrarCliente(req: Request, db: Db): Promise<Response> {
+/** POST /portal/auth/entrar: gasta el enlace y abre la sesión del cliente. Queda en la auditoría, sin su correo. */
+export async function entrarCliente(req: Request, env: Env, db: Db): Promise<Response> {
   const f = await req.formData().catch(() => null);
   const secreto = String(f?.get('t') ?? '');
-  const volver = () => Response.redirect(`${new URL(req.url).origin}/portal/?error=enlace`, 303);
+  const volver = async () => {
+    await registrarAcceso(db, req, env.SAL_IP, 'portal.fallida', null);
+    return Response.redirect(`${new URL(req.url).origin}/portal/?error=enlace`, 303);
+  };
   if (!secreto) return volver();
   const t = ahora();
   const usados = await db
@@ -73,6 +77,7 @@ export async function entrarCliente(req: Request, db: Db): Promise<Response> {
     db.insert(sesionesCliente).values({ hash: await sha256(sesion), usuarioId: u.id, creada: t, expira: t + DIAS_SESION_CLIENTE * DIA, ultimoUso: t, userAgent: req.headers.get('user-agent')?.slice(0, 300) ?? null, revocada: null }),
     db.update(usuariosCliente).set({ ultimoAcceso: t }).where(eq(usuariosCliente.id, u.id)),
   ]);
+  await registrarAcceso(db, req, env.SAL_IP, 'portal.entrar', null, 'organizacion', u.organizacionId);
   return new Response(null, { status: 303, headers: { location: '/portal/', 'set-cookie': cookieCliente(sesion, DIAS_SESION_CLIENTE * 86_400), 'cache-control': 'no-store' } });
 }
 

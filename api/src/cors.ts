@@ -2,7 +2,11 @@
 import type { Env } from './env';
 
 // Vercel: antidoto-web-<hash>-<equipo>.vercel.app y antidoto-web-git-<rama>-<equipo>.vercel.app.
-const PREVIEW_VERCEL = /^https:\/\/antidoto-web-[a-z0-9-]+\.vercel\.app$/;
+// El sufijo del equipo es obligatorio: cualquiera puede crear en su cuenta un proyecto llamado
+// antidoto-web-algo, pero Vercel reserva el sufijo -<equipo> para ese equipo. Si el proyecto pasa
+// a la cuenta de Antídoto, cambia aquí el nombre del equipo.
+const EQUIPO_VERCEL = 'code-by-mike-sandbox';
+const PREVIEW_VERCEL = new RegExp(`^https://antidoto-web-[a-z0-9-]+-${EQUIPO_VERCEL}\\.vercel\\.app$`);
 const LOCAL = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/;
 
 export function origenPermitido(origen: string | null, env: Pick<Env, 'ORIGENES'>, local = false): boolean {
