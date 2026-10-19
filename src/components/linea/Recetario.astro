@@ -1,0 +1,93 @@
+---
+// "Qué ofrecemos" de una línea como un recetario: cada oferta es una dosis. Con el scroll, el
+// nivel de cada fila se llena en orden y el frasco del logo, fijo al lado en escritorio, sube con
+// ellas. En móvil no hay frasco: las filas se llenan solas al pasar. El servidor pinta todo lleno
+// (cada dosis servida, frasco lleno); el script parte de vacío (src/lib/motion/recetario.ts).
+import Frasco from '../Frasco.astro';
+
+interface Props {
+  items: Array<{ id: string; href: string; titulo: string; lead: string; vt: string }>;
+  cta: string;
+}
+const { items, cta } = Astro.props;
+const total = String(items.length).padStart(2, '0');
+---
+<div class="recetario" data-recetario>
+  <ol class="lista">
+    {items.map((o, i) => (
+      <li class="dosis" data-dosis={o.id}>
+        <a href={o.href}>
+          <span class="d-n" aria-hidden="true"><span>{String(i + 1).padStart(2, '0')}</span></span>
+          <span class="d-cuerpo">
+            <h3 class="d-t" style={`view-transition-name: ${o.vt}`}>{o.titulo}</h3>
+            <span class="d-l">{o.lead}</span>
+          </span>
+          <span class="d-ir">{cta}</span>
+        </a>
+        <span class="d-nivel" aria-hidden="true"><span data-nivel></span></span>
+      </li>
+    ))}
+  </ol>
+  <div class="frasco-col" aria-hidden="true">
+    <Frasco />
+    <p class="contador"><span data-contador>{total}</span><span class="de"> / {total}</span></p>
+  </div>
+</div>
+
+<script>
+  import { iniciarRecetario } from '../../lib/motion/recetario';
+
+  document.querySelectorAll<HTMLElement>('[data-recetario]').forEach((r) => iniciarRecetario(r));
+</script>
+
+<style>
+  .recetario { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 300px); gap: 56px; align-items: start; }
+  .lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  .dosis { position: relative; }
+
+  a { position: relative; isolation: isolate; overflow: hidden; display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 8px 22px; align-items: center; padding: 26px 20px; border-radius: 18px; color: var(--color-ink); text-decoration: none; transition: box-shadow var(--t-base) var(--ease-out); }
+  /* Al apuntar o enfocar, el cian sube por la fila como en las tarjetas de los índices. */
+  a::before { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--color-antidote); clip-path: inset(100% 0 0 0); transition: clip-path var(--t-slow) var(--ease-in-out); }
+  a:hover::before, a:focus-visible::before { clip-path: inset(0 0 0 0); }
+  a:hover .d-l, a:focus-visible .d-l, a:hover .d-ir, a:focus-visible .d-ir { color: var(--color-ink); }
+
+  /* Número en un círculo que se llena de líquido cuando su dosis está servida. */
+  .d-n { position: relative; isolation: isolate; overflow: hidden; width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--color-antidote); display: grid; place-items: center; font: 600 15px/1 var(--font-sans); color: var(--color-ink); transition: border-color var(--t-base) var(--ease-out), color var(--t-base) var(--ease-out); }
+  .d-n::before { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--color-antidote); clip-path: inset(0 0 0 0); transition: clip-path var(--t-slow) var(--ease-in-out); }
+  a:hover .d-n, a:focus-visible .d-n { border-color: var(--color-ink); }
+
+  .d-cuerpo { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .d-t { margin: 0; font: 400 clamp(24px, 1.4vw + 14px, 34px)/1.15 var(--font-display); letter-spacing: -0.01em; }
+  .d-l { color: var(--color-slate); font-size: 15.5px; line-height: 1.5; max-width: 56ch; transition: color var(--t-base) var(--ease-out); }
+  .d-ir { color: var(--color-deep); font-weight: 600; font-size: 15px; white-space: nowrap; transition: color var(--t-base) var(--ease-out); }
+  .d-ir::after { content: '→'; margin-left: 0.35em; display: inline-block; transition: transform var(--t-base) var(--ease-out); }
+  a:hover .d-ir::after, a:focus-visible .d-ir::after { transform: translateX(4px); }
+
+  /* Nivel de la fila: una línea que se llena con el scroll. */
+  .d-nivel { position: absolute; left: 20px; right: 20px; bottom: 0; height: 2px; background: var(--color-line-soft); pointer-events: none; }
+  .d-nivel span { display: block; height: 100%; background: var(--color-antidote); transform-origin: left center; }
+
+  /* Mientras el script recorre la lista, las dosis que faltan se ven vacías. */
+  .en-curso .dosis:not(.servida) .d-n { border-color: var(--color-line-input); color: var(--color-slate); }
+  .en-curso .dosis:not(.servida) .d-n::before { clip-path: inset(100% 0 0 0); }
+  .en-curso .dosis:not(.servida) a:hover .d-n { border-color: var(--color-ink); color: var(--color-ink); }
+
+  /* Ofertas que recomienda el área que se apunta en "Para quién". */
+  .senalada a { box-shadow: inset 0 0 0 2px var(--color-antidote); }
+
+  .frasco-col { position: sticky; top: max(24px, calc(50vh - 220px)); display: grid; justify-items: center; gap: 18px; padding: 8px 12px; }
+  .frasco-col :global(.frasco) { max-width: 240px; filter: drop-shadow(0 18px 30px rgb(15 24 29 / 0.12)); }
+  .contador { margin: 0; font: 400 46px/1 var(--font-accent); color: var(--color-deep); font-variant-numeric: tabular-nums; }
+  .de { color: var(--color-dash); font-size: 0.55em; }
+
+  @media (max-width: 900px) {
+    .recetario { grid-template-columns: minmax(0, 1fr); }
+    .frasco-col { display: none; }
+  }
+  @media (max-width: 640px) {
+    a { grid-template-columns: 44px minmax(0, 1fr); padding: 22px 12px; gap: 6px 16px; align-items: start; }
+    .d-n { width: 44px; height: 44px; font-size: 14px; }
+    .d-ir { grid-column: 2; }
+    .d-nivel { left: 12px; right: 12px; }
+  }
+</style>

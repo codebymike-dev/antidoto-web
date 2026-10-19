@@ -4,7 +4,8 @@
 // (brief del 08/10/2026). No es fija y no enlaza a anclas de la home: cada entrada lleva a una
 // página real. Servicios, Soluciones y Nosotros tienen submenú (patrón disclosure: el texto es un
 // enlace al índice y un botón aparte abre el panel). Servicios abre un mega menú con todas las
-// líneas y sus ofertas. Las preguntas frecuentes van en Nosotros y en el pie.
+// líneas y sus ofertas. Las preguntas frecuentes van en Nosotros y en el pie. Ningún submenú
+// repite el enlace del texto de su ítem, salvo el "todos" al pie de Servicios y Soluciones.
 // Sin JS: en escritorio los paneles se abren con hover y foco (CSS); en móvil el panel queda
 // abierto como lista. Con JS: clic o puntero abren, Esc cierra y devuelve el foco, y bajo
 // 1200 px todo va en el panel del botón Menú, con los submenús como acordeones.
@@ -38,7 +39,8 @@ const hayCasos = (await obtenerCasos()).length > 0;
 const perfiles = s.inicio.paraQuien.perfiles;
 
 type Enlace = { href: string; texto: string; desc?: string };
-type Item = { id: string; href: string; texto: string; secciones: Pagina[]; sub?: Enlace[]; mega?: boolean };
+// `todos`: enlace al índice al pie del panel, como en el mega menú de Servicios.
+type Item = { id: string; href: string; texto: string; secciones: Pagina[]; sub?: Enlace[]; todos?: string; mega?: boolean };
 
 const items: Item[] = [
   { id: 'servicios', href: rutas.servicios[locale], texto: s.nav.servicios, secciones: ['servicios'], mega: true },
@@ -48,6 +50,7 @@ const items: Item[] = [
     texto: s.nav.soluciones,
     secciones: ['soluciones'],
     sub: SOLUCIONES.map((sol) => ({ href: solucionPath(sol, locale), texto: perfiles[sol.perfil][0], desc: perfiles[sol.perfil][1] })),
+    todos: p.todasSoluciones,
   },
   { id: 'sgsst', href: rutas.sgsst[locale], texto: s.nav.sgsst, secciones: ['sgsst'] },
   {
@@ -55,8 +58,8 @@ const items: Item[] = [
     href: rutas.nosotros[locale],
     texto: s.nav.nosotros,
     secciones: ['nosotros', 'comoTrabajamos', 'clientes', 'portafolio', 'trabaja', 'faq', 'blog'],
+    // Sin "La empresa": el texto Nosotros ya enlaza a /nosotros/.
     sub: [
-      { href: rutas.nosotros[locale], texto: p.navEmpresa, desc: p.descNav.nosotros },
       { href: rutas.comoTrabajamos[locale], texto: s.nav.comoTrabajamos, desc: p.descNav.comoTrabajamos },
       // Clientes y portafolio solo existen con contenido autorizado (ver src/pages/clientes/).
       ...(hayCasos ? [{ href: rutas.portafolio[locale], texto: s.nav.portafolio, desc: p.descNav.portafolio }] : []),
@@ -121,6 +124,7 @@ const pag = (href: string) => (href === actual ? 'page' : undefined);
                       </li>
                     ))}
                   </ul>
+                  {it.todos && <a class="sub-todos" href={it.href}>{it.todos}</a>}
                 </div>
               )}
             </li>
@@ -129,7 +133,8 @@ const pag = (href: string) => (href === actual ? 'page' : undefined);
         <!-- Para quien ya tiene el código de una actividad: lleva a /actividades/, separado de Cotizar. -->
         <a class="mision" href={rutas.actividades[locale]} aria-current={pag(rutas.actividades[locale])}>{s.nav.actividades}</a>
         <SelectorIdioma locale={locale} alternates={alternates} class="idioma" />
-        <SelloLicencia locale={locale} variante="corto" href={rutas.sgsst[locale]} class="sello-panel" />
+        <!-- Sin enlace: el ítem SG-SST ya lleva a /sg-sst/ en este mismo panel. -->
+        <SelloLicencia locale={locale} variante="corto" class="sello-panel" />
       </nav>
       <a class="boton boton-cian cotizar" href={rutas.contacto[locale]}>{s.navQuote}</a>
     </div>
@@ -224,7 +229,7 @@ const pag = (href: string) => (href === actual ? 'page' : undefined);
   .marca :global(.sello-nav) { white-space: nowrap; }
   @media (max-width: 1599px) { .marca :global(.sello-nav) { display: none; } }
   .links :global(.sello-panel) { display: none; }
-  @media (max-width: 1200px) { .links :global(.sello-panel) { display: inline-flex; align-self: flex-start; margin-top: 12px; } }
+  @media (max-width: 1200px) { .links :global(.sello-panel) { display: inline-flex; align-self: flex-start; margin-top: 12px; min-height: 36px; } }
   .home :global(.logo) { display: block; height: 34px; width: auto; }
   .derecha { display: flex; align-items: center; gap: 24px; }
 
