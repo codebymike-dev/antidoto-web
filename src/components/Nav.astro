@@ -215,7 +215,7 @@ const pag = (href: string) => (href === actual ? 'page' : undefined);
 <style>
   .nav { position: relative; z-index: 40; background: var(--color-paper); border-bottom: 1px solid var(--color-line-soft); padding-top: env(safe-area-inset-top, 0px); view-transition-name: nav; }
   .barra { padding-block: 14px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-  .marca { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .marca { display: flex; align-items: center; gap: 14px; min-width: 0; flex: none; }
   .home { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-antidote); }
   /* El sello vive en el encabezado desde 1600 px, con la barra más ancha que el contenido: en 1152 px
      no caben logo, sello, menú, selector de idioma y Cotizar. En pantallas medianas lo cubren el hero
@@ -280,7 +280,7 @@ const pag = (href: string) => (href === actual ? 'page' : undefined);
   .nav.abierto .rayas i:first-child { transform: translateY(4px) rotate(45deg); }
   .nav.abierto .rayas i:last-child { transform: translateY(-4px) rotate(-45deg); right: 0; }
 
-  @media (max-width: 1360px) {
+  @media (max-width: 1599px) {
     .lista { gap: 4px 14px; }
     .derecha, .links { gap: 16px; }
   }
