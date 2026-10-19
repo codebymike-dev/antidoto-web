@@ -8,10 +8,11 @@ const ORG_ID = `${SITE.url}/#org`;
 const absoluta = (ruta: string) => new URL(ruta, SITE.url).href;
 
 // Textos de la organización que no están en ui.ts.
-const ORG_TXT = {
+const ORG_TXT: Record<Locale, { cargo: string; catalogo: string }> = {
   es: { cargo: 'CEO y fundadora', catalogo: 'Servicios' },
   en: { cargo: 'CEO and founder', catalogo: 'Services' },
-} as const;
+  pt: { cargo: 'CEO e fundadora', catalogo: 'Serviços' },
+};
 
 /** La organización en el idioma de la página: descripción, cargo y servicios con sus URLs. */
 export function organizationSchema(servicios: Servicio[], locale: Locale) {

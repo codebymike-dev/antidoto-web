@@ -110,13 +110,13 @@ const CHISPA_CHICA = 'M18.5 2.5C18.8 4 19.3 5.2 21.5 5.5 19.3 5.8 18.8 7 18.5 8.
 )}
 
 <script>
-  import { ui } from '../i18n/ui';
+  import { ui, localeDocumento } from '../i18n/ui';
   import { enlaceCotizador, enlaceWhatsapp, paginaDe, textoPlano, type Mensaje } from '../lib/asesor';
   import { EVENTO_ABRIR, EVENTO_HISTORIAL, borrarConversacion, disponible, leerGuardado, preguntarAsesor } from '../lib/conversacion';
 
   const raiz = document.querySelector<HTMLElement>('[data-asesor]');
   if (raiz) {
-    const locale = document.documentElement.lang.startsWith('es') ? 'es' : 'en';
+    const locale = localeDocumento();
     const a = ui[locale].asesor;
     const d = raiz.dataset;
     const pagina = paginaDe(location.pathname, d.pagina, JSON.parse(d.servicios || '{}'));

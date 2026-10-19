@@ -6,7 +6,7 @@ import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const OFFLINE = ['/offline/', '/en/offline/'];
+const OFFLINE = ['/offline/', '/en/offline/', '/pt/offline/'];
 const FIJOS = ['/favicon.svg', '/favicon.ico', '/icon-192.png', '/site.webmanifest'];
 
 const archivos = (dir) =>

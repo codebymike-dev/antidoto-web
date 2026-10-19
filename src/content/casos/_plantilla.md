@@ -1,6 +1,6 @@
 ---
 # Plantilla de caso del portafolio (no se carga: empieza por "_").
-# Copia este archivo como <clave>.es.md y <clave>.en.md, con la misma clave en los dos.
+# Copia este archivo como <clave>.es.md, <clave>.en.md y <clave>.pt.md, con la misma clave en los tres.
 # Solo se publica con borrador: false y con la autorización escrita del cliente.
 clave: ejemplo
 idioma: es

@@ -20,9 +20,11 @@ const s = t(locale);
 const p = tp(locale);
 const eq = s.inicio.equipo;
 const [title, description] = s.seo.nosotros;
-const datos = locale === 'es'
-  ? [['Formación', 'Ingeniería civil'], ['Especialización', 'Gerencia de SST'], ['Marca desde', String(SITE.foundingYear)], ['Sociedad', `${EMPRESA.razonSocial}, desde ${EMPRESA.constitucion}`], ['Idiomas', 'Español, portugués e inglés']]
-  : [['Degree', 'Civil engineering'], ['Specialization', 'Health and safety management'], ['Brand since', String(SITE.foundingYear)], ['Company', `${EMPRESA.razonSocial}, since ${EMPRESA.constitucion}`], ['Languages', 'Spanish, Portuguese and English']];
+const datos = {
+  es: [['Formación', 'Ingeniería civil'], ['Especialización', 'Gerencia de SST'], ['Marca desde', String(SITE.foundingYear)], ['Sociedad', `${EMPRESA.razonSocial}, desde ${EMPRESA.constitucion}`], ['Idiomas', 'Español, portugués e inglés']],
+  en: [['Degree', 'Civil engineering'], ['Specialization', 'Health and safety management'], ['Brand since', String(SITE.foundingYear)], ['Company', `${EMPRESA.razonSocial}, since ${EMPRESA.constitucion}`], ['Languages', 'Spanish, Portuguese and English']],
+  pt: [['Formação', 'Engenharia civil'], ['Especialização', 'Gestão de SST'], ['Marca desde', String(SITE.foundingYear)], ['Sociedade', `${EMPRESA.razonSocial}, desde ${EMPRESA.constitucion}`], ['Idiomas', 'Espanhol, português e inglês']],
+}[locale];
 const hayCasos = (await obtenerCasos()).length > 0;
 const hayClientes = (await obtenerClientes()).length > 0;
 const migas: Array<[string, string]> = [

@@ -2,13 +2,15 @@
 // colecciones del sitio, con los mismos campos que los Markdown de src/content/. Funciones puras,
 // con pruebas en tests/cms.test.ts. Las imágenes llegan como ruta relativa al archivo de la
 // entrada (src/content/.cms/<tipo>/), donde el cargador las dejó descargadas.
+import { LOCALES, type Locale } from '../../i18n/ui';
+import { porIdioma } from '../contenido';
 
 export type TipoCms = 'blog' | 'caso' | 'vacante' | 'faq' | 'cliente' | 'juego';
 
 export interface EntradaApi {
   clave: string;
   datos: Record<string, unknown>;
-  textos: Partial<Record<'es' | 'en', Record<string, unknown>>>;
+  textos: Partial<Record<Locale, Record<string, unknown>>>;
   version: number;
   publicadaEn: number | null;
 }
@@ -50,7 +52,9 @@ export const hoyBogota = (ms = Date.now()) => new Intl.DateTimeFormat('en-CA', {
 
 /**
  * Entradas de la colección para una entrada del panel: una por idioma en blog, casos y vacantes;
- * una sola en preguntas y juegos (con los dos idiomas dentro) y en clientes.
+ * una sola en preguntas y juegos (con los idiomas dentro) y en clientes. Una entrada publicada
+ * antes de que el sitio tuviera portugués (18/10/2026) no trae `pt`: sale con el texto en español
+ * hasta que alguien la traduzca en el panel, que ya lo pide para publicar.
  */
 export function convertir(tipo: TipoCms, e: EntradaApi, medios: Record<string, MedioApi>, hoy = hoyBogota()): EntradaColeccion[] {
   const img = (id: unknown) => {
@@ -59,20 +63,21 @@ export function convertir(tipo: TipoCms, e: EntradaApi, medios: Record<string, M
     return rutaMedio(id as string, m);
   };
   const d = e.datos;
+  const textosDe = (i: Locale) => e.textos[i] ?? (i === 'pt' ? e.textos.es : undefined);
   if (tipo === 'faq') {
-    const par = (i: 'es' | 'en') => [s(e.textos[i]?.pregunta) ?? '', s(e.textos[i]?.respuesta) ?? ''];
-    return [{ id: e.clave, data: sinVacios({ clave: e.clave, tema: d.tema, destacada: d.destacada === true, orden: d.orden, es: par('es'), en: par('en') }) }];
+    const par = (i: Locale) => [s(textosDe(i)?.pregunta) ?? '', s(textosDe(i)?.respuesta) ?? ''];
+    return [{ id: e.clave, data: sinVacios({ clave: e.clave, tema: d.tema, destacada: d.destacada === true, orden: d.orden, ...porIdioma(par) }) }];
   }
   if (tipo === 'juego') {
-    const textos = (i: 'es' | 'en') => sinVacios({ title: e.textos[i]?.title, trabaja: e.textos[i]?.trabaja, duracion: e.textos[i]?.duracion, modalidad: e.textos[i]?.modalidad });
-    return [{ id: e.clave, data: sinVacios({ clave: e.clave, orden: d.orden, es: textos('es'), en: textos('en') }) }];
+    const textos = (i: Locale) => sinVacios({ title: textosDe(i)?.title, trabaja: textosDe(i)?.trabaja, duracion: textosDe(i)?.duracion, modalidad: textosDe(i)?.modalidad });
+    return [{ id: e.clave, data: sinVacios({ clave: e.clave, orden: d.orden, ...porIdioma(textos) }) }];
   }
   if (tipo === 'cliente') {
     return [{ id: e.clave, data: sinVacios({ clave: e.clave, nombre: d.nombre, sector: d.sector, logo: img(d.logo), color: true, orden: d.orden }) }];
   }
   if (tipo === 'vacante' && typeof d.cierre === 'string' && d.cierre < hoy) return [];
-  return (['es', 'en'] as const).map((idioma) => {
-    const t = e.textos[idioma] ?? {};
+  return LOCALES.map((idioma) => {
+    const t = textosDe(idioma) ?? {};
     const comun = { clave: e.clave, idioma, borrador: false, slug: t.slug, title: t.title, lead: t.lead };
     const cuerpo = s(t.cuerpo);
     if (tipo === 'blog')

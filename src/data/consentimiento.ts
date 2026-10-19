@@ -5,11 +5,12 @@
 // reemplaza pasa entera (versión y textos) a "anteriores": el sitio y la API se despliegan por
 // separado y, mientras tanto, la API debe seguir aceptando la que tenga la otra parte.
 import datos from './consentimiento.json';
+import type { Locale } from '../i18n/ui';
 
 /** Autorización para responder y hacer seguimiento a una solicitud de cotización. */
 export const CONSENTIMIENTO_VERSION: string = datos.version;
-export const CONSENTIMIENTO: Record<'es' | 'en', string> = { es: datos.es, en: datos.en };
+export const CONSENTIMIENTO: Record<Locale, string> = { es: datos.es, en: datos.en, pt: datos.pt };
 
 /** Autorización aparte para recibir novedades por correo (email marketing). */
 export const NOVEDADES_VERSION: string = datos.marketing.version;
-export const NOVEDADES: Record<'es' | 'en', string> = { es: datos.marketing.es, en: datos.marketing.en };
+export const NOVEDADES: Record<Locale, string> = { es: datos.marketing.es, en: datos.marketing.en, pt: datos.marketing.pt };

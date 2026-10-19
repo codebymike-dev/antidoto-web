@@ -1,0 +1,10 @@
+---
+// Solo existe con al menos un artículo publicado (ver src/pages/blog/[...indice].astro).
+import P from '../../../components/pages/PaginaBlog.astro';
+import { obtenerArticulos } from '../../../data/contenido';
+
+export async function getStaticPaths() {
+  return (await obtenerArticulos()).length ? [{ params: { indice: undefined } }] : [];
+}
+---
+<P locale="pt" />

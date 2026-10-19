@@ -2,13 +2,13 @@
 // 404: responde en cualquier ruta (sin canonical) y muestra las secciones del sitio.
 import Base from '../layouts/Base.astro';
 import IndiceSitio from '../components/IndiceSitio.astro';
-import { t } from '../i18n/ui';
+import { t, rutas } from '../i18n/ui';
 import { tp } from '../i18n/paginas';
 
 const s = t('es');
 const p = tp('es');
 ---
-<Base locale="es" pagina={null} title={`${s.notFoundTitle} | Antídoto`} description={s.notFoundLead} alternates={{ es: '/', en: '/en/' }} noindex sinCanonical>
+<Base locale="es" pagina={null} title={`${s.notFoundTitle} | Antídoto`} description={s.notFoundLead} alternates={rutas.inicio} noindex sinCanonical>
   <section class="nf">
     <div class="wrap">
       <p class="codigo">404</p>

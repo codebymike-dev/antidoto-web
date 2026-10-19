@@ -1,6 +1,6 @@
 // Textos de las páginas internas del sitio multipágina (índices, líneas, ofertas, soluciones,
 // portafolio, empresa, FAQ, blog, legales y mapa del sitio). Los textos comunes siguen en ui.ts.
-// Regla: los dos idiomas, sin guiones largos ni semilargos, sin emojis. Un bloque sin contenido
+// Regla: los tres idiomas, sin guiones largos ni semilargos, sin emojis. Un bloque sin contenido
 // no se pinta: nada de corchetes ni cajas de "pendiente" en el sitio publicado.
 import { enFrase, type Locale } from './ui';
 
@@ -400,6 +400,205 @@ export const paginas = {
 
     noEncontrada: {
       lead: 'The link may be mistyped or the page may have moved. These are the sections of the site:',
+    },
+  },
+
+  pt: {
+    inicio: 'Início',
+    verTodo: 'Ver tudo',
+    verMas: 'Ver mais',
+    leerMas: 'Ler mais',
+    cotizar: 'Orçamento',
+    submenu: (s: string) => `Abrir o submenu de ${s}`,
+    todosServicios: 'Todos os serviços',
+    todasSoluciones: 'Todas as soluções',
+    navEmpresa: 'A empresa',
+    navRecursos: 'Recursos',
+    descNav: {
+      soluciones: 'Por área: SST, gestão de pessoas, comunicação e educação.',
+      sgsst: 'Licença SST, capacitação, sistemas de gestão e auditorias.',
+      nosotros: 'Quem somos e de onde viemos.',
+      comoTrabajamos: 'Três passos, do desafio ao relatório final.',
+      clientes: 'Marcas que trabalharam conosco.',
+      trabaja: 'Parcerias e talentos.',
+      faq: 'Cobertura, idiomas, entregas e orçamento.',
+      blog: 'Ideias para formar e cuidar da sua equipe.',
+      portafolio: 'Projetos reais, contados do começo ao fim.',
+    },
+
+    cta: {
+      titulo: 'Conte-nos seu desafio e enviamos uma proposta',
+      lead: 'Monte seu orçamento em três passos ou fale direto conosco pelo WhatsApp, em português.',
+      cotizador: 'Montar orçamento',
+      whatsapp: 'Falar pelo WhatsApp',
+    },
+
+    servicios: {
+      titulo: ['Cinco linhas, ', 'uma só fórmula'],
+      lead: 'Treinamentos, produção audiovisual, catering e design para empresas, escolas e universidades na Colômbia. Contratados separadamente ou como um só evento.',
+      ofertasDe: (n: number) => (n === 1 ? '1 oferta' : `${n} ofertas`),
+      verLinea: 'Ver a linha',
+      combinar: ['Precisa de mais de uma linha?', 'Uma só equipe coordena treinamento, vídeo, comida e peças para o mesmo evento.', 'Ver como trabalhamos'],
+    },
+
+    linea: {
+      ofertas: ['O que ', 'oferecemos'],
+      ofertasLead: 'Cada oferta tem sua página com o detalhe. Escolha a que se parece com o seu desafio.',
+      paraQuien: ['Para ', 'quem'],
+      paraQuienLead: 'As áreas que mais contratam esta linha.',
+      casos: ['Casos ', 'desta linha'],
+      faq: ['Perguntas ', 'frequentes'],
+      otras: ['Outras ', 'linhas'],
+      datos: 'Em números',
+      verOferta: 'Ver oferta',
+    },
+
+    oferta: {
+      para: 'Para',
+      incluye: ['O que ', 'inclui'],
+      otras: (linea: string) => `Mais de ${linea}`,
+      soluciones: ['Recomendada ', 'para'],
+      cotizarEsta: 'Orçamento desta oferta',
+      wa: (oferta: string, linea: string) => `Olá, Antídoto! Quero um orçamento de ${enFrase(oferta)} (${enFrase(linea)}).`,
+    },
+
+    soluciones: {
+      titulo: ['Soluções por ', 'área'],
+      lead: 'Cada área chega com um desafio diferente. Comece pelo seu e mostramos o que funciona melhor.',
+      retos: ['O que ', 'resolvemos'],
+      reto: 'O desafio',
+      solucion: 'Como resolvemos',
+      ofertas: ['O que ', 'recomendamos'],
+      clientes: 'Confiaram em nós',
+    },
+
+    portafolio: {
+      titulo: ['Nosso ', 'trabalho'],
+      lead: 'Projetos reais de treinamento, vídeo, catering e design, contados do começo ao fim.',
+      todos: 'Todos',
+      reto: 'O desafio',
+      solucion: 'O que fizemos',
+      resultado: 'O resultado',
+      cliente: 'Cliente',
+      linea: 'Linha',
+      otros: ['Mais ', 'casos'],
+    },
+
+    nosotros: {
+      empresa: ['Um estúdio criativo com ', 'critério de engenharia'],
+      datosTitulo: 'Antídoto em números',
+      equipo: ['Nossa ', 'equipe'],
+      seguir: ['Conheça ', 'mais'],
+    },
+
+    como: {
+      titulo: ['Assim trabalhamos ', 'com você'],
+      lead: 'Três passos, da primeira conversa ao relatório final. Uma só equipe responde por tudo.',
+    },
+
+    trabaja: {
+      titulo: ['Trabalhe ', 'conosco'],
+      lead: 'Buscamos parceiros que queiram somar produção criativa aos seus programas e talentos que queiram criar conosco.',
+      aliadosTitulo: ['Para ', 'parceiros'],
+      aliadosLead: 'Consultorias de SST, corretoras de seguros, seguradoras e agências: somamos nossa produção aos programas dos seus clientes na Colômbia.',
+      aliadosPuntos: ['Treinamentos e vídeos com a sua marca ou a do seu cliente', 'Uma só equipe para a produção e a logística', 'Orçamento por projeto'],
+      aliadosWa: 'Olá, Antídoto! Quero conversar sobre uma parceria.',
+      aliadosCta: 'Conversar sobre uma parceria',
+      talentoTitulo: ['Para ', 'talentos'],
+      talentoLead: 'Facilitadores, produtores audiovisuais, cozinha e design. Envie seu currículo ou portfólio por e-mail.',
+      talentoAsunto: 'Currículo para a Antídoto',
+      talentoCta: 'Enviar currículo',
+      vacantesTitulo: ['Vagas ', 'abertas'],
+      modalidad: { presencial: 'Presencial', hibrida: 'Híbrida', remota: 'Remota' },
+      vinculo: { completo: 'Tempo integral', medio: 'Meio período', proyecto: 'Por projeto' },
+      cierre: 'Recebemos currículos até',
+      postularme: 'Candidatar-me',
+      asuntoVacante: 'Candidatura',
+    },
+
+    faq: {
+      titulo: ['Perguntas ', 'frequentes'],
+      lead: 'O que mais nos perguntam antes de pedir orçamento. Se não encontrar sua resposta, fale conosco.',
+      temas: {
+        general: 'Gerais',
+        formaciones: 'Treinamentos',
+        audiovisual: 'Produção audiovisual',
+        catering: 'Catering',
+        diseno: 'Design',
+        ia: 'Capacitação em IA',
+        cotizacion: 'Orçamento',
+      },
+      indice: 'Temas',
+      todas: 'Ver todas as perguntas',
+      otra: ['Tem outra pergunta?', 'Fale conosco pelo WhatsApp ou por e-mail.'],
+    },
+
+    actividades: {
+      titulo: ['Entre na sua ', 'atividade'],
+      lead: 'Se sua empresa passou um código, digite aqui para entrar no jogo. Mais abaixo estão os jogos de Misiones Antídoto.',
+      codigo: 'Digite seu código',
+      codigoAyuda: 'Letras, números ou hifens. Vem no convite da sua atividade.',
+      entrar: 'Entrar',
+      codigoError: 'Confira o código: ele só tem letras, números ou hifens.',
+      catalogo: ['Os ', 'jogos'],
+      catalogoLead: 'São jogados pelo celular de cada participante e os configuramos com a sua empresa.',
+      trabaja: 'O que trabalha',
+      duracion: 'Duração',
+      modalidad: 'Modalidade',
+      cotizarJuego: 'Orçamento deste jogo',
+      demo: ['Assim ficam ', 'os resultados'],
+      demoLead: 'Ao terminar, cada atividade mostra os resultados por equipe. Os dados desta tabela são de exemplo.',
+      empresas: 'Sua empresa tem uma atividade conosco?',
+      empresasEnlace: 'Acesso para empresas',
+    },
+
+    blog: {
+      titulo: ['Ideias para ', 'sua equipe'],
+      lead: 'Notas sobre SST, formação, vídeo, eventos e cultura para quem forma e cuida das suas equipes.',
+      categorias: { sst: 'SST', formacion: 'Formação', audiovisual: 'Audiovisual', eventos: 'Eventos', cultura: 'Cultura' },
+      todas: 'Todas',
+      por: 'Por',
+      relacionados: ['Serviços ', 'relacionados'],
+      otros: ['Mais ', 'artigos'],
+      rss: 'Assinar por RSS',
+      fecha: (d: Date) => new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }).format(d),
+    },
+
+    legal: {
+      borrador: 'Rascunho pendente de revisão jurídica',
+      actualizado: 'Última atualização',
+      terminos: {
+        titulo: 'Termos e condições',
+        lead: 'Condições de uso deste site.',
+        secciones: [
+          ['Quem somos', 'Este site pertence à ANTIDOTO S.A.S., NIT 901.777.384-6, sociedade colombiana que usa a marca Antídoto.'],
+          ['Uso do site', 'O site informa sobre os serviços da Antídoto e permite pedir orçamentos. Ao usá-lo, você se compromete a não fazer uso ilícito nem afetar seu funcionamento.'],
+          ['Orçamentos', 'Os orçamentos que você monta no site são uma solicitação, não uma oferta nem um contrato. As condições de cada serviço são acordadas por escrito na proposta.'],
+          ['Propriedade intelectual', 'Os textos, fotos, vídeos, logotipos e o design do site são da Antídoto ou de seus titulares. As marcas de terceiros pertencem a seus titulares.'],
+          ['Links para terceiros', 'O site tem links para WhatsApp, Instagram e LinkedIn. Cada serviço tem suas próprias condições.'],
+          ['Dados pessoais', 'O tratamento de dados é regido pela política de tratamento de dados, conforme a lei colombiana.'],
+        ],
+      },
+      cookies: {
+        titulo: 'Cookies',
+        lead: 'O que este site guarda no seu navegador e para quê.',
+        secciones: [
+          ['Resumo', 'Este site não usa cookies de publicidade nem de rastreamento entre sites.'],
+          ['O que guardamos', 'Guardamos no seu navegador, só durante a visita, de onde você chegou (por exemplo, uma campanha) para saber qual canal funciona quando você pede um orçamento. Também guardamos cópias de páginas para que o site funcione sem conexão.'],
+          ['Medição', 'Contamos os cliques no WhatsApp e os orçamentos enviados sem cookies e sem dados pessoais: só guardamos o tipo de ação, a página e o dia.'],
+          ['Como apagar', 'Você pode apagar estes dados nas configurações do seu navegador quando quiser.'],
+        ],
+      },
+    },
+
+    mapa: {
+      titulo: ['Mapa ', 'do site'],
+      lead: 'Todas as páginas do site em um só lugar.',
+      grupos: { servicios: 'Serviços', soluciones: 'Soluções', empresa: 'Empresa', recursos: 'Recursos', legal: 'Jurídico' },
+    },
+
+    noEncontrada: {
+      lead: 'Pode ser que o link esteja errado ou que a página tenha mudado de lugar. Estas são as seções do site:',
     },
   },
 } as const;

@@ -11,6 +11,7 @@ import { obtenerCasos, casoPath, type Caso } from '../../data/contenido';
 import { grafo, migasSchema, publicacionSchema } from '../../data/schema';
 import { t, rutas, type Locale } from '../../i18n/ui';
 import { tp } from '../../i18n/paginas';
+import { porIdioma } from '../../lib/contenido';
 
 interface Props {
   locale: Locale;
@@ -46,7 +47,7 @@ const ficha: Array<[string, string]> = [
   pagina="portafolio"
   title={`${txt.title} | Antídoto`}
   description={txt.lead}
-  alternates={{ es: casoPath(caso, 'es'), en: casoPath(caso, 'en') }}
+  alternates={porIdioma((l) => casoPath(caso, l))}
   jsonLd={jsonLd}
   scroll="suave"
 >

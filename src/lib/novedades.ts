@@ -2,12 +2,12 @@
 // API y la persona confirma desde su correo (doble confirmación). Al enviar el formulario acepta
 // el texto de autorización que tiene debajo. Sin JS el formulario sigue oculto: no hay a dónde
 // enviarlo sin fetch.
-import { ui } from '../i18n/ui';
+import { ui, localeDocumento } from '../i18n/ui';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export function iniciarNovedades(form: HTMLFormElement): void {
-  const locale = document.documentElement.lang.startsWith('es') ? 'es' : 'en';
+  const locale = localeDocumento();
   const s = ui[locale];
   const estado = form.querySelector<HTMLElement>('[data-estado]')!;
   const email = form.querySelector<HTMLInputElement>('input[name="email"]')!;

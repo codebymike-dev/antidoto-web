@@ -5,7 +5,7 @@
 //
 // No es motion: funciona también con movimiento reducido. En ese caso (o si el motor aún no cargó)
 // responde la burbuja quieta del PNG.
-import { ui } from '../../i18n/ui';
+import { ui, localeDocumento } from '../../i18n/ui';
 import { enlaceCotizador, enlaceWhatsapp, textoPlano } from '../asesor';
 import { EVENTO_ABRIR, preguntarAsesor } from '../conversacion';
 import { llenarBurbuja, type Accion } from './lienzo';
@@ -30,7 +30,7 @@ export function hablanteQuieto(raiz: HTMLElement): Hablante {
 }
 
 export function iniciarPregunta(form: HTMLFormElement, hablante: () => Hablante) {
-  const locale = document.documentElement.lang.startsWith('es') ? 'es' : 'en';
+  const locale = localeDocumento();
   const a = ui[locale].asesor;
   const f = a.facilitador;
   const d = form.dataset;

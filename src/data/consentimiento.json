@@ -2,11 +2,13 @@
   "version": "2026-10-v1",
   "es": "Autorizo a Antídoto a tratar mis datos de contacto para responder esta solicitud y hacerle seguimiento, según su política de tratamiento de datos.",
   "en": "I authorize Antídoto to process my contact details to answer this request and follow up on it, under its data processing policy.",
+  "pt": "Autorizo a Antídoto a tratar meus dados de contato para responder a esta solicitação e fazer o acompanhamento, conforme sua política de tratamento de dados.",
   "anteriores": [],
   "marketing": {
     "version": "2026-10-novedades-v1",
     "es": "Quiero recibir por correo novedades, contenidos y propuestas de Antídoto. Puedo darme de baja cuando quiera desde cualquier correo.",
     "en": "I want to receive news, content and offers from Antídoto by email. I can unsubscribe at any time from any email.",
+    "pt": "Quero receber por e-mail novidades, conteúdos e propostas da Antídoto. Posso cancelar quando quiser em qualquer e-mail.",
     "anteriores": []
   }
 }

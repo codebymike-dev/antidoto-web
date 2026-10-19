@@ -90,7 +90,6 @@ export const ui = {
     menuBoton: 'Menú',
     homeLabel: 'Antídoto, inicio',
     langLabel: 'Idioma',
-    switchLangLabel: 'Ver el sitio en inglés',
     // Plataforma de juegos (proyecto aparte, ver PORTAL en src/data/site.ts). Se entra desde /actividades/.
     portalTitulo: 'Misiones Antídoto',
     portalParticipante: 'Entrar con mi código',
@@ -581,7 +580,6 @@ export const ui = {
     menuBoton: 'Menu',
     homeLabel: 'Antídoto, home',
     langLabel: 'Language',
-    switchLangLabel: 'Ver el sitio en español',
     portalTitulo: 'Misiones Antídoto',
     portalParticipante: 'Join with my code',
     waFab: 'Message us on WhatsApp',
@@ -1068,7 +1066,6 @@ export const ui = {
     menuBoton: 'Menu',
     homeLabel: 'Antídoto, início',
     langLabel: 'Idioma',
-    switchLangLabel: 'Ver o site em outro idioma',
     portalTitulo: 'Misiones Antídoto',
     portalParticipante: 'Entrar com meu código',
     waFab: 'Fale conosco pelo WhatsApp',
@@ -1531,6 +1528,12 @@ export const ui = {
 
 export function t(locale: Locale) {
   return ui[locale];
+}
+
+/** Idioma de la página en los scripts del navegador, leído del atributo lang de <html>. */
+export function localeDocumento(): Locale {
+  const l = document.documentElement.lang.slice(0, 2);
+  return (LOCALES as readonly string[]).includes(l) ? (l as Locale) : 'es';
 }
 
 /** Los demás idiomas del sitio, en el orden de LOCALES. */

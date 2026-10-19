@@ -44,7 +44,7 @@ const migas: Array<[string, string]> = [
   const estado = document.querySelector<HTMLElement>('[data-archivo-estado]');
   if (lista && estado) {
     const { api, locale, vacio, error, leer } = lista.dataset;
-    const fecha = new Intl.DateTimeFormat(locale === 'en' ? 'en' : 'es-CO', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Bogota' });
+    const fecha = new Intl.DateTimeFormat(document.documentElement.lang, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Bogota' });
     fetch(`${api}/v1/novedades?locale=${locale}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then(({ novedades }: { novedades: { id: string; asunto: string; preheader: string | null; fecha: number }[] }) => {

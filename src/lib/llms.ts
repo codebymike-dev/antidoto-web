@@ -63,8 +63,10 @@ export function llmsTxt(servicios: Servicio[], clientes: string[], { ofertas = [
     '',
     '## Optional',
     '',
-    ...paginas('en', lista),
-    ...servicios.map((s) => `- [${s.en.title}](${url(servicioPath(s, 'en'))}): ${s.en.lead}`),
+    ...(['en', 'pt'] as const).flatMap((l) => [
+      ...paginas(l, lista),
+      ...servicios.map((s) => `- [${s[l].title}](${url(servicioPath(s, l))}): ${s[l].lead}`),
+    ]),
     '',
   ].join('\n');
 }

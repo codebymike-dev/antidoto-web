@@ -6,7 +6,13 @@ import serviceWorker from './integraciones/service-worker.mjs';
 
 // Fuera del sitemap: páginas con noindex (offline, los textos legales en borrador, las preferencias de
 // novedades, que solo sirven con el token de un correo, y la documentación interna).
-const FUERA_DEL_SITEMAP = ['/offline/', '/en/offline/', '/politica-de-datos/', '/en/data-policy/', '/novedades/preferencias/', '/en/news/preferences/', '/terminos-y-condiciones/', '/en/terms/', '/cookies/', '/en/cookies/'];
+const FUERA_DEL_SITEMAP = [
+  '/offline/', '/en/offline/', '/pt/offline/',
+  '/politica-de-datos/', '/en/data-policy/', '/pt/politica-de-dados/',
+  '/novedades/preferencias/', '/en/news/preferences/', '/pt/novidades/preferencias/',
+  '/terminos-y-condiciones/', '/en/terms/', '/pt/termos-e-condicoes/',
+  '/cookies/', '/en/cookies/', '/pt/cookies/',
+];
 
 export default defineConfig({
   site: 'https://antidotocolombia.com',
@@ -15,12 +21,12 @@ export default defineConfig({
   build: { format: 'directory' },
   i18n: {
     defaultLocale: 'es',
-    locales: ['es', 'en'],
+    locales: ['es', 'en', 'pt'],
     routing: { prefixDefaultLocale: false },
   },
   integrations: [
     sitemap({
-      i18n: { defaultLocale: 'es', locales: { es: 'es-CO', en: 'en' } },
+      i18n: { defaultLocale: 'es', locales: { es: 'es-CO', en: 'en', pt: 'pt-BR' } },
       filter: (url) => !FUERA_DEL_SITEMAP.some((r) => url.endsWith(r)) && !url.includes('/docs/'),
     }),
     serviceWorker(),

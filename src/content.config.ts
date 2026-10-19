@@ -8,9 +8,10 @@ import { cms, desdeDatos } from './lib/cms/loader';
 import { FAQ, TEMAS_FAQ } from './data/faq';
 import { CLIENTES_LOCALES, SECTORES } from './data/clientes';
 import { JUEGOS_LOCALES } from './data/juegos';
+import { LOCALES } from './i18n/ui';
 
 // El id sale de la ruta del archivo y no del campo `slug`, que el loader usa por defecto: un
-// slug igual en los dos idiomas ("inclusion") haría que una entrada pisara a la otra.
+// slug igual en dos idiomas ("inclusion") haría que una entrada pisara a la otra.
 const idPorArchivo = ({ entry }: { entry: string }) => entry.replace(/\.md$/, '');
 
 const servicios = defineCollection({
@@ -18,7 +19,7 @@ const servicios = defineCollection({
   schema: ({ image }) =>
     z.object({
       clave: z.string().regex(/^[a-z][a-z0-9-]*$/, 'La clave va en minúsculas, sin espacios ni puntos'),
-      idioma: z.enum(['es', 'en']),
+      idioma: z.enum(LOCALES),
       orden: z.number().int().positive(),
       imagen: image(),
       provisional: z.boolean().optional(),
@@ -42,7 +43,7 @@ const ofertas = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/ofertas', generateId: idPorArchivo }),
   schema: z.object({
     clave: z.string().regex(/^[a-z][a-z0-9-]*$/, 'La clave va en minúsculas, sin espacios ni puntos'),
-    idioma: z.enum(['es', 'en']),
+    idioma: z.enum(LOCALES),
     linea: z.string().min(1),
     orden: z.number().int().positive(),
     borrador: z.boolean().default(false),
@@ -63,7 +64,7 @@ const casos = defineCollection({
   schema: ({ image }) =>
     z.object({
       clave: z.string().regex(/^[a-z][a-z0-9-]*$/),
-      idioma: z.enum(['es', 'en']),
+      idioma: z.enum(LOCALES),
       borrador: z.boolean().default(true),
       slug: z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
       title: z.string().min(1),
@@ -88,7 +89,7 @@ const blog = defineCollection({
   schema: ({ image }) =>
     z.object({
       clave: z.string().regex(/^[a-z][a-z0-9-]*$/),
-      idioma: z.enum(['es', 'en']),
+      idioma: z.enum(LOCALES),
       borrador: z.boolean().default(true),
       slug: z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
       title: z.string().min(1),
@@ -107,7 +108,7 @@ const vacantes = defineCollection({
   loader: cms({ tipo: 'vacante' }),
   schema: z.object({
     clave: z.string().regex(/^[a-z][a-z0-9-]*$/),
-    idioma: z.enum(['es', 'en']),
+    idioma: z.enum(LOCALES),
     borrador: z.boolean().default(false),
     slug: z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
     title: z.string().min(1),
@@ -120,12 +121,12 @@ const vacantes = defineCollection({
 });
 
 // Preguntas frecuentes: las de src/data/faq.ts más las publicadas en el panel. Una entrada por
-// pregunta, con los dos idiomas dentro.
+// pregunta, con los tres idiomas dentro.
 const faq = defineCollection({
   loader: cms({
     tipo: 'faq',
     local: desdeDatos('faq-local', 'src/data/faq.ts', () =>
-      FAQ.map((p, i) => ({ id: p.clave, data: { clave: p.clave, tema: p.tema, destacada: !!p.destacada, orden: i, es: p.es, en: p.en } })),
+      FAQ.map((p, i) => ({ id: p.clave, data: { clave: p.clave, tema: p.tema, destacada: !!p.destacada, orden: i, es: p.es, en: p.en, pt: p.pt } })),
     ),
   }),
   schema: z.object({
@@ -135,6 +136,7 @@ const faq = defineCollection({
     orden: z.number().int().default(999),
     es: z.tuple([z.string().min(1), z.string().min(1)]),
     en: z.tuple([z.string().min(1), z.string().min(1)]),
+    pt: z.tuple([z.string().min(1), z.string().min(1)]),
   }),
 });
 
@@ -161,7 +163,7 @@ const clientes = defineCollection({
 });
 
 // Catálogo de juegos de /actividades/: los de src/data/juegos.ts más los publicados en el panel.
-// Una entrada por juego, con los dos idiomas dentro.
+// Una entrada por juego, con los tres idiomas dentro.
 const textosJuego = z.object({ title: z.string().min(1), trabaja: z.string().min(1), duracion: z.string().optional(), modalidad: z.string().min(1) });
 const juegos = defineCollection({
   loader: cms({
@@ -173,6 +175,7 @@ const juegos = defineCollection({
     orden: z.number().int().default(999),
     es: textosJuego,
     en: textosJuego,
+    pt: textosJuego,
   }),
 });
 

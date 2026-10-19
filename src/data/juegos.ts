@@ -15,6 +15,7 @@ export interface JuegoLocal {
   clave: string;
   es: TextosJuego;
   en: TextosJuego;
+  pt: TextosJuego;
 }
 
 export const JUEGOS_LOCALES: JuegoLocal[] = [
@@ -30,6 +31,11 @@ export const JUEGOS_LOCALES: JuegoLocal[] = [
       trabaja: 'Identifying the risks at the workstation or in the store. A generic version, without any client’s brand.',
       modalidad: 'From each participant’s phone',
     },
+    pt: {
+      title: 'Detecte o risco',
+      trabaja: 'Identificar os riscos no posto de trabalho ou na loja. Versão genérica, sem a marca de nenhum cliente.',
+      modalidad: 'Pelo celular de cada participante',
+    },
   },
   {
     clave: 'a-la-medida',
@@ -42,6 +48,11 @@ export const JUEGOS_LOCALES: JuegoLocal[] = [
       title: 'Custom game',
       trabaja: 'We set up the game with your company’s risks, workplace and brand.',
       modalidad: 'From each participant’s phone',
+    },
+    pt: {
+      title: 'Jogo sob medida',
+      trabaja: 'Configuramos o jogo com os riscos, o local e a marca da sua empresa.',
+      modalidad: 'Pelo celular de cada participante',
     },
   },
 ];

@@ -4,6 +4,7 @@
 // lo que se pregunta en un lado sigue en el otro. Cada cambio se avisa con EVENTO_HISTORIAL para
 // que el panel se repinte. La API valida todo (api/src/asesor/bucle.ts) y guarda cada turno 90
 // días bajo el id de esta conversación; "Empezar de nuevo" la borra también allá.
+import type { Locale } from '../i18n/ui';
 import { CLAVE_ALMACEN, CLAVE_ID, MAX_PREGUNTAS, MAX_TEXTO, cuerpoPregunta, esIdConversacion, leerHistorial, preguntasHechas, type Mensaje } from './asesor';
 
 /** Cambió el historial; `detail.origen` dice quién lo cambió. */
@@ -100,7 +101,7 @@ export async function borrarConversacion(api: string, origen: string): Promise<v
 }
 
 /** Hace una pregunta con todo el historial guardado y guarda la respuesta. */
-export async function preguntarAsesor(o: { api: string; locale: 'es' | 'en'; pagina: string; texto: string; origen: 'panel' | 'facilitador' }): Promise<Resultado> {
+export async function preguntarAsesor(o: { api: string; locale: Locale; pagina: string; texto: string; origen: 'panel' | 'facilitador' }): Promise<Resultado> {
   const texto = o.texto.trim().slice(0, MAX_TEXTO);
   const historial = leerGuardado();
   if (preguntasHechas(historial) >= MAX_PREGUNTAS) return { ok: false, motivo: 'limite' };

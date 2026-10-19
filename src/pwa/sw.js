@@ -25,7 +25,11 @@ const MAX_ESTATICOS = 150;
 // Si la red tarda más que esto en una página ya guardada, se muestra la copia (conexiones lentas).
 const ESPERA_RED_MS = 3500;
 
-const offline = (ruta) => (ruta === '/en' || ruta.startsWith('/en/') ? '/en/offline/' : '/offline/');
+// Página sin conexión del idioma de la ruta (inglés en /en/, portugués en /pt/, español en el resto).
+const offline = (ruta) => {
+  const idioma = ['en', 'pt'].find((l) => ruta === `/${l}` || ruta.startsWith(`/${l}/`));
+  return idioma ? `/${idioma}/offline/` : '/offline/';
+};
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

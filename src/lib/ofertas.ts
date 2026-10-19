@@ -3,7 +3,7 @@
 // Las ofertas salen de `includes` de cada servicio: no se inventa ninguna.
 // Sin imports de Astro en tiempo de ejecución para poder probarla en tests/contenido.test.ts.
 import type { Locale } from '../i18n/ui';
-import { emparejarPorClave, repetido } from './contenido';
+import { emparejarPorClave, porIdioma, repetido } from './contenido';
 import { servicioPath, type Servicio } from './servicios';
 
 export interface OfertaTexto {
@@ -35,6 +35,7 @@ export interface Oferta {
   borrador: boolean;
   es: OfertaTexto;
   en: OfertaTexto;
+  pt: OfertaTexto;
 }
 
 const texto = ({ slug, title, lead, para, incluye, entrada }: EntradaOferta): OfertaTexto => ({
@@ -65,9 +66,10 @@ export function emparejarOfertas(
     ],
     ambitoSlug: (e) => e.linea,
   });
-  const ofertas: Oferta[] = pares.map(({ clave, borrador, es, en }) => {
+  const ofertas: Oferta[] = pares.map((par) => {
+    const { clave, borrador, es } = par;
     if (!lineasConocidas.includes(es.linea)) throw new Error(`La oferta "${clave}" apunta a la línea "${es.linea}", que no existe`);
-    return { id: clave, linea: es.linea, orden: es.orden, borrador, es: texto(es), en: texto(en) };
+    return { id: clave, linea: es.linea, orden: es.orden, borrador, ...porIdioma((l) => texto(par[l])) };
   });
   for (const linea of lineasConocidas) {
     const orden = repetido(ofertas.filter((o) => o.linea === linea).map((o) => o.orden));

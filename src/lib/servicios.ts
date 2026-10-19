@@ -3,7 +3,7 @@
 // Sin imports de Astro en tiempo de ejecución para poder probarla en tests/servicios.test.ts.
 import type { ImageMetadata } from 'astro';
 import type { Locale } from '../i18n/ui';
-import { emparejarPorClave, repetido } from './contenido';
+import { emparejarPorClave, porIdioma, repetido } from './contenido';
 
 export interface ServicioTexto {
   slug: string;
@@ -39,6 +39,7 @@ export interface Servicio {
   borrador: boolean;
   es: ServicioTexto;
   en: ServicioTexto;
+  pt: ServicioTexto;
 }
 
 const texto = ({ slug, title, lead, facts, includes, herramientas, aliado, alt, entrada }: EntradaServicio): ServicioTexto => ({
@@ -55,9 +56,9 @@ const texto = ({ slug, title, lead, facts, includes, herramientas, aliado, alt, 
 
 /**
  * Une las entradas por clave (ver emparejarPorClave), ordena por `orden` y, si no se piden,
- * quita los borradores. Un servicio es borrador si cualquiera de sus dos idiomas lo es: así
+ * quita los borradores. Un servicio es borrador si cualquiera de sus idiomas lo es: así
  * nunca se publica un idioma sin su par ni un hreflang a una página que no existe.
- * Lanza un error (y el build falla) si falta un idioma, si los dos idiomas no coinciden en
+ * Lanza un error (y el build falla) si falta un idioma, si los idiomas no coinciden en
  * orden, imagen o foto provisional, o si se repite una clave, un orden o un slug.
  */
 export function emparejar(entradas: EntradaServicio[], { borradores }: { borradores: boolean }): Servicio[] {
@@ -72,14 +73,13 @@ export function emparejar(entradas: EntradaServicio[], { borradores }: { borrado
       [(e) => e.herramientas?.map((h) => h.nombre).join() ?? '', 'tiene herramientas distintas en cada idioma'],
     ],
   });
-  const servicios: Servicio[] = pares.map(({ clave, borrador, es, en }) => ({
-    id: clave,
-    orden: es.orden,
-    image: es.imagen,
-    ...(es.provisional ? { provisional: true } : {}),
-    borrador,
-    es: texto(es),
-    en: texto(en),
+  const servicios: Servicio[] = pares.map((par) => ({
+    id: par.clave,
+    orden: par.es.orden,
+    image: par.es.imagen,
+    ...(par.es.provisional ? { provisional: true } : {}),
+    borrador: par.borrador,
+    ...porIdioma((l) => texto(par[l])),
   }));
 
   const orden = repetido(servicios.map((s) => s.orden));
@@ -88,7 +88,7 @@ export function emparejar(entradas: EntradaServicio[], { borradores }: { borrado
   return servicios.sort((a, b) => a.orden - b.orden).filter((s) => borradores || !s.borrador);
 }
 
-export const serviciosBase: Record<Locale, string> = { es: '/servicios/', en: '/en/services/' };
+export const serviciosBase: Record<Locale, string> = { es: '/servicios/', en: '/en/services/', pt: '/pt/servicos/' };
 
 export function servicioPath(s: Servicio, locale: Locale): string {
   return `${serviciosBase[locale]}${s[locale].slug}/`;

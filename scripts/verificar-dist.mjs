@@ -48,7 +48,7 @@ for (const archivo of html) {
   const nav = doc.match(/<header class="nav[\s\S]*?<\/header>/)?.[0] ?? '';
   for (const [, href] of nav.matchAll(/href="([^"]*#[^"]*)"/g)) problemas.push(`${ruta}: la nav enlaza a un ancla (${href})`);
 
-  const home = ruta === '/' || ruta === '/en/';
+  const home = ruta === '/' || ruta === '/en/' || ruta === '/pt/';
   if (interna && !home && ruta !== '/404.html' && !/<nav class="migas/.test(doc)) problemas.push(`${ruta}: sin migas de pan`);
 }
 

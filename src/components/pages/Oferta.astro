@@ -15,6 +15,7 @@ import { SOLUCIONES, solucionPath } from '../../data/soluciones';
 import { TEMAS_FAQ, type TemaFaq } from '../../data/faq';
 import { t, rutas, type Locale } from '../../i18n/ui';
 import { tp } from '../../i18n/paginas';
+import { porIdioma } from '../../lib/contenido';
 import { waLink } from '../../data/site';
 import { ogRuta } from '../../lib/og-rutas';
 import { grafo, migasSchema, ofertaSchema, faqSchema } from '../../data/schema';
@@ -57,7 +58,7 @@ const perfiles = s.inicio.paraQuien.perfiles;
   pagina="servicios"
   title={`${txt.title} | ${lineaTxt.title} | Antídoto`}
   description={txt.lead}
-  alternates={{ es: ofertaPath(linea, oferta, 'es'), en: ofertaPath(linea, oferta, 'en') }}
+  alternates={porIdioma((l) => ofertaPath(linea, oferta, l))}
   waMessage={msg}
   jsonLd={jsonLd}
   og={{ ruta: ogRuta('oferta', oferta.id, locale), alt: `${txt.title}, ${lineaTxt.title} | Antídoto` }}

@@ -5,7 +5,7 @@
 // formularios normales que hacen POST a la API (sin fetch), y la API vuelve aquí con el
 // resultado. Sin JS se ve el texto general. noindex, sin referente (la URL lleva un token).
 import Base from '../../layouts/Base.astro';
-import { t, rutaPreferencias, rutaNovedades, rutas, type Locale } from '../../i18n/ui';
+import { t, rutaPreferencias, rutaNovedades, rutas, LOCALES, type Locale } from '../../i18n/ui';
 import { SITE } from '../../data/site';
 import { obtenerServicios } from '../../data/servicios';
 
@@ -63,7 +63,7 @@ const textos = {
           <fieldset>
             <legend>{p.idioma}</legend>
             <div class="chips">
-              {(['es', 'en'] as const).map((l) => (
+              {LOCALES.map((l) => (
                 <label class="chip"><input type="radio" name="locale" value={l} /><span>{p.idiomas[l]}</span></label>
               ))}
             </div>

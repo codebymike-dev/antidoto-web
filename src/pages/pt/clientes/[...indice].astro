@@ -1,0 +1,10 @@
+---
+// Solo existe con al menos un cliente publicado (ver src/pages/clientes/[...indice].astro).
+import P from '../../../components/pages/PaginaClientes.astro';
+import { obtenerClientes } from '../../../data/contenido';
+
+export async function getStaticPaths() {
+  return (await obtenerClientes()).length ? [{ params: { indice: undefined } }] : [];
+}
+---
+<P locale="pt" />

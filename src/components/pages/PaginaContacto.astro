@@ -159,7 +159,7 @@ const canales = [
 
 <script>
   import { gsap, reducido } from '../../lib/motion/core';
-  import { ui } from '../../i18n/ui';
+  import { ui, localeDocumento } from '../../i18n/ui';
   import { leerOrigen } from '../../lib/origen';
   import { idConversacionActual } from '../../lib/conversacion';
 
@@ -169,7 +169,7 @@ const canales = [
   // WhatsApp, y si la API falla no pasa nada visible (fail-open).
   const form = document.querySelector<HTMLFormElement>('[data-cotizador]');
   if (form) {
-    const locale = document.documentElement.lang.startsWith('es') ? 'es' : 'en';
+    const locale = localeDocumento();
     const c = ui[locale].cot;
     const api = form.dataset.api;
     const pasos = [...form.querySelectorAll<HTMLFieldSetElement>('[data-paso]')];

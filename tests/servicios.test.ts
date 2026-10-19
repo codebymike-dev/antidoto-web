@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { emparejar, servicioPath, type EntradaServicio } from '../src/lib/servicios';
+import type { Locale } from '../src/i18n/ui';
 
 const img = (src: string) => ({ src, width: 10, height: 10, format: 'jpg' }) as EntradaServicio['imagen'];
 
-function entrada(clave: string, idioma: 'es' | 'en', extra: Partial<EntradaServicio> = {}): EntradaServicio {
+function entrada(clave: string, idioma: Locale, extra: Partial<EntradaServicio> = {}): EntradaServicio {
   return {
     clave,
     idioma,
@@ -21,15 +22,17 @@ function entrada(clave: string, idioma: 'es' | 'en', extra: Partial<EntradaServi
 const par = (clave: string, orden: number, es: Partial<EntradaServicio> = {}, en: Partial<EntradaServicio> = {}) => [
   entrada(clave, 'es', { orden, ...es }),
   entrada(clave, 'en', { orden, ...en }),
+  entrada(clave, 'pt', { orden }),
 ];
 
 describe('emparejar', () => {
-  it('une los dos idiomas por clave y ordena por orden', () => {
+  it('une los idiomas por clave y ordena por orden', () => {
     const s = emparejar([...par('b', 2), ...par('a', 1)], { borradores: false });
     expect(s.map((x) => x.id)).toEqual(['a', 'b']);
     expect(s[0].es.slug).toBe('a-es');
     expect(s[0].en.slug).toBe('a-en');
     expect(servicioPath(s[0], 'en')).toBe('/en/services/a-en/');
+    expect(servicioPath(s[0], 'pt')).toBe('/pt/servicos/a-pt/');
   });
 
   it('quita el servicio entero si cualquiera de sus idiomas es borrador', () => {

@@ -21,7 +21,7 @@ export const SOLUCIONES: Solucion[] = [
   {
     clave: 'sst',
     perfil: 0,
-    slug: { es: 'sst-y-hseq', en: 'health-and-safety' },
+    slug: { es: 'sst-y-hseq', en: 'health-and-safety', pt: 'sst-e-hseq' },
     retos: [0, 2, 3, 1],
     ofertas: ['induccion', 'emergencias', 'capacitaciones', 'equipos'],
     sectorClientes: 'sst',
@@ -29,27 +29,27 @@ export const SOLUCIONES: Solucion[] = [
   {
     clave: 'talento',
     perfil: 1,
-    slug: { es: 'talento-humano-y-bienestar', en: 'hr-and-wellbeing' },
+    slug: { es: 'talento-humano-y-bienestar', en: 'hr-and-wellbeing', pt: 'gestao-de-pessoas-e-bem-estar' },
     retos: [4, 5, 1],
     ofertas: ['equipos', 'cultura', 'comunicacion', 'desayunos', 'estaciones', 'productos'],
   },
   {
     clave: 'comunicaciones',
     perfil: 2,
-    slug: { es: 'comunicaciones-internas', en: 'internal-communications' },
+    slug: { es: 'comunicaciones-internas', en: 'internal-communications', pt: 'comunicacao-interna' },
     retos: [5, 0],
     ofertas: ['institucionales', 'dron', 'cultura', 'experiencias'],
   },
   {
     clave: 'educacion',
     perfil: 3,
-    slug: { es: 'colegios-y-universidades', en: 'schools-and-universities' },
+    slug: { es: 'colegios-y-universidades', en: 'schools-and-universities', pt: 'escolas-e-universidades' },
     retos: [],
     ofertas: ['orientacion-vocacional', 'inclusion', 'almuerzos', 'refrigerios'],
   },
 ];
 
-export const solucionesBase: Record<Locale, string> = { es: '/soluciones/', en: '/en/solutions/' };
+export const solucionesBase: Record<Locale, string> = { es: '/soluciones/', en: '/en/solutions/', pt: '/pt/solucoes/' };
 
 export function solucionPath(s: Solucion, locale: Locale): string {
   return `${solucionesBase[locale]}${s.slug[locale]}/`;

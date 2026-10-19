@@ -1,0 +1,10 @@
+---
+// Solo existe con al menos un caso publicado (ver src/pages/portafolio/[...indice].astro).
+import P from '../../../components/pages/PaginaPortafolio.astro';
+import { obtenerCasos } from '../../../data/contenido';
+
+export async function getStaticPaths() {
+  return (await obtenerCasos()).length ? [{ params: { indice: undefined } }] : [];
+}
+---
+<P locale="pt" />

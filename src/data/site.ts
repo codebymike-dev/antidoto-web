@@ -1,5 +1,6 @@
 // Datos de contacto y de la empresa. Fuentes: auditoria/02-prompt-claude-design.md §1 y el brief del
 // 08/10/2026 (certificado de Cámara de Comercio y resolución de la licencia).
+import type { Locale } from '../i18n/ui';
 
 export const SITE = {
   name: 'Antídoto',
@@ -24,7 +25,7 @@ export const EMPRESA = {
   nit: '901.777.384-6',
   domicilio: 'Av. Calle 116 # 71 A - 25, Bogotá D.C.',
   /** Lo que se publica como ubicación (pie y contacto). */
-  ubicacion: { es: 'Pontevedra, Bogotá · Atención con cita', en: 'Pontevedra, Bogotá · By appointment' },
+  ubicacion: { es: 'Pontevedra, Bogotá · Atención con cita', en: 'Pontevedra, Bogotá · By appointment', pt: 'Pontevedra, Bogotá · Atendimento com hora marcada' },
   ciudad: 'Bogotá',
   constitucion: 2023,
 } as const;
@@ -36,7 +37,7 @@ export const EMPRESA = {
  */
 export const LICENCIA = {
   resolucion: '36081-2026',
-  entidad: { es: 'Secretaría Distrital de Salud de Bogotá', en: 'Bogotá District Health Department' },
+  entidad: { es: 'Secretaría Distrital de Salud de Bogotá', en: 'Bogotá District Health Department', pt: 'Secretaria Distrital de Saúde de Bogotá' },
   campos: {
     es: [
       'Seguridad industrial u ocupacional',
@@ -51,6 +52,13 @@ export const LICENCIA = {
       'Technical research',
       'Occupational health and safety training',
       'Design, management and implementation of the Occupational Health and Safety Management System',
+    ],
+    pt: [
+      'Segurança industrial ou ocupacional',
+      'Investigação do acidente de trabalho e da doença ocupacional',
+      'Pesquisa em área técnica',
+      'Capacitação em segurança e saúde no trabalho',
+      'Desenho, administração e execução do Sistema de Gestão da Segurança e Saúde no Trabalho',
     ],
   },
 } as const;
@@ -78,9 +86,9 @@ export function waLink(message: string): string {
  */
 /**
  * Regalo por suscribirse (una guía en PDF, por ejemplo). Mientras sea null no se promete nada.
- * Cuando el cliente lo entregue: pon aquí su nombre en los dos idiomas y su enlace en el correo
+ * Cuando el cliente lo entregue: pon aquí su nombre en los tres idiomas y su enlace en el correo
  * de bienvenida (bandeja > Campañas > Correos automáticos).
  */
-export const REGALO_NOVEDADES: { es: string; en: string } | null = null as { es: string; en: string } | null;
+export const REGALO_NOVEDADES: Record<Locale, string> | null = null as Record<Locale, string> | null;
 
 export const VIDEO_HERO: { mp4: string; webm?: string } | null = null as { mp4: string; webm?: string } | null;

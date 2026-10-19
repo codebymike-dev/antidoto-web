@@ -28,7 +28,7 @@ const migas: Array<[string, string]> = [
 const vacantes = await Promise.all(
   (await obtenerVacantes(locale)).map(async (v) => ({ ...v.data, Contenido: v.body?.trim() ? (await render(v)).Content : null })),
 );
-const fechaCierre = (f: string) => new Intl.DateTimeFormat(locale === 'es' ? 'es-CO' : 'en-US', { day: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(`${f}T00:00:00Z`));
+const fechaCierre = (f: string) => new Intl.DateTimeFormat(s.htmlLang, { day: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(`${f}T00:00:00Z`));
 ---
 <Base locale={locale} pagina="trabaja" title={title} description={description} alternates={rutas.trabaja} jsonLd={grafo(migasSchema(migas))} waMessage={h.aliadosWa}>
   <CabeceraPagina locale={locale} migas={migas} titulo={h.titulo} lead={h.lead} />

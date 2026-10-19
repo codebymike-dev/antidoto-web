@@ -1,6 +1,6 @@
 ---
 // Barra de navegación del sitio multipágina: logo con el sello de la licencia SST, Servicios,
-// Soluciones, SG-SST y Nosotros, "Entrar a mi actividad", selector de idioma y botón Cotizar
+// Soluciones, SG-SST y Nosotros, "Entrar a mi actividad", selector de idioma (píldora con banderas) y botón Cotizar
 // (brief del 08/10/2026). No es fija y no enlaza a anclas de la home: cada entrada lleva a una
 // página real. Servicios, Soluciones y Nosotros tienen submenú (patrón disclosure: el texto es un
 // enlace al índice y un botón aparte abre el panel). Servicios abre un mega menú con todas las
@@ -11,7 +11,8 @@
 // Tiene view-transition-name propio: es igual en todas las páginas y no se funde al navegar.
 import Logo from './Logo.astro';
 import SelloLicencia from './SelloLicencia.astro';
-import { t, rutas, otroIdioma, type Locale, type Pagina } from '../i18n/ui';
+import SelectorIdioma from './SelectorIdioma.astro';
+import { t, rutas, type Locale, type Pagina } from '../i18n/ui';
 import { tp } from '../i18n/paginas';
 import { obtenerServicios, servicioPath } from '../data/servicios';
 import { obtenerOfertas, obtenerClientes, obtenerCasos, ofertaPath } from '../data/contenido';
@@ -19,16 +20,15 @@ import { SOLUCIONES, solucionPath } from '../data/soluciones';
 
 interface Props {
   locale: Locale;
-  /** Ruta equivalente en el otro idioma. */
-  alternateHref: string;
+  /** Ruta equivalente en cada idioma, para el selector. */
+  alternates: Record<Locale, string>;
   /** Página actual, para marcar su sección. */
   pagina: Pagina | null;
 }
-const { locale, alternateHref, pagina } = Astro.props;
+const { locale, alternates, pagina } = Astro.props;
 const s = t(locale);
 const p = tp(locale);
 const home = rutas.inicio[locale];
-const otro = otroIdioma(locale);
 const actual = Astro.url.pathname;
 
 const servicios = await obtenerServicios();
@@ -128,10 +128,7 @@ const pag = (href: string) => (href === actual ? 'page' : undefined);
         </ul>
         <!-- Para quien ya tiene el código de una actividad: lleva a /actividades/, separado de Cotizar. -->
         <a class="mision" href={rutas.actividades[locale]} aria-current={pag(rutas.actividades[locale])}>{s.nav.actividades}</a>
-        <!-- El nombre accesible empieza por lo que se ve (WCAG 2.5.3), para quien navega con la voz. -->
-        <a class="idioma" href={alternateHref} hreflang={otro} aria-label={`${locale.toUpperCase()} / ${otro.toUpperCase()}: ${s.switchLangLabel}`}>
-          <span class="actual-idioma">{locale.toUpperCase()}</span><span aria-hidden="true">/</span><span lang={otro}>{otro.toUpperCase()}</span>
-        </a>
+        <SelectorIdioma locale={locale} alternates={alternates} class="idioma" />
         <SelloLicencia locale={locale} variante="corto" href={rutas.sgsst[locale]} class="sello-panel" />
       </nav>
       <a class="boton boton-cian cotizar" href={rutas.contacto[locale]}>{s.navQuote}</a>
@@ -265,8 +262,6 @@ const pag = (href: string) => (href === actual ? 'page' : undefined);
   .nav:not(.con-js) .item:hover > .sub,
   .nav:not(.con-js) .item:focus-within > .sub { clip-path: inset(0 -60px -60px -60px); visibility: visible; transition: clip-path var(--t-base) var(--ease-out), visibility 0s; }
 
-  .idioma { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; text-decoration: none; font-size: 14px; font-weight: 600; letter-spacing: 0.06em; color: var(--color-slate); }
-  .idioma .actual-idioma { color: var(--color-deep); }
   .mision { display: inline-flex; align-items: center; min-height: 44px; white-space: nowrap; text-decoration: none; font-size: 15px; font-weight: 500; color: var(--color-slate); }
   .mision:hover { color: var(--color-deep); }
   .mision[aria-current] { color: var(--color-deep); }
@@ -307,7 +302,8 @@ const pag = (href: string) => (href === actual ? 'page' : undefined);
     .col li a { min-height: 44px; }
     .sub-enlace { padding: 10px 12px; }
     .sub-todos { margin-top: 4px; }
-    .idioma, .mision { min-height: 52px; font-size: 15px; }
+    .mision { min-height: 52px; font-size: 15px; }
+    .links :global(.idioma) { align-self: flex-start; margin-top: 12px; }
     .mision { border-bottom: 1px solid var(--color-line-soft); }
 
     .nav.con-menu .menu { display: inline-flex; order: 1; }

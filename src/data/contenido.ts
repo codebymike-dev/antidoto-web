@@ -111,7 +111,7 @@ export async function obtenerVacantes(locale: Locale): Promise<Vacante[]> {
 }
 
 export interface AjustesSitio {
-  regaloNovedades: { es: string; en: string } | null;
+  regaloNovedades: Record<Locale, string> | null;
   videoHero: { mp4: string; webm?: string } | null;
 }
 let ajustes: Promise<AjustesSitio> | undefined;

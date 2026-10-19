@@ -21,9 +21,10 @@ export interface Publicacion<E extends EntradaPublicacion> {
   borrador: boolean;
   es: E;
   en: E;
+  pt: E;
 }
 
-/** Une por clave, exige la misma fecha e imagen en los dos idiomas y ordena por fecha. */
+/** Une por clave, exige la misma fecha e imagen en todos los idiomas y ordena por fecha. */
 export function emparejarPublicaciones<E extends EntradaPublicacion>(
   entradas: E[],
   { borradores, nombre }: { borradores: boolean; nombre: (clave: string) => string },
@@ -36,23 +37,26 @@ export function emparejarPublicaciones<E extends EntradaPublicacion>(
       [(e) => e.imagen.src, 'tiene una imagen distinta en cada idioma'],
     ],
   })
-    .map(({ clave, borrador, es, en }) => ({ id: clave, fecha: es.fecha, image: es.imagen, borrador, es, en }))
+    .map(({ clave, borrador, es, en, pt }) => ({ id: clave, fecha: es.fecha, image: es.imagen, borrador, es, en, pt }))
     .sort((a, b) => b.fecha.getTime() - a.fecha.getTime());
 }
 
-export const casosBase: Record<Locale, string> = { es: '/portafolio/', en: '/en/work/' };
-export const blogBase: Record<Locale, string> = { es: '/blog/', en: '/en/blog/' };
+export const casosBase: Record<Locale, string> = { es: '/portafolio/', en: '/en/work/', pt: '/pt/portfolio/' };
+export const blogBase: Record<Locale, string> = { es: '/blog/', en: '/en/blog/', pt: '/pt/blog/' };
 
-export function casoPath(c: { es: { slug: string }; en: { slug: string } }, locale: Locale): string {
+export function casoPath(c: Record<Locale, { slug: string }>, locale: Locale): string {
   return `${casosBase[locale]}${c[locale].slug}/`;
 }
 
-export function articuloPath(a: { es: { slug: string }; en: { slug: string } }, locale: Locale): string {
+export function articuloPath(a: Record<Locale, { slug: string }>, locale: Locale): string {
   return `${blogBase[locale]}${a[locale].slug}/`;
 }
 
+/** Segmento de las páginas de categoría del blog. */
+export const segmentoCategoria: Record<Locale, string> = { es: 'categoria', en: 'category', pt: 'categoria' };
+
 export function categoriaPath(categoria: string, locale: Locale): string {
-  return `${blogBase[locale]}${locale === 'es' ? 'categoria' : 'category'}/${categoria}/`;
+  return `${blogBase[locale]}${segmentoCategoria[locale]}/${categoria}/`;
 }
 
 const escapar = (s: string) => s.replace(/[<>&'"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' })[c]!);

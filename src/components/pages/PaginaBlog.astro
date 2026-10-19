@@ -9,6 +9,7 @@ import { obtenerArticulos, articuloPath, type Articulo } from '../../data/conten
 import { categoriaPath } from '../../lib/publicaciones';
 import { t, rutas, type Locale } from '../../i18n/ui';
 import { tp } from '../../i18n/paginas';
+import { porIdioma } from '../../lib/contenido';
 import { grafo, listaSchema, migasSchema } from '../../data/schema';
 
 type Categoria = Articulo['es']['categoria'];
@@ -40,7 +41,7 @@ const jsonLd = grafo(listaSchema(title, ruta, articulos.map((a) => [a[locale].ti
   pagina="blog"
   title={title}
   description={seoD}
-  alternates={categoria ? { es: categoriaPath(categoria, 'es'), en: categoriaPath(categoria, 'en') } : rutas.blog}
+  alternates={categoria ? porIdioma((l) => categoriaPath(categoria, l)) : rutas.blog}
   jsonLd={jsonLd}
 >
   <CabeceraPagina locale={locale} migas={migas} kicker={nombreCat} titulo={p.blog.titulo} lead={p.blog.lead}>

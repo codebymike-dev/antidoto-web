@@ -2,6 +2,7 @@
 // El historial vive en sessionStorage (solo esta pestaña) y se reenvía en cada pregunta. La API
 // lo valida y no le cree (api/src/asesor/bucle.ts); guarda solo el turno nuevo de cada pregunta,
 // 90 días y con teléfonos y correos tapados, bajo el id de conversación de esta pestaña.
+import type { Locale } from '../i18n/ui';
 
 /** Máximo de preguntas por conversación; el mismo de la API (MAX_PREGUNTAS). */
 export const MAX_PREGUNTAS = 30;
@@ -28,7 +29,7 @@ export function paginaDe(ruta: string, pagina: string | undefined, servicios: Re
 }
 
 /** Cuerpo de una pregunta: solo rol y texto de cada mensaje. Lo demás es de la interfaz. */
-export function cuerpoPregunta(locale: 'es' | 'en', pagina: string, mensajes: readonly Mensaje[], conversacion?: string | null, origen?: 'panel' | 'facilitador') {
+export function cuerpoPregunta(locale: Locale, pagina: string, mensajes: readonly Mensaje[], conversacion?: string | null, origen?: 'panel' | 'facilitador') {
   return {
     locale,
     pagina,
