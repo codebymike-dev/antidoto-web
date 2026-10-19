@@ -1,0 +1,81 @@
+---
+// Selector de idioma de la nav: una píldora con una opción por idioma (pedido del dueño, 18/10/2026,
+// como el de codebymike.net). El idioma actual muestra solo su bandera y no es enlace; los otros
+// llevan bandera y código y enlazan a la misma página en ese idioma. La bandera es del mercado de
+// cada idioma: Colombia para el español, Estados Unidos para el inglés y Brasil para el portugués.
+import { LOCALES, NOMBRE_IDIOMA, t, type Locale } from '../i18n/ui';
+
+interface Props {
+  locale: Locale;
+  /** Ruta de esta misma página en cada idioma. */
+  alternates: Record<Locale, string>;
+  class?: string;
+}
+const { locale, alternates, class: clase } = Astro.props;
+const s = t(locale);
+---
+<div class:list={['idiomas', clase]} role="group" aria-label={s.idiomaGrupo}>
+  {LOCALES.map((code) => {
+    const bandera = (
+      <span class="bandera" aria-hidden="true">
+        <svg viewBox="0 0 20 14" width="20" height="14" focusable="false">
+          {code === 'es' && (
+            <>
+              <rect width="20" height="7" fill="#FCD116" />
+              <rect y="7" width="20" height="3.5" fill="#003893" />
+              <rect y="10.5" width="20" height="3.5" fill="#CE1126" />
+            </>
+          )}
+          {code === 'en' && (
+            <>
+              <rect width="20" height="14" fill="#fff" />
+              <g fill="#B31942">
+                {[0, 2.154, 4.308, 6.462, 8.615, 10.769, 12.923].map((y) => <rect width="20" height="1.077" y={y} />)}
+              </g>
+              <rect width="8.6" height="7.54" fill="#0A3161" />
+              <g fill="#fff">
+                {[[1.6, 1.4], [4.3, 1.4], [7, 1.4], [2.95, 2.75], [5.65, 2.75], [1.6, 4.1], [4.3, 4.1], [7, 4.1], [2.95, 5.45], [5.65, 5.45], [1.6, 6.6], [4.3, 6.6], [7, 6.6]].map(([cx, cy]) => <circle cx={cx} cy={cy} r=".52" />)}
+              </g>
+            </>
+          )}
+          {code === 'pt' && (
+            <>
+              <rect width="20" height="14" fill="#009C3B" />
+              <path d="M10 1.6 18.2 7 10 12.4 1.8 7Z" fill="#FFDF00" />
+              <circle cx="10" cy="7" r="3.3" fill="#002776" />
+              <path d="M6.8 6.3c2.2-.5 4.6-.1 6.4 1.2" fill="none" stroke="#fff" stroke-width=".7" />
+            </>
+          )}
+        </svg>
+      </span>
+    );
+    return code === locale ? (
+      <span class="opcion actual" aria-current="true">
+        {bandera}
+        <span class="sr" lang={code}>{code.toUpperCase()}, {NOMBRE_IDIOMA[code]}</span>
+      </span>
+    ) : (
+      // El nombre accesible empieza por lo que se ve (WCAG 2.5.3), para quien navega con la voz.
+      <a class="opcion" href={alternates[code]} hreflang={code} lang={code} aria-label={`${code.toUpperCase()}, ${NOMBRE_IDIOMA[code]}`}>
+        {bandera}
+        <span>{code.toUpperCase()}</span>
+      </a>
+    );
+  })}
+</div>
+
+<style>
+  .idiomas { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: 999px; border: 1px solid var(--color-line-soft); background: var(--color-mist); }
+  .opcion { position: relative; display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 10px; border-radius: 999px; font: 600 12px/1 var(--font-sans); letter-spacing: 0.08em; color: var(--color-slate); text-decoration: none; transition: background-color var(--t-base) var(--ease-out), color var(--t-base) var(--ease-out); }
+  /* Área táctil de 44 px sin agrandar la píldora. */
+  .opcion::before { content: ''; position: absolute; inset: -5px 0; }
+  .actual { padding: 0 8px; background: var(--color-paper); color: var(--color-ink); box-shadow: 0 1px 2px rgb(15 24 29 / 0.16); }
+  a.opcion:hover { background: var(--color-paper); color: var(--color-deep); }
+  .bandera { position: relative; display: block; width: 20px; height: 14px; border-radius: 2.5px; overflow: hidden; flex: none; }
+  .bandera::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgb(15 24 29 / 0.14); }
+  .bandera svg { display: block; width: 100%; height: 100%; }
+  /* Los idiomas que no están activos se ven apagados hasta que se pasa por encima o tienen el foco. */
+  a.opcion .bandera { filter: saturate(0.3); opacity: 0.75; transition: filter var(--t-base) var(--ease-out), opacity var(--t-base) var(--ease-out); }
+  a.opcion:hover .bandera, a.opcion:focus-visible .bandera { filter: none; opacity: 1; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+</style>
