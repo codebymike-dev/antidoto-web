@@ -1,11 +1,14 @@
 // Textos de interfaz por idioma. El contenido de servicios vive en src/content/servicios/.
-// Regla: todo texto nuevo va en los dos idiomas y sin guiones largos ni semilargos.
+// Regla: todo texto nuevo va en los tres idiomas (es, en, pt) y sin guiones largos ni semilargos.
 
-export const LOCALES = ['es', 'en'] as const;
+export const LOCALES = ['es', 'en', 'pt'] as const;
 
 /** Baja solo la primera letra, para meter un título en una frase sin romper siglas como IA o AI. Si empieza por una sigla (SG-SST), lo deja igual. */
-export const enFrase = (s: string): string => (/^[A-ZÁÉÍÓÚÑ]{2}/.test(s) ? s : s.charAt(0).toLowerCase() + s.slice(1));
+export const enFrase = (s: string): string => (/^[A-ZÁÉÍÓÚÑÂÊÔÃÕÇ]{2}/.test(s) ? s : s.charAt(0).toLowerCase() + s.slice(1));
 export type Locale = (typeof LOCALES)[number];
+
+/** Nombre de cada idioma escrito en ese mismo idioma (selector de idioma). */
+export const NOMBRE_IDIOMA: Record<Locale, string> = { es: 'Español', en: 'English', pt: 'Português' };
 
 /** Páginas del sitio y su ruta en cada idioma. */
 export const PAGINAS = [
@@ -29,36 +32,36 @@ export const PAGINAS = [
 export type Pagina = (typeof PAGINAS)[number];
 
 export const rutas: Record<Pagina, Record<Locale, string>> = {
-  inicio: { es: '/', en: '/en/' },
-  servicios: { es: '/servicios/', en: '/en/services/' },
-  soluciones: { es: '/soluciones/', en: '/en/solutions/' },
-  sgsst: { es: '/sg-sst/', en: '/en/ohs/' },
-  actividades: { es: '/actividades/', en: '/en/activities/' },
-  portafolio: { es: '/portafolio/', en: '/en/work/' },
-  clientes: { es: '/clientes/', en: '/en/clients/' },
-  nosotros: { es: '/nosotros/', en: '/en/about/' },
-  comoTrabajamos: { es: '/nosotros/como-trabajamos/', en: '/en/about/how-we-work/' },
-  trabaja: { es: '/nosotros/trabaja-con-nosotros/', en: '/en/about/work-with-us/' },
-  faq: { es: '/preguntas-frecuentes/', en: '/en/faq/' },
-  blog: { es: '/blog/', en: '/en/blog/' },
-  contacto: { es: '/contacto/', en: '/en/contact/' },
-  terminos: { es: '/terminos-y-condiciones/', en: '/en/terms/' },
-  cookies: { es: '/cookies/', en: '/en/cookies/' },
-  mapa: { es: '/mapa-del-sitio/', en: '/en/sitemap/' },
+  inicio: { es: '/', en: '/en/', pt: '/pt/' },
+  servicios: { es: '/servicios/', en: '/en/services/', pt: '/pt/servicos/' },
+  soluciones: { es: '/soluciones/', en: '/en/solutions/', pt: '/pt/solucoes/' },
+  sgsst: { es: '/sg-sst/', en: '/en/ohs/', pt: '/pt/sg-sst/' },
+  actividades: { es: '/actividades/', en: '/en/activities/', pt: '/pt/atividades/' },
+  portafolio: { es: '/portafolio/', en: '/en/work/', pt: '/pt/portfolio/' },
+  clientes: { es: '/clientes/', en: '/en/clients/', pt: '/pt/clientes/' },
+  nosotros: { es: '/nosotros/', en: '/en/about/', pt: '/pt/sobre/' },
+  comoTrabajamos: { es: '/nosotros/como-trabajamos/', en: '/en/about/how-we-work/', pt: '/pt/sobre/como-trabalhamos/' },
+  trabaja: { es: '/nosotros/trabaja-con-nosotros/', en: '/en/about/work-with-us/', pt: '/pt/sobre/trabalhe-conosco/' },
+  faq: { es: '/preguntas-frecuentes/', en: '/en/faq/', pt: '/pt/perguntas-frequentes/' },
+  blog: { es: '/blog/', en: '/en/blog/', pt: '/pt/blog/' },
+  contacto: { es: '/contacto/', en: '/en/contact/', pt: '/pt/contato/' },
+  terminos: { es: '/terminos-y-condiciones/', en: '/en/terms/', pt: '/pt/termos-e-condicoes/' },
+  cookies: { es: '/cookies/', en: '/en/cookies/', pt: '/pt/cookies/' },
+  mapa: { es: '/mapa-del-sitio/', en: '/en/sitemap/', pt: '/pt/mapa-do-site/' },
 };
 
 /** Política de tratamiento de datos (fuera del menú, enlazada en el pie y el cotizador). */
-export const rutaPolitica: Record<Locale, string> = { es: '/politica-de-datos/', en: '/en/data-policy/' };
+export const rutaPolitica: Record<Locale, string> = { es: '/politica-de-datos/', en: '/en/data-policy/', pt: '/pt/politica-de-dados/' };
 
 /** Archivo de novedades por correo y página de preferencias (la API redirige a esta última). */
-export const rutaNovedades: Record<Locale, string> = { es: '/novedades/', en: '/en/news/' };
-export const rutaPreferencias: Record<Locale, string> = { es: '/novedades/preferencias/', en: '/en/news/preferences/' };
+export const rutaNovedades: Record<Locale, string> = { es: '/novedades/', en: '/en/news/', pt: '/pt/novidades/' };
+export const rutaPreferencias: Record<Locale, string> = { es: '/novedades/preferencias/', en: '/en/news/preferences/', pt: '/pt/novidades/preferencias/' };
 
 /** Página que muestra el service worker cuando no hay red (fuera del menú y del sitemap). */
-export const rutaOffline: Record<Locale, string> = { es: '/offline/', en: '/en/offline/' };
+export const rutaOffline: Record<Locale, string> = { es: '/offline/', en: '/en/offline/', pt: '/pt/offline/' };
 
 /** Ruta de la home de cada idioma. */
-export const homePath: Record<Locale, string> = { es: rutas.inicio.es, en: rutas.inicio.en };
+export const homePath: Record<Locale, string> = { es: rutas.inicio.es, en: rutas.inicio.en, pt: rutas.inicio.pt };
 
 export const ui = {
   es: {
@@ -325,7 +328,7 @@ export const ui = {
       temas: 'Temas que te interesan',
       temasAyuda: 'Si no marcas ninguno, te llega todo.',
       idioma: 'Idioma',
-      idiomas: { es: 'Español', en: 'Inglés' },
+      idiomas: { es: 'Español', en: 'Inglés', pt: 'Portugués' },
       pausa: 'Pausa',
       pausas: [['0', 'Sin pausa'], ['30', 'Un mes'], ['90', 'Tres meses'], ['180', 'Seis meses']],
       pausaHasta: (fecha: string) => `En pausa hasta el ${fecha}.`,
@@ -811,7 +814,7 @@ export const ui = {
       temas: 'Topics you care about',
       temasAyuda: 'If you check none, you get everything.',
       idioma: 'Language',
-      idiomas: { es: 'Spanish', en: 'English' },
+      idiomas: { es: 'Spanish', en: 'English', pt: 'Portuguese' },
       pausa: 'Break',
       pausas: [['0', 'No break'], ['30', 'One month'], ['90', 'Three months'], ['180', 'Six months']],
       pausaHasta: (fecha: string) => `On a break until ${fecha}.`,
@@ -1036,13 +1039,501 @@ export const ui = {
       },
     },
   },
+  // Portugués de Brasil (18/10/2026). Mismo negocio: Antídoto trabaja en Colombia y atiende en
+  // portugués a empresas brasileñas o lusófonas con operación aquí. El SG-SST y la licencia se
+  // presentan como norma colombiana.
+  pt: {
+    htmlLang: 'pt-BR',
+    ogLocale: 'pt_BR',
+    skip: 'Pular para o conteúdo',
+    nav: {
+      servicios: 'Serviços',
+      soluciones: 'Soluções',
+      sgsst: 'SG-SST',
+      actividades: 'Entrar na minha atividade',
+      portafolio: 'Portfólio',
+      clientes: 'Clientes',
+      nosotros: 'Sobre nós',
+      comoTrabajamos: 'Como trabalhamos',
+      trabaja: 'Trabalhe conosco',
+      faq: 'Perguntas frequentes',
+      blog: 'Blog',
+      contacto: 'Contato',
+      terminos: 'Termos e condições',
+      cookies: 'Cookies',
+      mapa: 'Mapa do site',
+    },
+    navQuote: 'Orçamento',
+    menuLabel: 'Principal',
+    menuBoton: 'Menu',
+    homeLabel: 'Antídoto, início',
+    langLabel: 'Idioma',
+    switchLangLabel: 'Ver o site em outro idioma',
+    portalTitulo: 'Misiones Antídoto',
+    portalParticipante: 'Entrar com meu código',
+    waFab: 'Fale conosco pelo WhatsApp',
+    asesor: {
+      menu: 'Opções de contato: WhatsApp ou assistente com IA',
+      etiqueta: 'Fale conosco',
+      opcionWhatsapp: 'Falar com a equipe pelo WhatsApp',
+      opcionWhatsappNota: 'Uma pessoa da equipe responde',
+      opcionIa: 'Tirar minhas dúvidas com IA',
+      opcionIaNota: 'Serviços, formatos e como pedir orçamento',
+      opcionIaNoDisponible: 'Indisponível no momento',
+      titulo: 'Assistente com IA',
+      subtitulo: 'A equipe da Antídoto confirma tudo',
+      cerrar: 'Fechar o chat',
+      saludo: 'Olá, sou o assistente com IA da Antídoto. Ajudo com dúvidas sobre os serviços e deixo pronta a mensagem para a equipe, que é quem confirma tudo.',
+      sugerencias: ['O que inclui um treinamento vivencial?', 'Vocês fazem vídeos de integração?', 'Como peço um orçamento?'],
+      campo: 'Sua pergunta',
+      placeholder: 'Escreva sua pergunta',
+      enviar: 'Enviar',
+      escribiendo: 'Escrevendo',
+      tu: 'Você',
+      ia: 'Assistente',
+      whatsapp: 'Enviar para a Antídoto pelo WhatsApp',
+      soloWhatsapp: 'Prefiro escrever pelo WhatsApp',
+      contacto: 'Deixar meus dados no orçamento',
+      noDisponible: 'O assistente não está disponível no momento. Fale com a equipe pelo WhatsApp e eles respondem.',
+      error: 'Não consegui responder. Tente de novo ou fale com a equipe pelo WhatsApp.',
+      limite: 'Você chegou ao máximo de perguntas desta conversa. Continue com a equipe pelo WhatsApp.',
+      aviso: 'Respostas geradas com IA. Guardamos a conversa por 90 dias, sem telefones nem e-mails, para melhorar o atendimento. Não escreva dados pessoais.',
+      reiniciar: 'Apagar a conversa e começar de novo',
+      facilitador: { campo: 'Pergunte ao facilitador', placeholder: 'Pergunte algo ao facilitador', enviar: 'Perguntar', pensando: 'Deixe-me pensar', seguir: 'Continuar no chat' },
+    },
+
+    sgsst: {
+      titulo: ['Segurança e saúde no trabalho, ', 'com licença'],
+      lead: 'Capacitamos, investigamos e desenhamos o Sistema de Gestão da Segurança e Saúde no Trabalho (SG-SST) que a legislação colombiana exige da sua empresa, com licença em SST.',
+      cotizar: 'Orçamento de SG-SST',
+      sello: 'Licença SST',
+      servicio: 'SG-SST (segurança e saúde no trabalho)',
+      cubierto: ['Coberto pela ', 'licença'],
+      cubiertoLead: 'Os cinco campos de ação da licença, com o nome que têm na resolução.',
+      sistemas: ['Sistemas de gestão ', 'e auditorias'],
+      sistemasLead: 'Também acompanhamos outros sistemas de gestão da sua empresa. Estes serviços não fazem parte da licença em SST.',
+      auditorias: [
+        ['Auditoria interna do SG-SST', 'Revisão do Sistema de Gestão da Segurança e Saúde no Trabalho da sua empresa.'],
+        ['Desenho, implementação e auditoria do PESV', 'Plano Estratégico de Segurança Viária (Plan Estratégico de Seguridad Vial).'],
+        ['Preparação e auditoria interna para o RUC', 'Para empresas contratadas que devem cumprir o RUC.'],
+        ['Implementação, auditoria interna e acompanhamento rumo à certificação ISO', 'ISO 9001, 14001 e 45001. A certificação é concedida pelo organismo certificador.'],
+      ],
+      como: ['Como ', 'trabalhamos'],
+      comoLead: 'Os mesmos três passos de todos os nossos projetos, com evidência de cada atividade.',
+      evidencia: ['Evidência por atividade', 'Cada atividade deixa registro de presença, avaliação e certificado.'],
+      wa: 'Olá, Antídoto! Quero um orçamento de um serviço de SG-SST.',
+    },
+
+    estado: 'Atendendo',
+    ubicacion: 'Bogotá, Colômbia',
+    idiomas: 'ES · PT · EN',
+    heroCta: 'Orçamento pelo WhatsApp',
+    migasLabel: 'Trilha de navegação',
+    pause: 'Pausar animação',
+    resume: 'Retomar animação',
+    stats: [
+      ['+150', 'produções'],
+      ['+200', 'eventos'],
+      ['+50', 'clientes'],
+      ['3', 'idiomas'],
+      ['2020', 'marca desde'],
+    ],
+
+
+    servicesKicker: 'O que fazemos',
+    servicesTitle: 'Cinco serviços, uma só fórmula',
+    servicesLead: 'Para gestão de pessoas, SST, comunicação interna, bem-estar e direções de escolas e universidades.',
+    serviceMore: 'Ver serviço',
+    servicioCols: ['Serviço', 'O que inclui', 'Dados'],
+    provisional: 'Foto provisória',
+
+    retosKicker: 'O antídoto',
+    retosTitle: 'Transformamos seus desafios em soluções',
+    retosLead:
+      'Na Antídoto transformamos seus desafios em soluções efetivas: propostas práticas, criativas e inovadoras que geram resultados reais.',
+    retosLabel: 'Desafios',
+    solucionesLabel: 'Soluções',
+    retos: ['Prazos apertados', 'Logística', 'Apresentações'],
+    soluciones: ['Propostas', 'Apoio', 'Cumprimento'],
+
+    clientsKicker: 'Clientes',
+    clientsTitle: 'Confiaram em nós',
+    clientsLead: 'Energia, engenharia, transporte, seguros e consultoria em SST: marcas que trabalham com a Antídoto.',
+    clientsAll: 'Ver os 18 clientes',
+    sectorsKicker: 'Por setor',
+    sectorsTitle: 'Onde a segurança e o detalhe pesam',
+    sectorsLead:
+      'Boa parte dos nossos clientes trabalha em setores onde uma integração ou um plano de emergência não podem falhar.',
+    sectors: {
+      ingenieria: 'Energia e engenharia',
+      sst: 'Consultoria em SST',
+      seguros: 'Seguros',
+      transporte: 'Transporte',
+      otros: 'Outros setores',
+    },
+    marcas: (n: number) => (n === 1 ? '1 marca' : `${n} marcas`),
+
+    nosotrosKicker: 'Sobre nós',
+    nosotrosTitle: 'Um estúdio criativo com critério de engenharia',
+    nosotrosLead:
+      'A Antídoto nasce em 2020 e hoje acompanha organizações, escolas e universidades com projetos que geram impacto real.',
+    fundadoraKicker: 'Fundadora',
+    fundadoraNombre: 'María Paula Ramos',
+    fundadoraCargo: 'CEO e fundadora',
+    fundadoraBio:
+      'Engenheira civil, especialista em Gestão de SST. Lidera a Antídoto acompanhando organizações, escolas e universidades com projetos que geram impacto real.',
+    fotoPendiente: 'Foto pendente',
+    historiaKicker: 'História',
+    historiaTitle: 'De ideia emergente a estúdio criativo',
+    historia: [
+      ['2020', 'Ideia emergente', 'A Antídoto começa como startup.'],
+      ['2021', 'Transformação do modelo', 'O estúdio redefine sua forma de trabalhar.'],
+      ['2023', 'Nasce a ANTIDOTO S.A.S.', 'A marca vira sociedade e se consolida no mercado colombiano.'],
+      ['Hoje', 'Estúdio criativo empresarial', 'Treinamentos, audiovisual, catering e design com um mesmo padrão.'],
+    ],
+
+    contactoKicker: 'Contato',
+    contactoTitle: 'Conte-nos seu desafio',
+    contactoLead: 'Monte seu orçamento passo a passo e envie pelo WhatsApp ou por e-mail, ou fale conosco pelo canal que preferir.',
+    canalesKicker: 'Canais',
+    canales: { whatsapp: 'WhatsApp', telefono: 'Ligações', correo: 'E-mail', instagram: 'Instagram', linkedin: 'LinkedIn', ubicacion: 'Onde estamos' },
+    soloWhatsapp: 'Somente mensagens de WhatsApp',
+    cot: {
+      titulo: 'Orçamento',
+      pasos: ['Serviço', 'Detalhes', 'Resumo'],
+      paso: (n: number, total: number) => `Passo ${n} de ${total}`,
+      servicioPregunta: 'De qual serviço você precisa?',
+      fecha: 'Data aproximada',
+      personas: 'Número de pessoas',
+      ciudad: 'Cidade',
+      tipo: 'Tipo de organização',
+      tipos: ['Empresa', 'Escola', 'Universidade', 'Outra organização'],
+      opcional: 'opcional',
+      siguiente: 'Próximo',
+      anterior: 'Voltar',
+      enviar: 'Enviar pelo WhatsApp',
+      enviarCorreo: 'Enviar por e-mail',
+      asuntoCorreo: (servicio: string) => `Orçamento: ${servicio}`,
+      confirmacion: {
+        whatsapp: 'Abrimos o WhatsApp com sua mensagem. Envie de lá para que ela chegue até nós.',
+        correo: 'Abrimos seu e-mail com a mensagem. Envie de lá para que ela chegue até nós.',
+      },
+      resumenLead: 'Revise a mensagem e escolha como enviá-la: pelo WhatsApp ou por e-mail. Ela abre com o texto pronto.',
+      mensaje: (d: { servicio: string; oferta?: string; juego?: string; fecha: string; personas: string; ciudad: string; tipo: string }) =>
+        [
+          `Olá, Antídoto! Quero um orçamento de ${enFrase(d.servicio)}.`,
+          d.oferta && `Oferta: ${d.oferta}.`,
+          d.juego && `Jogo: ${d.juego}.`,
+          d.tipo && `Organização: ${d.tipo}.`,
+          d.fecha && `Data aproximada: ${d.fecha}.`,
+          d.personas && `Pessoas: ${d.personas}.`,
+          d.ciudad && `Cidade: ${d.ciudad}.`,
+        ]
+          .filter(Boolean)
+          .join('\n'),
+      privacidad:
+        'Não guardamos estes dados: a mensagem sai do seu navegador direto para o WhatsApp ou para o seu e-mail.',
+      privacidadApi: 'Só guardamos seus dados se você marcar a autorização. Sem ela, a mensagem sai direto para o WhatsApp ou para o seu e-mail.',
+      elegir: 'Escolha um serviço para continuar.',
+      pasoContacto: 'Contato',
+      contactoLegend: 'Seus dados para respondermos',
+      contactoLead: 'Opcional. Se você autorizar, guardamos sua solicitação para responder mesmo que você não chegue a enviar a mensagem.',
+      nombre: 'Nome',
+      empresa: 'Organização',
+      correo: 'E-mail',
+      telefono: 'Telefone ou WhatsApp',
+      verPolitica: 'Ler a política de tratamento de dados',
+      faltaContacto: 'Para guardar sua solicitação precisamos do seu nome e de um e-mail ou telefone válido.',
+      guardado: 'Guardamos sua solicitação. A equipe vai entrar em contato com os dados que você deixou.',
+      presentacion: (nombre: string, empresa: string) => `Sou ${nombre}${empresa ? `, da ${empresa}` : ''}.`,
+    },
+
+    ctaKicker: 'Próximo passo',
+    ctaTitle: 'Conte-nos seu desafio e enviamos uma proposta',
+    ctaCotizador: 'Montar orçamento',
+    ctaWhatsapp: 'WhatsApp',
+    ctaEmail: 'E-mail',
+    waDefault: 'Olá, Antídoto! Quero um orçamento de um serviço.',
+    waService: (s: string) => `Olá, Antídoto! Quero um orçamento de ${enFrase(s)}.`,
+    serviceFor: 'O que inclui',
+    otherServices: 'Outros serviços',
+    fichaServicio: 'Ficha do serviço',
+    publico: 'Para',
+    publicoTexto: 'Empresas, escolas, universidades e organizações',
+    herramientas: 'Ferramentas',
+    herramientasTitulo: ['As ferramentas ', 'que ensinamos'],
+    herramientasLead: 'Trabalhamos com a que sua empresa já usa ou pensa em usar.',
+
+    footerServicios: 'Serviços',
+    footerEstado: 'Atendendo na Colômbia, em português',
+    footerPolitica: 'Política de tratamento de dados',
+    novedadesTitulo: 'Novidades por e-mail',
+    novedadesTexto: 'Novidades, conteúdos e propostas da Antídoto. Cancele quando quiser.',
+    novedadesCorreo: 'Seu e-mail',
+    novedadesBoton: 'Quero assinar',
+    novedadesEnviado: 'Pronto. Confira seu e-mail e confirme a inscrição.',
+    novedadesError: 'Confira o e-mail e tente de novo.',
+    novedadesLimite: 'Houve várias tentativas seguidas. Tente de novo daqui a uma hora.',
+    novedadesRegalo: (regalo: string) => `Ao confirmar, enviamos de presente: ${regalo}.`,
+    novedadesArchivo: 'Ver e-mails anteriores',
+    novedadesPagina: {
+      title: 'Novidades por e-mail | Antídoto',
+      description: 'Os e-mails de novidades da Antídoto: ideias, conteúdos e propostas para formar, cuidar e celebrar equipes.',
+      titulo: 'Novidades da Antídoto',
+      miga: 'Novidades',
+      lead: 'O que enviamos por e-mail. Leia aqui ou receba na sua caixa de entrada.',
+      anteriores: 'E-mails anteriores',
+      cargando: 'Carregando e-mails',
+      vacio: 'Ainda não há e-mails publicados aqui.',
+      error: 'Não foi possível carregar o arquivo. Tente mais tarde.',
+      leer: 'Ler',
+    },
+    preferencias: {
+      title: 'Suas novidades por e-mail | Antídoto',
+      description: 'Confirme, ajuste ou cancele sua inscrição nas novidades da Antídoto.',
+      inicio: ['Suas novidades por e-mail', 'Abra esta página pelo link de qualquer um dos nossos e-mails para confirmar sua inscrição, escolher temas, pausar ou cancelar.'],
+      confirmar: ['Confirme sua inscrição', 'Um clique e você entra na lista. Em cada e-mail há um link para escolher temas, pausar ou cancelar.'],
+      confirmarBoton: 'Confirmar inscrição',
+      baja: ['Cancelar a inscrição', 'Você deixará de receber novidades da Antídoto por e-mail. As respostas às suas solicitações continuam chegando.'],
+      bajaBoton: 'Cancelar inscrição',
+      bajaAlternativa: 'Prefere menos e-mails? Escolha temas ou faça uma pausa',
+      editar: ['Suas preferências', 'Escolha quais temas interessam, em que idioma escrevemos ou faça uma pausa.'],
+      correo: 'E-mail',
+      temas: 'Temas que interessam a você',
+      temasAyuda: 'Se não marcar nenhum, você recebe tudo.',
+      idioma: 'Idioma',
+      idiomas: { es: 'Espanhol', en: 'Inglês', pt: 'Português' },
+      pausa: 'Pausa',
+      pausas: [['0', 'Sem pausa'], ['30', 'Um mês'], ['90', 'Três meses'], ['180', 'Seis meses']],
+      pausaHasta: (fecha: string) => `Em pausa até ${fecha}.`,
+      guardar: 'Salvar preferências',
+      darmeDeBaja: 'Prefiro cancelar a inscrição',
+      cargando: 'Carregando suas preferências',
+      noActivo: 'Esta inscrição não está ativa. Você pode se inscrever de novo quando quiser.',
+      confirmado: ['Pronto, você já está na lista', 'Vamos escrever com novidades e conteúdos. Em cada e-mail há um link para escolher temas, pausar ou cancelar.'],
+      actualizado: ['Salvamos suas preferências', 'Os próximos e-mails já seguem o que você escolheu.'],
+      seguirEditando: 'Continuar editando',
+      fueraDeLista: ['Pronto, você cancelou a inscrição', 'Não enviaremos mais novidades. Se foi um engano, você pode se inscrever de novo.'],
+      volverASuscribir: 'Inscrever-me de novo',
+      invalido: ['Este link não funciona mais', 'Não existe ou já foi usado. Se precisar de ajuda, fale conosco.'],
+      irAlSitio: 'Ir para o início',
+      verArchivo: 'Ver e-mails anteriores',
+    },
+    offlineKicker: 'Sem conexão',
+    offlineTitulo: 'Você está sem conexão',
+    offlineLead: 'Não conseguimos carregar esta página. Quando a conexão voltar, ela recarrega sozinha.',
+    offlineReintentar: 'Tentar de novo',
+    offlineGuardadas: 'Você pode ver sem conexão',
+    offlineSinGuardadas: 'Ainda não há páginas salvas neste dispositivo.',
+    offlineContacto: 'Escreva ou ligue para nós',
+
+    notFoundTitle: 'Esta página não existe',
+    notFoundLead: 'Pode ser que o link esteja errado ou que a página tenha mudado de lugar.',
+    notFoundCta: 'Voltar ao início',
+
+    seo: {
+      inicio: ['Antídoto | Treinamentos, audiovisual e catering para empresas na Colômbia', 'Estúdio criativo empresarial em Bogotá com licença de SST: treinamentos vivenciais, produção audiovisual, catering corporativo e design de experiências para empresas com operação na Colômbia, com atendimento em português.'],
+      servicios: ['Serviços para empresas na Colômbia | Antídoto', 'Treinamentos vivenciais, produção audiovisual, catering corporativo, design de produtos e experiências e capacitação em IA para empresas e escolas em Bogotá e em toda a Colômbia, em português.'],
+      clientes: ['Clientes | Antídoto', 'Organizações que trabalham com a Antídoto.'],
+      nosotros: ['Sobre nós | Antídoto, Bogotá', 'A Antídoto é um estúdio criativo empresarial de Bogotá, marca desde 2020, liderado por María Paula Ramos, engenheira civil especialista em Gestão de SST.'],
+      contacto: ['Contato e orçamento | Antídoto', 'Peça orçamento de treinamentos, produção audiovisual, catering, SG-SST ou design em poucos passos e envie sua solicitação pelo WhatsApp ou por e-mail.'],
+      sgsst: ['SG-SST na Colômbia com licença em SST | Antídoto', 'Capacitação, investigação de acidentes e desenho do SG-SST exigido na Colômbia, com licença em Segurança e Saúde no Trabalho (Res. 36081-2026), e auditorias internas de SG-SST, PESV, RUC e ISO.'],
+      actividades: ['Entre na sua atividade | Antídoto', 'Entre com o código da sua atividade e conheça os jogos de Misiones Antídoto para equipes de trabalho.'],
+      soluciones: ['Soluções por área | Antídoto', 'Soluções para SST e HSEQ, gestão de pessoas e bem-estar, comunicação interna, escolas e universidades.'],
+      portafolio: ['Portfólio | Antídoto', 'Casos de treinamentos, produção audiovisual, catering e design de experiências feitos pela Antídoto.'],
+      comoTrabajamos: ['Como trabalhamos | Antídoto', 'Três passos, da primeira conversa ao relatório final: assim desenhamos e produzimos cada projeto.'],
+      trabaja: ['Trabalhe conosco | Antídoto', 'Parcerias com consultorias, corretoras e seguradoras, e oportunidades para trabalhar com a Antídoto.'],
+      faq: ['Perguntas frequentes | Antídoto', 'Respostas sobre cobertura, idiomas, treinamentos, produção audiovisual, catering, design e orçamentos.'],
+      blog: ['Blog | Antídoto', 'Ideias sobre SST, formação, produção audiovisual, eventos e cultura organizacional.'],
+      terminos: ['Termos e condições | Antídoto', 'Condições de uso do site da Antídoto.'],
+      cookies: ['Cookies | Antídoto', 'O que este site guarda no seu navegador e para quê.'],
+      mapa: ['Mapa do site | Antídoto', 'Todas as páginas do site da Antídoto em um só lugar.'],
+    },
+    ogAlt: 'Antídoto, estúdio criativo empresarial',
+
+    navActividades: 'Atividades',
+    navParaQuien: 'Para quem',
+    footerLema: 'Estúdio criativo empresarial. Colômbia, desde 2020.',
+    footerDerechos: 'Todos os direitos reservados.',
+    inicio: {
+      insignia: 'Estúdio criativo com licença de SST',
+      insigniaSello: 'Res. 36081-2026',
+      titulo: ['Treinamento, vídeo e eventos que sua equipe ', 'lembra de verdade'],
+      lead: 'Treinamentos vivenciais, produção audiovisual, catering e atividades digitais para as áreas de SST, gestão de pessoas e bem-estar, na Colômbia e em português.',
+      cotizar: 'Orçamento em 3 passos',
+      probar: 'Ver uma atividade ao vivo',
+      estudio: {
+        label: 'Estúdio da Antídoto em pixel art: uma sala com quadro de post-its, tela com um chat, câmera de vídeo, mesa de catering e estante de protótipos. Um facilitador percorre a sala e fala de cada linha.',
+        dice: 'O que o facilitador diz',
+        hola: 'Olá, boas-vindas ao estúdio da Antídoto.',
+        frases: {
+          formaciones: 'Neste quadro montamos treinamentos vivenciais: aqui se aprende fazendo.',
+          audiovisual: 'Com esta câmera gravamos vídeos de integração, capacitação e institucionais.',
+          catering: 'Cafés da manhã, lanches e almoços para seus eventos: do catering também cuidamos.',
+          diseno: 'Nesta estante vivem os protótipos: desenhamos produtos e experiências.',
+          ia: 'Nesta tela capacitamos sua equipe em IA: Claude, Gemini, ChatGPT e Copilot.',
+        },
+        verLinea: 'Ver a linha',
+        cierre: 'Quer ver como uma equipe vive uma atividade conosco? Venha comigo.',
+        boton: 'Venha ver uma atividade',
+      },
+      verMas: 'Ver como trabalhamos',
+      fundadoraResumen: 'CEO e fundadora. Engenheira civil, especialista em Gestão de SST',
+      cifrasLabel: 'Números',
+      confian: 'Confiaram em nós',
+      cifras: [
+        ['+150', 'produções'],
+        ['+200', 'eventos'],
+        ['+50', 'clientes'],
+        ['3', 'idiomas'],
+        ['2020', 'marca desde'],
+      ],
+      dolores: {
+        titulo: ['Isso soa familiar ', 'na sua empresa?'],
+        lead: 'Passe o cursor por cada situação para ver como a resolvemos.',
+        leadTactil: 'Role a tela: cada situação mostra como a resolvemos ao chegar ao centro.',
+        items: [
+          ['A integração é esquecida em uma semana', 'Sua integração, contada em vídeo'],
+          ['Treinamentos que ninguém quer fazer', 'Treinamentos que se vivem com as mãos'],
+          ['O plano de emergência vive em um PDF', 'Seu plano de emergência, contado em vídeo'],
+          ['Sem evidência para a auditoria', 'Presença, avaliação e certificado por atividade'],
+          ['Áreas que não conversam entre si', 'Desafios em equipe que obrigam a coordenar'],
+          ['Eventos que não deixam nada', 'Evento, catering e conteúdo com uma só equipe'],
+        ],
+      },
+      pasos: {
+        titulo: ['Assim trabalhamos ', 'com você'],
+        lead: 'Três passos, da primeira conversa ao relatório final.',
+        etiqueta: (n: number) => `Passo ${n}`,
+        empezar: 'Começar orçamento',
+        items: [
+          ['Conte-nos seu desafio', 'Escolha o serviço, a data e o tamanho do grupo. O orçamento monta a mensagem e você envia pelo WhatsApp ou por e-mail.', 'Sala pronta para um workshop, com a tela de boas-vindas e as caixas de peças'],
+          ['Desenhamos a experiência', 'Você recebe uma proposta com o formato, a logística e o que sua equipe leva ao terminar.', 'Figura montada com peças de construção'],
+          ['Vivemos com você', 'Nossa equipe produz do começo ao fim e entrega o registro do que aconteceu.', 'Grupo grande reunido ao ar livre depois de uma jornada'],
+        ],
+      },
+      servicios: {
+        titulo: ['Cinco serviços, ', 'uma só fórmula'],
+        lead: 'Para gestão de pessoas, SST, comunicação interna, bem-estar e direções de escolas e universidades. Contratados separadamente ou como um só evento.',
+        plataforma: 'Inclui atividades digitais:',
+        plataformaNombre: 'Misiones Antídoto',
+        items: {
+          formaciones: {
+            resumen: 'Aprender fazendo: programas participativos com apoio de IA.',
+            puntos: ['Fortalecimento de equipes e cultura', 'Comunicação e inclusão', 'Orientação vocacional para escolas'],
+            cifras: [['3', 'idiomas']],
+            cotizar: 'Orçamento de treinamento',
+            afiche: 'Treinamentos',
+            alt: 'Workshop ao ar livre com peças de construção e óculos de realidade virtual',
+          },
+          audiovisual: {
+            resumen: 'Vídeos que explicam, capacitam e representam sua empresa.',
+            puntos: ['Vídeos de integração e capacitações', 'Planos de emergência', 'Vídeos institucionais com imagens de drone'],
+            cifras: [['+150', 'produções'], ['4K', 'qualidade de entrega']],
+            cotizar: 'Orçamento de produção',
+            afiche: 'Audiovisual',
+            alt: 'Gravação ao ar livre com câmera e luz de estúdio',
+          },
+          catering: {
+            resumen: 'Comida para eventos empresariais, acadêmicos e sociais.',
+            puntos: ['Cafés da manhã e lanches', 'Almoços', 'Estações ao vivo'],
+            cifras: [['+200', 'eventos'], ['Nacional', 'cobertura na Colômbia']],
+            cotizar: 'Orçamento de catering',
+            afiche: 'Catering',
+            alt: 'Equipe da Antídoto servindo um bufê com flores e petiscos',
+          },
+          diseno: {
+            resumen: 'Da ideia ao produto final, com a identidade de cada marca.',
+            puntos: ['Protótipos', 'Produtos funcionais', 'Experiências de marca sob medida'],
+            cifras: [],
+            cotizar: 'Orçamento de design',
+            afiche: 'Design',
+            alt: 'Figura montada com peças de construção',
+          },
+          ia: {
+            resumen: 'Sua equipe aprende a usar a IA no trabalho real, com critério e sem expor dados.',
+            puntos: ['Claude, Gemini, ChatGPT e Copilot', 'Com os processos e documentos da sua área', 'Presencial ou por videochamada'],
+            cifras: [],
+            cotizar: 'Orçamento de capacitação',
+            afiche: 'IA aplicada',
+            alt: 'Sala pronta para um workshop, com a tela de boas-vindas e as caixas de material',
+          },
+        },
+      },
+      sala: {
+        etiqueta: 'Atividade presencial',
+        titulo: ['Assim se monta uma equipe ', 'na sua empresa'],
+        lead: 'Chegamos à sua sede com facilitador, material e dinâmica prontos: a equipe levanta da cadeira, divide o trabalho e começa a conversar.',
+        juego: 'Esta rodada: construção com blocos. A equipe monta junta o modelo da tela, cada um com suas peças, e no final conta como conseguiu.',
+        cotizar: 'Orçamento de uma atividade de equipe',
+        label: 'Sala de workshop em pixel art: cinco pessoas de uma equipe constroem com blocos coloridos sobre uma mesa, seguindo a planta que uma tela mostra, ao lado de um facilitador da Antídoto.',
+        dice: 'O que acontece na sala',
+        lineas: {
+          abre: 'Desafio: montem juntos o modelo da tela. Cada um coloca só as suas peças.',
+          idea: 'Primeiro as duas torres! A ponte vai em cima.',
+          pregunta: 'Antes do último bloco: o que funcionou para vocês?',
+          responde: 'Dizer em voz alta qual peça ia colocar. No começo ninguém olhava a planta.',
+          cierra: 'Assim começa a jornada: construindo juntos e conversando sobre como fizeram.',
+        },
+      },
+      actividades: {
+        plataforma: 'Misiones Antídoto',
+        verJuegos: 'Ver os jogos',
+        titulo: ['Atividades ao vivo, ', 'presenciais ou remotas'],
+        lead: 'Uma biblioteca de quizzes e jogos que configuramos para sua empresa e que sua equipe joga pelo celular.',
+        puntos: ['Com os temas e a marca da sua empresa', 'Em sala, em campo ou por videochamada', 'Resultados por participante ao terminar'],
+        resultados: {
+          titulo: 'Resultados ao terminar',
+          ejemplo: 'Exemplo',
+          columna: '% de acertos',
+          equipos: [['Equipe Fábrica', 92], ['Equipe Logística', 85], ['Equipe Escritório', 78], ['Equipe Vendas', 64]],
+          pie: '42 participantes · 8 perguntas',
+        },
+      },
+      paraQuien: {
+        titulo: ['Escolha por ', 'onde entrar'],
+        lead: 'Cada área chega com um desafio diferente. Comece pelo seu.',
+        verSoluciones: 'Ver soluções',
+        perfiles: [
+          ['SST e HSEQ', 'Integrações, plano de emergência e capacitação vivencial, com evidência por atividade.'],
+          ['Gestão de pessoas e bem-estar', 'Integração, cultura e eventos com a logística resolvida.'],
+          ['Comunicação interna', 'Vídeos institucionais e peças para contar o que acontece na sua empresa.'],
+          ['Escolas e universidades', 'Orientação vocacional e inclusão com metodologia vivencial.'],
+        ],
+        aliados: ['Você é consultoria, corretora ou seguradora?', 'Somamos nossa produção aos programas dos seus clientes.', 'Trabalhar como parceiros'],
+      },
+      equipo: {
+        titulo: ['Um estúdio criativo com ', 'critério de engenharia'],
+        lead: 'Acompanhamos organizações, escolas e universidades com projetos que geram impacto real.',
+        credenciales: ['Engenheira civil', 'Especialista em Gestão de SST'],
+        linkedin: 'Antídoto no LinkedIn',
+        licencia: 'Licença em Segurança e Saúde no Trabalho',
+        licenciaVer: 'Ver o SG-SST e a licença',
+      },
+      faq: {
+        titulo: ['Perguntas ', 'frequentes'],
+      },
+      novedades: {
+        titulo: ['Ideias para sua equipe, ', 'no seu e-mail'],
+        lead: 'Novidades, conteúdos e propostas da Antídoto para quem forma, cuida e celebra suas equipes. Sem spam: cancele com um clique em qualquer e-mail.',
+        intereses: 'O que mais interessa a você (opcional)',
+        correo: 'Seu e-mail de trabalho',
+        boton: 'Quero receber',
+      },
+      cierre: {
+        titulo: 'Conte-nos seu desafio e enviamos uma proposta',
+        lead: 'Monte sua solicitação em três passos e envie pelo WhatsApp ou por e-mail.',
+        cotizar: 'Pedir orçamento agora',
+      },
+    },
+  },
 } as const;
 
 export function t(locale: Locale) {
   return ui[locale];
 }
 
-/** Ruta equivalente en el otro idioma. */
-export function otroIdioma(locale: Locale): Locale {
-  return locale === 'es' ? 'en' : 'es';
+/** Los demás idiomas del sitio, en el orden de LOCALES. */
+export function otrosIdiomas(locale: Locale): Locale[] {
+  return LOCALES.filter((l) => l !== locale);
 }
