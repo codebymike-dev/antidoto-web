@@ -26,7 +26,7 @@ describe('markdownSeguro', () => {
   });
   it('neutraliza enlaces, referencias, autoenlaces e imágenes peligrosos', async () => {
     const r = await html('[a](javascript:alert(1)) [b][r] <javascript:alert(2)> [c](&#106;avascript:alert(3))\n\n![i](javascript:alert(4))\n\n[r]: javascript:alert(5)');
-    expect(r).not.toMatch(/javascript:/i.source.replace('javascript:', 'href="javascript:') ? /href="javascript:|src="javascript:/i : /x/);
+    expect(r).not.toMatch(/(href|src)="\s*javascript:/i);
     expect(r.match(/href="#"/g)).toHaveLength(4);
   });
   it('deja el Markdown normal como está', async () => {
