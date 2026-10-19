@@ -2,7 +2,9 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
+import { satteri } from '@astrojs/markdown-satteri';
 import serviceWorker from './integraciones/service-worker.mjs';
+import { markdownSeguro } from './src/lib/markdown-seguro.ts';
 
 // Fuera del sitemap: páginas con noindex (offline, los textos legales en borrador, las preferencias de
 // novedades, que solo sirven con el token de un correo, y la documentación interna).
@@ -19,6 +21,8 @@ export default defineConfig({
   output: 'static',
   trailingSlash: 'always',
   build: { format: 'directory' },
+  // Sin HTML crudo ni enlaces javascript: en el Markdown (el del panel llega por src/lib/cms/).
+  markdown: { processor: satteri({ mdastPlugins: [markdownSeguro] }) },
   i18n: {
     defaultLocale: 'es',
     locales: ['es', 'en', 'pt'],

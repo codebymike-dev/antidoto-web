@@ -89,6 +89,14 @@ export function migasSchema(migas: Array<[nombre: string, ruta: string]>) {
   };
 }
 
+/**
+ * JSON-LD listo para ir dentro de <script>. JSON.stringify no escapa "<", y los títulos y
+ * respuestas que llegan del panel podrían cerrar la etiqueta con "</script>".
+ */
+export function jsonLdSeguro(datos: unknown): string {
+  return JSON.stringify(datos).replace(/</g, '\\u003c').replace(/ /g, '\\u2028').replace(/ /g, '\\u2029');
+}
+
 /** Varios nodos en un solo bloque JSON-LD. */
 export function grafo(...nodos: Record<string, unknown>[]) {
   return { '@context': 'https://schema.org', '@graph': nodos };
