@@ -94,7 +94,7 @@ export function migasSchema(migas: Array<[nombre: string, ruta: string]>) {
  * respuestas que llegan del panel podrían cerrar la etiqueta con "</script>".
  */
 export function jsonLdSeguro(datos: unknown): string {
-  return JSON.stringify(datos).replace(/</g, '\\u003c').replace(/ /g, '\\u2028').replace(/ /g, '\\u2029');
+  return JSON.stringify(datos).replace(/</g, '\\u003c');
 }
 
 /** Varios nodos en un solo bloque JSON-LD. */
