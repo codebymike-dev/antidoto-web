@@ -14,7 +14,7 @@ interface Props {
 const { locale, alternates, class: clase } = Astro.props;
 const s = t(locale);
 ---
-<div class:list={['idiomas', clase]} role="group" aria-label={s.idiomaGrupo}>
+<div class:list={['idiomas', clase]} role="group" aria-label={s.langLabel}>
   {LOCALES.map((code) => {
     const bandera = (
       <span class="bandera" aria-hidden="true">
