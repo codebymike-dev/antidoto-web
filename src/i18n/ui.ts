@@ -382,6 +382,7 @@ export const ui = {
     navParaQuien: 'Para quién',
     footerLema: 'Estudio creativo empresarial. Colombia, desde 2020.',
     footerDerechos: 'Todos los derechos reservados.',
+    footerCredito: 'Diseño y desarrollo:',
     inicio: {
       insignia: 'Estudio creativo con licencia de SST',
       insigniaSello: 'Res. 36081-2026',
@@ -865,6 +866,7 @@ export const ui = {
     navParaQuien: 'Who it is for',
     footerLema: 'Creative studio for organizations. Colombia, since 2020.',
     footerDerechos: 'All rights reserved.',
+    footerCredito: 'Design and development:',
     inicio: {
       insignia: 'Creative studio with a health and safety license',
       insigniaSello: 'Res. 36081-2026',
@@ -1352,6 +1354,7 @@ export const ui = {
     navParaQuien: 'Para quem',
     footerLema: 'Estúdio criativo empresarial. Colômbia, desde 2020.',
     footerDerechos: 'Todos os direitos reservados.',
+    footerCredito: 'Design e desenvolvimento:',
     inicio: {
       insignia: 'Estúdio criativo com licença de SST',
       insigniaSello: 'Res. 36081-2026',
