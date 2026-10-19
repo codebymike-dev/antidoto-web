@@ -7,7 +7,7 @@
 // líneas y sus ofertas. Las preguntas frecuentes van en Nosotros y en el pie.
 // Sin JS: en escritorio los paneles se abren con hover y foco (CSS); en móvil el panel queda
 // abierto como lista. Con JS: clic o puntero abren, Esc cierra y devuelve el foco, y bajo
-// 1100 px todo va en el panel del botón Menú, con los submenús como acordeones.
+// 1200 px todo va en el panel del botón Menú, con los submenús como acordeones.
 // Tiene view-transition-name propio: es igual en todas las páginas y no se funde al navegar.
 import Logo from './Logo.astro';
 import SelloLicencia from './SelloLicencia.astro';
@@ -143,7 +143,7 @@ const pag = (href: string) => (href === actual ? 'page' : undefined);
   const panel = nav?.querySelector<HTMLElement>('[data-links]');
   if (nav && menu && panel) {
     nav.classList.add('con-js');
-    const angosto = matchMedia('(max-width: 1100px)');
+    const angosto = matchMedia('(max-width: 1200px)');
     const items = [...nav.querySelectorAll<HTMLElement>('[data-item]')].filter((li) => li.querySelector('[data-abre]'));
     const boton = (li: HTMLElement) => li.querySelector<HTMLButtonElement>('[data-abre]')!;
 
@@ -217,10 +217,13 @@ const pag = (href: string) => (href === actual ? 'page' : undefined);
   .barra { padding-block: 14px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
   .marca { display: flex; align-items: center; gap: 14px; min-width: 0; }
   .home { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-antidote); }
-  /* El sello vive en el encabezado; en pantallas medianas y móviles lo cubren el hero y el ítem SG-SST. */
-  @media (max-width: 1320px) { .marca :global(.sello-nav) { display: none; } }
+  /* El sello vive en el encabezado desde 1600 px, con la barra más ancha que el contenido: en 1152 px
+     no caben logo, sello, menú, selector de idioma y Cotizar. En pantallas medianas lo cubren el hero
+     y el ítem SG-SST; en el menú móvil va dentro del panel. */
+  @media (min-width: 1600px) { .barra { max-width: 1600px; } }
+  @media (max-width: 1599px) { .marca :global(.sello-nav) { display: none; } }
   .links :global(.sello-panel) { display: none; }
-  @media (max-width: 1100px) { .links :global(.sello-panel) { display: inline-flex; align-self: flex-start; margin-top: 12px; } }
+  @media (max-width: 1200px) { .links :global(.sello-panel) { display: inline-flex; align-self: flex-start; margin-top: 12px; } }
   .home :global(.logo) { display: block; height: 34px; width: auto; }
   .derecha { display: flex; align-items: center; gap: 24px; }
 
@@ -228,7 +231,7 @@ const pag = (href: string) => (href === actual ? 'page' : undefined);
   .lista { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; gap: 4px 22px; }
   .item { display: flex; align-items: center; }
   .item:not(.mega) { position: relative; }
-  .top { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-ink); text-decoration: none; font-weight: 500; font-size: 16px; position: relative; }
+  .top { display: inline-flex; align-items: center; min-height: 44px; white-space: nowrap; color: var(--color-ink); text-decoration: none; font-weight: 500; font-size: 16px; position: relative; }
   .top:hover { color: var(--color-deep); }
   /* Sección actual: un punto cian bajo el texto. */
   .item.actual > .top::after { content: ''; position: absolute; left: 50%; bottom: 4px; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: var(--color-antidote); }
@@ -276,14 +279,14 @@ const pag = (href: string) => (href === actual ? 'page' : undefined);
   .nav.abierto .rayas i:first-child { transform: translateY(4px) rotate(45deg); }
   .nav.abierto .rayas i:last-child { transform: translateY(-4px) rotate(-45deg); right: 0; }
 
-  @media (max-width: 1240px) {
+  @media (max-width: 1360px) {
     .lista { gap: 4px 14px; }
     .derecha, .links { gap: 16px; }
   }
 
-  /* Bajo 1100 px: todo va en el panel del botón Menú; los submenús son acordeones. Sin JS el
+  /* Bajo 1200 px: todo va en el panel del botón Menú; los submenús son acordeones. Sin JS el
      panel queda en el flujo como lista completa. */
-  @media (max-width: 1100px) {
+  @media (max-width: 1200px) {
     .barra { flex-wrap: wrap; }
     .derecha { gap: 10px; }
     .cotizar { padding: 0 16px; font-size: 15px; }

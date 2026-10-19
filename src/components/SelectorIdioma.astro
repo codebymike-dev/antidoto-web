@@ -66,10 +66,10 @@ const s = t(locale);
 
 <style>
   .idiomas { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: 999px; border: 1px solid var(--color-line-soft); background: var(--color-mist); }
-  .opcion { position: relative; display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 10px; border-radius: 999px; font: 600 12px/1 var(--font-sans); letter-spacing: 0.08em; color: var(--color-slate); text-decoration: none; transition: background-color var(--t-base) var(--ease-out), color var(--t-base) var(--ease-out); }
+  .opcion { position: relative; display: inline-flex; align-items: center; gap: 5px; min-height: 34px; padding: 0 8px; border-radius: 999px; font: 600 12px/1 var(--font-sans); letter-spacing: 0.08em; color: var(--color-slate); text-decoration: none; transition: background-color var(--t-base) var(--ease-out), color var(--t-base) var(--ease-out); }
   /* Área táctil de 44 px sin agrandar la píldora. */
   .opcion::before { content: ''; position: absolute; inset: -5px 0; }
-  .actual { padding: 0 8px; background: var(--color-paper); color: var(--color-ink); box-shadow: 0 1px 2px rgb(15 24 29 / 0.16); }
+  .actual { padding: 0 7px; background: var(--color-paper); color: var(--color-ink); box-shadow: 0 1px 2px rgb(15 24 29 / 0.16); }
   a.opcion:hover { background: var(--color-paper); color: var(--color-deep); }
   .bandera { position: relative; display: block; width: 20px; height: 14px; border-radius: 2.5px; overflow: hidden; flex: none; }
   .bandera::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgb(15 24 29 / 0.14); }
