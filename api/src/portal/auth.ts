@@ -6,10 +6,10 @@ import { and, eq, gt, isNull } from 'drizzle-orm';
 import type { Db } from '../db/conexion';
 import { enlacesCliente, sesionesCliente, usuariosCliente, organizaciones, type UsuarioCliente } from '../db/schema';
 import { enviar, correoEnlacePortal } from '../correo';
-import { dentroDelLimite } from '../limite';
+import { puedeMandarEnlace } from '../auth';
 import { registrarAcceso } from '../auditoria';
 import type { Env } from '../env';
-import { ahora, sha256, token, json, HORA, DIA } from '../util';
+import { ahora, sha256, token, json, hashIp, ipCliente, HORA, DIA } from '../util';
 
 export const COOKIE_CLIENTE = '__Host-antidoto-cliente';
 export const MINUTOS_ENLACE_CLIENTE = 15;
@@ -31,20 +31,27 @@ const leerCookie = (req: Request, nombre: string): string | null => {
 
 export const cookieCliente = (valor: string, maxAge: number) => `${COOKIE_CLIENTE}=${valor}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}`;
 
-/** POST /portal/auth/enlace. Responde lo mismo exista o no el correo. */
-export async function pedirEnlaceCliente(req: Request, env: Env, db: Db, appUrl: string): Promise<Response> {
+/**
+ * POST /portal/auth/enlace. Como el del equipo: responde de inmediato y lo mismo exista o no el
+ * correo, y busca y envía después, con los mismos cupos por IP y por persona.
+ */
+export async function pedirEnlaceCliente(req: Request, env: Env, db: Db, appUrl: string, diferir: (p: Promise<unknown>) => void): Promise<Response> {
   const d = (await req.json().catch(() => ({}))) as { email?: unknown };
   const email = typeof d.email === 'string' ? d.email.trim().toLowerCase().slice(0, 200) : '';
-  const respuesta = json({ ok: true });
-  if (!email) return respuesta;
-  const [u] = await db.select().from(usuariosCliente).where(and(eq(usuariosCliente.email, email), eq(usuariosCliente.activo, true)));
-  if (!u) return respuesta;
-  const t = ahora();
-  if (!(await dentroDelLimite(db, `enlace-cliente:${u.id}`, 5, t))) return respuesta;
-  const secreto = token();
-  await db.insert(enlacesCliente).values({ hash: await sha256(secreto), usuarioId: u.id, creado: t, expira: t + MINUTOS_ENLACE_CLIENTE * 60_000, usado: null });
-  await enviar(env, { para: u.email, ...correoEnlacePortal(`${appUrl}/portal/auth/entrar?t=${encodeURIComponent(secreto)}`, MINUTOS_ENLACE_CLIENTE) });
-  return respuesta;
+  if (!email) return json({ ok: true });
+  const ip = ipCliente(req);
+  diferir(
+    (async () => {
+      const t = ahora();
+      const buscar = async () => (await db.select().from(usuariosCliente).where(and(eq(usuariosCliente.email, email), eq(usuariosCliente.activo, true))))[0];
+      const u = await puedeMandarEnlace(db, 'enlace-cliente', await hashIp(ip, env.SAL_IP, t), buscar, t);
+      if (!u) return;
+      const secreto = token();
+      await db.insert(enlacesCliente).values({ hash: await sha256(secreto), usuarioId: u.id, creado: t, expira: t + MINUTOS_ENLACE_CLIENTE * 60_000, usado: null });
+      await enviar(env, { para: u.email, ...correoEnlacePortal(`${appUrl}/portal/auth/entrar?t=${encodeURIComponent(secreto)}`, MINUTOS_ENLACE_CLIENTE) });
+    })().catch((e) => console.error('[portal] enlace', e)),
+  );
+  return json({ ok: true });
 }
 
 /** GET /portal/auth/entrar: no gasta el enlace, lleva al portal con el token en el fragmento. */

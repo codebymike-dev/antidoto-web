@@ -169,6 +169,34 @@ describe('bandeja', () => {
     expect(correos).toHaveLength(0);
   });
 
+  test('responde antes de buscar el correo y de enviarlo', async () => {
+    const pendientes: Promise<unknown>[] = [];
+    const pedir = new Request(`${APP}/auth/enlace`, { method: 'POST', body: JSON.stringify({ email: 'dueña@antidoto.co' }), headers: { origin: APP, 'content-type': 'application/json' } });
+    const r = await manejar(pedir, env, (p) => pendientes.push(p));
+    expect(await r.json()).toEqual({ ok: true });
+    expect(correos).toHaveLength(0);
+    await Promise.all(pendientes);
+    expect(correos).toHaveLength(1);
+  });
+
+  test('pedir enlaces con el correo de otra persona no la deja sin entrar', async () => {
+    await consulta(env.DB, "insert into usuarios (id, email, nombre, rol, activo, creado) values ('33333333-3333-4333-8333-333333333333', 'limite@antidoto.co', 'Límite', 'lectura', 1, ?)", Date.now()).run();
+    const pedir = (ip: string) => post('/auth/enlace', { body: JSON.stringify({ email: 'limite@antidoto.co' }), headers: { 'content-type': 'application/json' }, ip } as RequestInit, '');
+    for (let i = 0; i < ENLACES_POR_HORA + 2; i++) await pedir('203.0.113.10');
+    expect(correos).toHaveLength(ENLACES_POR_HORA);
+    // La persona, desde su propia IP, sigue recibiendo su enlace.
+    await pedir('203.0.113.11');
+    expect(correos).toHaveLength(ENLACES_POR_HORA + 1);
+  });
+
+  test('una IP que pide muchos enlaces se queda sin cupo, existan o no los correos', async () => {
+    const pedir = (email: string) => post('/auth/enlace', { body: JSON.stringify({ email }), headers: { 'content-type': 'application/json' }, ip: '203.0.113.20' } as RequestInit, '');
+    for (let i = 0; i < ENLACES_POR_IP; i++) await pedir(`nadie${i}@x.co`);
+    const r = await pedir('dueña@antidoto.co');
+    expect(await r.json()).toEqual({ ok: true });
+    expect(correos).toHaveLength(0);
+  });
+
   test('el enlace entra una sola vez y el GET no lo gasta', async () => {
     await post('/auth/enlace', { body: JSON.stringify({ email: 'DUEÑA@antidoto.co' }), headers: { 'content-type': 'application/json' } }, '');
     const t = new URL(correos[0]!.text.match(/https:\/\/\S+/)![0]).searchParams.get('t')!;

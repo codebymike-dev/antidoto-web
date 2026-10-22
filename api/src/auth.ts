@@ -8,12 +8,18 @@ import { enviar, correoEnlaceAcceso } from './correo';
 import { dentroDelLimite } from './limite';
 import { registrarAcceso } from './auditoria';
 import type { Env } from './env';
-import { ahora, sha256, token, json, uuid, HORA, DIA } from './util';
+import { ahora, sha256, token, json, uuid, hashIp, ipCliente, HORA, DIA } from './util';
 
 export const COOKIE = '__Host-antidoto';
 export const MINUTOS_ENLACE = 15;
 export const DIAS_SESION = 30;
+/** Sin usar el panel durante estos días, la sesión se cierra aunque no haya vencido. */
+export const DIAS_INACTIVIDAD = 7;
+/** Enlaces por persona y por IP, y en total por persona, cada hora. */
 export const ENLACES_POR_HORA = 5;
+export const ENLACES_POR_PERSONA = 20;
+/** Pedidos de enlace por IP y hora, existan o no los correos. */
+export const ENLACES_POR_IP = 10;
 
 export interface Sesion {
   usuario: Usuario;
@@ -49,22 +55,42 @@ async function leerEmail(req: Request): Promise<string> {
   return String(f?.get('email') ?? '');
 }
 
-/** POST /auth/enlace. Responde lo mismo exista o no el correo, para no revelar quién es del equipo. */
-export async function pedirEnlace(req: Request, env: Env, db: Db, appUrl: string): Promise<Response> {
+/**
+ * ¿Se manda otro enlace? Por IP cuenta todo pedido (exista o no el correo); por persona, sus
+ * enlaces desde esa IP y, más alto, el total. Así alguien que pide enlaces con el correo de otra
+ * persona gasta su propio cupo y no el de ella, que entra desde su IP. Sin IP (local, pruebas)
+ * queda solo el cupo por persona. Lo usa también el portal (src/portal/auth.ts).
+ */
+export async function puedeMandarEnlace<U extends { id: string }>(db: Db, prefijo: string, ipHash: string | null, buscar: () => Promise<U | undefined>, t = ahora()): Promise<U | null> {
+  if (ipHash && !(await dentroDelLimite(db, `${prefijo}-ip:${ipHash}`, ENLACES_POR_IP, t))) return null;
+  const u = await buscar();
+  if (!u) return null;
+  if (!(await dentroDelLimite(db, `${prefijo}:${u.id}:${ipHash ?? 'sin-ip'}`, ENLACES_POR_HORA, t))) return null;
+  if (!(await dentroDelLimite(db, `${prefijo}:${u.id}`, ENLACES_POR_PERSONA, t))) return null;
+  return u;
+}
+
+/**
+ * POST /auth/enlace. Responde de inmediato y lo mismo exista o no el correo: la búsqueda y el envío
+ * van después de responder, para que ni el cuerpo ni el tiempo revelen quién es del equipo.
+ */
+export async function pedirEnlace(req: Request, env: Env, db: Db, appUrl: string, diferir: (p: Promise<unknown>) => void): Promise<Response> {
   const email = (await leerEmail(req)).trim().toLowerCase().slice(0, 200);
-  const respuesta = json({ ok: true });
-  if (!email) return respuesta;
+  if (!email) return json({ ok: true });
+  const ip = ipCliente(req);
 
-  const [u] = await db.select().from(usuarios).where(and(eq(usuarios.email, email), eq(usuarios.activo, true)));
-  if (!u) return respuesta;
-
-  const t = ahora();
-  if (!(await dentroDelLimite(db, `enlace:${u.id}`, ENLACES_POR_HORA, t))) return respuesta;
-
-  const secreto = token();
-  await db.insert(enlaces).values({ hash: await sha256(secreto), usuarioId: u.id, creado: t, expira: t + MINUTOS_ENLACE * 60_000, usado: null });
-  await enviar(env, { para: u.email, ...correoEnlaceAcceso(`${appUrl}/auth/entrar?t=${encodeURIComponent(secreto)}`, MINUTOS_ENLACE) });
-  return respuesta;
+  diferir(
+    (async () => {
+      const t = ahora();
+      const buscar = async () => (await db.select().from(usuarios).where(and(eq(usuarios.email, email), eq(usuarios.activo, true))))[0];
+      const u = await puedeMandarEnlace(db, 'enlace', await hashIp(ip, env.SAL_IP, t), buscar, t);
+      if (!u) return;
+      const secreto = token();
+      await db.insert(enlaces).values({ hash: await sha256(secreto), usuarioId: u.id, creado: t, expira: t + MINUTOS_ENLACE * 60_000, usado: null });
+      await enviar(env, { para: u.email, ...correoEnlaceAcceso(`${appUrl}/auth/entrar?t=${encodeURIComponent(secreto)}`, MINUTOS_ENLACE) });
+    })().catch((e) => console.error('[auth] enlace', e)),
+  );
+  return json({ ok: true });
 }
 
 /**
@@ -121,6 +147,12 @@ export async function entrar(req: Request, env: Env, db: Db): Promise<Response> 
   });
 }
 
+/** Una sesión sigue abierta si no venció, no se revocó y se usó en los últimos DIAS_INACTIVIDAD días. */
+const abierta = (t: number) => and(isNull(sesiones.revocada), gt(sesiones.expira, t), gt(sesiones.ultimoUso, t - DIAS_INACTIVIDAD * DIA));
+
+/** Cuándo se cierra una sesión si nadie la usa: lo primero entre su vencimiento y la inactividad. */
+export const cierre = (s: { expira: number; ultimoUso: number }) => Math.min(s.expira, s.ultimoUso + DIAS_INACTIVIDAD * DIA);
+
 /** Sesión vigente de la petición, o null. Renueva el último uso como mucho una vez por hora. */
 export async function sesionActual(req: Request, db: Db): Promise<Sesion | null> {
   const secreto = leerCookie(req, COOKIE);
@@ -131,7 +163,7 @@ export async function sesionActual(req: Request, db: Db): Promise<Sesion | null>
     .select({ s: sesiones, u: usuarios })
     .from(sesiones)
     .innerJoin(usuarios, eq(usuarios.id, sesiones.usuarioId))
-    .where(and(eq(sesiones.hash, hash), isNull(sesiones.revocada), gt(sesiones.expira, t), eq(usuarios.activo, true)));
+    .where(and(eq(sesiones.hash, hash), abierta(t), eq(usuarios.activo, true)));
   if (!fila) return null;
   if (t - fila.s.ultimoUso > HORA) await db.update(sesiones).set({ ultimoUso: t }).where(eq(sesiones.hash, hash));
   return { usuario: fila.u, hash, id: fila.s.id };
@@ -143,9 +175,9 @@ export async function listarSesiones(db: Db, sesion: Sesion): Promise<Response> 
   const filas = await db
     .select({ id: sesiones.id, creada: sesiones.creada, ultimoUso: sesiones.ultimoUso, expira: sesiones.expira, userAgent: sesiones.userAgent, hash: sesiones.hash })
     .from(sesiones)
-    .where(and(eq(sesiones.usuarioId, sesion.usuario.id), isNull(sesiones.revocada), gt(sesiones.expira, t)))
+    .where(and(eq(sesiones.usuarioId, sesion.usuario.id), abierta(t)))
     .orderBy(desc(sesiones.ultimoUso));
-  return json({ sesiones: filas.map(({ hash, ...f }) => ({ ...f, actual: hash === sesion.hash })) });
+  return json({ sesiones: filas.map(({ hash, ...f }) => ({ ...f, expira: cierre(f), actual: hash === sesion.hash })) });
 }
 
 /** POST /admin/api/yo/sesiones/<id>/revocar: solo las propias; la de otra persona responde 404. */
