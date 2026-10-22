@@ -101,6 +101,8 @@
   .resaltado { position: relative; background: var(--color-antidote); color: var(--color-ink); padding: 0 0.25em; border-radius: 8px; white-space: nowrap; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
   /* Dosis (src/lib/motion/inicio.ts): mientras el líquido sube, el resaltado queda sin fondo y
      una copia en tinta sobre cian lo llena. line-height normal: la copia calza con la caja en línea. */
+  /* En pantallas angostas un resaltado largo no cabe en una línea: se parte en vez de desbordar. */
+  @media (max-width: 480px) { .resaltado { white-space: normal; } }
   .resaltado.dosis-pendiente { background: transparent; color: inherit; }
   .dosis-lleno { position: absolute; inset: 0; display: block; padding: inherit; border-radius: inherit; background: var(--color-antidote); color: var(--color-ink); line-height: normal; white-space: nowrap; pointer-events: none; }
 

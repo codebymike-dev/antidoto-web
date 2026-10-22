@@ -87,7 +87,7 @@ Sitio de antidotocolombia.com: estudio creativo empresarial colombiano (formacio
 
 ## Pendiente
 
-- Indexación (buscadores y asistentes de IA): lista detallada en `pendientes.md`.
+- Lista completa y al día (puesta en marcha, indexación, desarrollo y contenido del cliente) en `pendientes.md`, con las mismas tarjetas que el kanban de `/docs/`. Al cerrar algo, actualiza los dos.
 - Contenido del cliente: textos finales, traducción revisada al inglés y al portugués (K-78), fotos de diseño de productos y audiovisual, foto de la fundadora, logos de clientes en SVG y autorización escrita para mostrarlos. María Paula confirma los verbos de las auditorías de `/sg-sst/`, los nombres "Misiones Antídoto" y "Detecta el riesgo", la duración de cada juego, y qué cuenta cada cifra.
 - Contenido de las páginas nuevas: casos del portafolio (con autorización), artículos del blog, detalle de cada oferta (qué incluye, formato, duración, fotos), respuestas pendientes de la FAQ, entregables y tiempos de Cómo trabajamos, equipo y vacantes. Mientras tanto esos bloques no se muestran. Términos y cookies son borradores con `noindex`. La política de tratamiento de datos ya tiene razón social, NIT y domicilio; falta la revisión de un abogado. La foto de la fundadora falta (en el hero va un monograma).
 - Traspaso de cuentas (brief del 08/10/2026): repositorio, Vercel, Turso, Resend y Anthropic a nombre de Antídoto con codebymike como colaborador; al mover el proyecto de equipo en Vercel, cambiar `EQUIPO_VERCEL` en `api/src/cors.ts` (las vistas previas solo se aceptan con el sufijo del equipo); DNS exportado del primer programador. Detalle y costos en `/docs/operacion/`.

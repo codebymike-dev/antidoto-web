@@ -311,13 +311,13 @@ export const CASOS_DE_USO: CasoDeUso[] = [
     nombre: 'Publicar un artículo desde el panel',
     actor: 'Equipo de Antídoto (rol contenido o admin)',
     objetivo: 'Sacar un artículo nuevo en el sitio sin tocar el código.',
-    precondiciones: ['La persona tiene el permiso contenido.publicar.', 'El Worker tiene el bucket MEDIOS y GITHUB_DISPATCH_TOKEN.'],
+    precondiciones: ['La persona tiene el permiso contenido.publicar.', 'La API tiene el store privado de Blob y GITHUB_DISPATCH_TOKEN.'],
     disparador: 'La persona crea un artículo en Contenido > Blog.',
     flujoPrincipal: [
-      'Escribe el título, la entradilla y el texto en español y en inglés, y elige la imagen (o la sube).',
+      'Escribe el título, la entradilla y el texto en cada idioma, y elige la imagen (o la sube).',
       'Guarda el borrador; el panel lo valida y guarda la versión anterior en el historial.',
-      'Pulsa Publicar: el panel exige todos los campos en los dos idiomas y una dirección que no use otra entrada.',
-      'Pulsa Publicar el sitio: el Worker dispara el workflow que construye la vista previa.',
+      'Pulsa Publicar: el panel exige todos los campos en todos los idiomas y una dirección que no use otra entrada.',
+      'Pulsa Publicar el sitio: la API dispara el workflow que construye la vista previa.',
       'El build lee /v1/contenido, baja las imágenes y genera la página, el RSS y el sitemap.',
     ],
     flujosAlternos: [

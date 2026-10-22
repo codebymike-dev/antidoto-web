@@ -112,10 +112,12 @@ const cotizar = (clave: string) => `${rutas.contacto[locale]}?${new URLSearchPar
 </script>
 
 <style>
-  .codigo { margin-top: 8px; display: grid; gap: 8px; max-width: 520px; padding: 20px; border-radius: 20px; background: var(--color-paper); border: 1px solid var(--color-line-soft); box-shadow: 0 10px 30px rgb(15 24 29 / 0.06); }
+  .codigo { margin-top: 8px; display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr); max-width: 520px; padding: 20px; border-radius: 20px; background: var(--color-paper); border: 1px solid var(--color-line-soft); box-shadow: 0 10px 30px rgb(15 24 29 / 0.06); }
   .codigo label { font-weight: 600; font-size: 17px; }
   .fila { display: flex; flex-wrap: wrap; gap: 10px; }
-  .fila input { flex: 1 1 200px; min-width: 0; min-height: 52px; padding: 0 16px; border-radius: 12px; border: 1.5px solid var(--color-line-input); background: var(--color-paper); color: var(--color-ink); font: 600 20px/1 var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; }
+  .fila input { flex: 999 1 200px; min-width: 0; min-height: 52px; padding: 0 16px; border-radius: 12px; border: 1.5px solid var(--color-line-input); background: var(--color-paper); color: var(--color-ink); font: 600 20px/1 var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; }
+  /* Si no cabe junto al campo, el botón baja y ocupa todo el ancho. */
+  .fila .boton { flex: 1 0 auto; }
   .fila input:focus-visible { outline: 2px solid var(--color-deep); outline-offset: 2px; }
   .fila input[aria-invalid='true'] { border-color: #a23a1f; }
   .ayuda { margin: 0; font-size: 14px; color: var(--color-slate); }
