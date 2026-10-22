@@ -7,6 +7,7 @@ import { manejar } from '../src/index';
 import { seguimiento } from '../src/seguimiento';
 import { TIEMPO_MINIMO_MS } from '../src/validar';
 import { LIMITE_POR_HORA } from '../src/leads';
+import { DIAS_INACTIVIDAD, ENLACES_POR_HORA, ENLACES_POR_IP } from '../src/auth';
 import consentimiento from '../../src/data/consentimiento.json';
 
 const CONSENTIMIENTO_VERSION = consentimiento.version;
@@ -222,6 +223,17 @@ describe('bandeja', () => {
     const lista = (await (await llamar('/admin/api/leads?q=Malicioso', { headers: { cookie } })).json()) as { leads: { id: string; ipHash?: string }[] };
     expect(lista.leads.map((l) => l.id)).toEqual([leadId]);
     expect(lista.leads[0]).not.toHaveProperty('ipHash');
+  });
+
+  test('una sesión sin usar por DIAS_INACTIVIDAD días se cierra', async () => {
+    const ck = await entrarComo('limite@antidoto.co');
+    const sesiones = (await (await llamar('/admin/api/yo/sesiones', { headers: { cookie: ck } })).json()) as { sesiones: { expira: number; ultimoUso: number }[] };
+    expect(sesiones.sesiones[0]!.expira).toBe(sesiones.sesiones[0]!.ultimoUso + DIAS_INACTIVIDAD * 86_400_000);
+    const usada = Date.now() - (DIAS_INACTIVIDAD - 1) * 86_400_000;
+    await consulta(env.DB, "update sesiones set ultimo_uso = ? where usuario_id = '33333333-3333-4333-8333-333333333333'", usada).run();
+    expect((await llamar('/admin/api/yo', { headers: { cookie: ck } })).status).toBe(200);
+    await consulta(env.DB, "update sesiones set ultimo_uso = ? where usuario_id = '33333333-3333-4333-8333-333333333333'", Date.now() - (DIAS_INACTIVIDAD + 1) * 86_400_000).run();
+    expect((await llamar('/admin/api/yo', { headers: { cookie: ck } })).status).toBe(401);
   });
 
   test('cambiar algo exige el mismo origen', async () => {
