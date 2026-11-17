@@ -1,0 +1,536 @@
+---
+// Checklist de aprobación para el área de IT de una empresa cliente (plataforma de inspecciones SST).
+// Página interna: noindex, fuera del sitemap y del precache, sin nav, pie, chat ni motion. Solo en
+// español (la responde un cliente puntual).
+//
+// Acceso: el NIT de la empresa que responde o el de Antídoto, sin puntos ni dígito de verificación.
+// En el HTML solo van sus SHA-256. Es un candado ligero, no seguridad: el sitio es estático y un NIT
+// es un dato público, así que el contenido del checklist no es secreto.
+//
+// Las respuestas no salen a ningún servidor: se guardan en el navegador (localStorage) mientras se
+// llenan y se entregan como PDF (imprimir), texto descargado, copiado o por correo.
+import { createHash } from 'node:crypto';
+import '../styles/global.css';
+import { EMPRESA, SITE } from '../data/site';
+
+const sha = (s: string) => createHash('sha256').update(s).digest('hex');
+const nitSinDv = (nit: string) => nit.split('-')[0].replace(/\D/g, '');
+const HASHES = [
+  // Empresa que responde el formulario.
+  '3d6fdc3a74284c486cc2e7b58e2e89129702a1b20e250c538d326591a75ee355',
+  // Antídoto.
+  sha(nitSinDv(EMPRESA.nit)),
+];
+
+const TITULO = 'Checklist de aprobación: plataforma de inspecciones SST';
+
+const SECCIONES: { titulo: string; puntos: string[] }[] = [
+  {
+    titulo: 'Plataforma',
+    puntos: [
+      'Google Cloud Platform como nube autorizada para este desarrollo',
+      'Creación de un proyecto dentro de la organización, con ambientes separados (desarrollo, pruebas, producción)',
+      'Región autorizada para alojar los datos',
+    ],
+  },
+  {
+    titulo: 'Servicios a aprobar',
+    puntos: [
+      'Cloud Run / Cloud Functions (lógica y alertas)',
+      'Firestore o Cloud SQL (base de datos)',
+      'Firebase Auth o Identity Platform (usuarios y roles)',
+      'Cloud Storage (fotos y evidencias)',
+      'Pub/Sub y Cloud Scheduler (eventos y tareas programadas)',
+      'BigQuery y Looker Studio (dashboard)',
+      'Firebase Cloud Messaging (notificaciones push)',
+      'Vertex AI con Gemini (módulo de análisis)',
+      'Secret Manager, Cloud Logging y Monitoring',
+    ],
+  },
+  {
+    titulo: 'Identidad y acceso',
+    puntos: [
+      'Integración con el SSO corporativo y MFA obligatorio',
+      'Roles de mínimo privilegio (auditor, supervisor, administrador)',
+      'Permisos del desarrollador durante el proyecto, duración y revocación al entregar',
+      'Manejo de cuentas de servicio y credenciales',
+    ],
+  },
+  {
+    titulo: 'Datos y privacidad',
+    puntos: [
+      'Clasificación de los datos que manejará la plataforma (¿incluye datos personales o de salud de trabajadores?)',
+      'Política de retención y borrado',
+      'Cifrado en tránsito y en reposo',
+      'Backups y plan de restauración',
+    ],
+  },
+  {
+    titulo: 'Inteligencia artificial',
+    puntos: [
+      'Autorización para enviar datos a un modelo de IA alojado en Google Cloud',
+      'Qué campos deben anonimizarse antes del envío (nombres, cédulas)',
+      'Registro de consultas y respuestas de la IA para auditoría',
+      'Revisión humana obligatoria antes de convertir una sugerencia en acción formal',
+      'Tope de gasto en el consumo del modelo',
+    ],
+  },
+  {
+    titulo: 'Red y seguridad',
+    puntos: [
+      'Dominio o subdominio y certificados TLS',
+      'Tipo de acceso permitido (público, VPN, IAP o lista de IPs)',
+      'Pruebas de seguridad requeridas antes de salir a producción',
+      'Revisión de dependencias y manejo de secretos en el código',
+    ],
+  },
+  {
+    titulo: 'Alertas y notificaciones',
+    puntos: [
+      'Canales aprobados (correo, push, Teams, Slack, WhatsApp)',
+      'Cuenta o dominio remitente de los correos (SPF/DKIM)',
+    ],
+  },
+  {
+    titulo: 'Operación y continuidad',
+    puntos: [
+      'Responsable del soporte posterior a la entrega y tiempos de respuesta esperados',
+      'Monitoreo técnico y destinatarios de las alertas de infraestructura',
+      'Repositorio de código dentro de su cuenta',
+      'Proceso de documentación y traspaso de accesos',
+    ],
+  },
+  {
+    titulo: 'Costos',
+    puntos: [
+      'Alertas de presupuesto configuradas en el proyecto',
+      'Estimado mensual de infraestructura aprobado',
+    ],
+  },
+  {
+    titulo: 'Legal',
+    puntos: [
+      'NDA y acuerdo de tratamiento de datos',
+      'Revisión de los términos de servicio de Google Cloud por su área legal',
+    ],
+  },
+];
+
+const OPCIONES = [
+  { valor: 'aprobado', texto: 'Aprobado' },
+  { valor: 'condiciones', texto: 'Aprobado con condiciones' },
+  { valor: 'rechazado', texto: 'Rechazado' },
+] as const;
+
+const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
+---
+<!doctype html>
+<html lang="es-CO">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{TITULO} | Antídoto</title>
+    <meta name="description" content="Formulario de aprobación del área de IT para la plataforma de inspecciones SST." />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="referrer" content="same-origin" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/fonts/cal-sans-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/poppins-400.woff2" as="font" type="font/woff2" crossorigin />
+  </head>
+  <body data-hashes={HASHES.join(',')} data-correo={SITE.email} data-titulo={TITULO}>
+    <header class="cab">
+      <div class="cab-in">
+        <span class="marca">Antídoto</span>
+        <span class="etiqueta">Aprobación de IT</span>
+      </div>
+    </header>
+
+    <main class="marco">
+      <h1>{TITULO}</h1>
+
+      <noscript>
+        <p class="aviso">Este formulario necesita JavaScript activado en el navegador.</p>
+      </noscript>
+
+      <form id="acceso" class="acceso" novalidate>
+        <p class="lead">Este formulario es privado. Para abrirlo, ingresa el NIT de tu empresa.</p>
+        <label for="nit" class="campo-t">Número de NIT</label>
+        <p id="nit-ayuda" class="ayuda">Ingresa el número de NIT sin puntos ni dígito de verificación.</p>
+        <div class="acceso-fila">
+          <input id="nit" name="nit" type="text" inputmode="numeric" autocomplete="off" maxlength="15" required aria-describedby="nit-ayuda nit-error" />
+          <button type="submit" class="boton-p">Ingresar</button>
+        </div>
+        <p id="nit-error" class="error" role="alert" aria-live="assertive"></p>
+      </form>
+
+      <div id="checklist" hidden>
+        <p class="lead">
+          Marca cada punto como <b>Aprobado</b>, <b>Aprobado con condiciones</b> o <b>Rechazado</b>. Si hay condiciones o un
+          rechazo, explica el motivo en el campo que aparece. Las respuestas se guardan en este navegador mientras llenas el
+          formulario.
+        </p>
+
+        <div class="progreso" aria-live="polite">
+          <div class="barra" aria-hidden="true"><span id="barra"></span></div>
+          <p><b id="contador">0</b> de {total} puntos respondidos</p>
+          <ul class="conteos">
+            <li><i class="punto aprobado"></i><span id="n-aprobado">0</span> aprobados</li>
+            <li><i class="punto condiciones"></i><span id="n-condiciones">0</span> con condiciones</li>
+            <li><i class="punto rechazado"></i><span id="n-rechazado">0</span> rechazados</li>
+          </ul>
+        </div>
+
+        <form id="form" novalidate>
+          <fieldset class="seccion datos">
+            <legend><span class="num">Responsable</span>Datos de quien aprueba</legend>
+            <div class="rejilla">
+              <label>Nombre<input name="nombre" type="text" autocomplete="name" required /></label>
+              <label>Cargo<input name="cargo" type="text" autocomplete="organization-title" required /></label>
+              <label>Correo<input name="correo" type="email" autocomplete="email" /></label>
+              <label>Fecha<input name="fecha" type="date" required /></label>
+            </div>
+          </fieldset>
+
+          {SECCIONES.map((s, i) => (
+            <section class="seccion" aria-labelledby={`s${i + 1}`}>
+              <h2 id={`s${i + 1}`}><span class="num">{i + 1}</span>{s.titulo}</h2>
+              <ol class="puntos">
+                {s.puntos.map((p, j) => {
+                  const id = `p${i + 1}-${j + 1}`;
+                  return (
+                    <li class="punto-item" data-punto={id}>
+                      <fieldset>
+                        <legend class="punto-t"><span class="punto-num">{i + 1}.{j + 1}</span>{p}</legend>
+                        <div class="opciones">
+                          {OPCIONES.map((o) => (
+                            <label class:list={['opcion', o.valor]}>
+                              <input type="radio" name={id} value={o.valor} />
+                              <span><i class:list={['punto', o.valor]}></i>{o.texto}</span>
+                            </label>
+                          ))}
+                        </div>
+                        <label class="nota" hidden>
+                          <span class="nota-t">Condiciones u observaciones</span>
+                          <textarea name={`${id}-nota`} rows="2"></textarea>
+                        </label>
+                      </fieldset>
+                    </li>
+                  );
+                })}
+              </ol>
+            </section>
+          ))}
+
+          <section class="seccion" aria-labelledby="s-obs">
+            <h2 id="s-obs"><span class="num">Cierre</span>Observaciones generales</h2>
+            <label class="sr" for="observaciones">Observaciones generales</label>
+            <textarea id="observaciones" name="observaciones" rows="4"></textarea>
+          </section>
+
+          <div class="acciones">
+            <p id="faltan" class="error" role="alert" aria-live="polite"></p>
+            <div class="botones">
+              <button type="button" class="boton-p" data-accion="pdf">Imprimir o guardar PDF</button>
+              <button type="button" class="boton-s" data-accion="correo">Enviar por correo</button>
+              <button type="button" class="boton-s" data-accion="descargar">Descargar resumen</button>
+              <button type="button" class="boton-s" data-accion="copiar">Copiar resumen</button>
+            </div>
+            <p id="estado" class="ayuda" aria-live="polite"></p>
+            <p class="ayuda">
+              Envía el PDF o el resumen a <a href={`mailto:${SITE.email}`}>{SITE.email}</a>. Las respuestas no se envían a
+              ningún servidor desde esta página.
+            </p>
+            <button type="button" class="enlace" data-accion="limpiar">Borrar respuestas de este navegador</button>
+          </div>
+        </form>
+      </div>
+    </main>
+
+    <script>
+      const cuerpo = document.body;
+      const hashes = (cuerpo.dataset.hashes ?? '').split(',');
+      const correo = cuerpo.dataset.correo ?? '';
+      const titulo = cuerpo.dataset.titulo ?? '';
+      const ACCESO = 'form-jv:acceso';
+      const DATOS = 'form-jv:respuestas';
+      const ETIQUETAS: Record<string, string> = { aprobado: 'Aprobado', condiciones: 'Aprobado con condiciones', rechazado: 'Rechazado' };
+
+      const leer = (s: Storage, k: string) => { try { return s.getItem(k); } catch { return null; } };
+      const escribir = (s: Storage, k: string, v: string) => { try { s.setItem(k, v); } catch { /* sin almacenamiento */ } };
+      const borrar = (s: Storage, k: string) => { try { s.removeItem(k); } catch { /* sin almacenamiento */ } };
+
+      async function sha256(texto: string) {
+        const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto));
+        return [...new Uint8Array(bytes)].map((b) => b.toString(16).padStart(2, '0')).join('');
+      }
+
+      const acceso = document.getElementById('acceso') as HTMLFormElement;
+      const checklist = document.getElementById('checklist') as HTMLDivElement;
+      const nit = document.getElementById('nit') as HTMLInputElement;
+      const nitError = document.getElementById('nit-error') as HTMLParagraphElement;
+      const form = document.getElementById('form') as HTMLFormElement;
+
+      function abrir() {
+        acceso.hidden = true;
+        checklist.hidden = false;
+        restaurar();
+      }
+
+      acceso.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        // Sin puntos ni dígito de verificación; si igual lo escriben con guion, se ignora.
+        const limpio = nit.value.split('-')[0].replace(/\D/g, '');
+        if (!limpio) { nitError.textContent = 'Escribe el número de NIT.'; nit.focus(); return; }
+        const h = await sha256(limpio);
+        if (!hashes.includes(h)) {
+          nitError.textContent = 'El NIT no coincide. Revisa que vaya sin puntos ni dígito de verificación.';
+          nit.setAttribute('aria-invalid', 'true');
+          nit.select();
+          return;
+        }
+        escribir(sessionStorage, ACCESO, h);
+        abrir();
+        document.querySelector('h1')?.scrollIntoView();
+      });
+
+      if (hashes.includes(leer(sessionStorage, ACCESO) ?? '')) abrir();
+
+      // Respuestas
+      const items = [...form.querySelectorAll<HTMLLIElement>('[data-punto]')];
+
+      function serializar() {
+        const datos: Record<string, string> = {};
+        for (const [k, v] of new FormData(form)) if (typeof v === 'string' && v) datos[k] = v;
+        return datos;
+      }
+
+      function actualizar() {
+        const conteo: Record<string, number> = { aprobado: 0, condiciones: 0, rechazado: 0 };
+        let hechos = 0;
+        for (const li of items) {
+          const marcado = li.querySelector<HTMLInputElement>('input[type=radio]:checked');
+          const nota = li.querySelector<HTMLLabelElement>('.nota')!;
+          nota.hidden = !marcado || marcado.value === 'aprobado';
+          li.dataset.estado = marcado?.value ?? '';
+          if (marcado) { hechos++; conteo[marcado.value]++; }
+        }
+        document.getElementById('contador')!.textContent = String(hechos);
+        (document.getElementById('barra') as HTMLSpanElement).style.transform = `scaleX(${hechos / items.length})`;
+        for (const k of Object.keys(conteo)) document.getElementById(`n-${k}`)!.textContent = String(conteo[k]);
+      }
+
+      function guardar() {
+        escribir(localStorage, DATOS, JSON.stringify(serializar()));
+        actualizar();
+      }
+
+      function restaurar() {
+        let datos: Record<string, string> = {};
+        try { datos = JSON.parse(leer(localStorage, DATOS) ?? '{}'); } catch { /* datos dañados */ }
+        for (const [k, v] of Object.entries(datos)) {
+          const campos = form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(`[name="${CSS.escape(k)}"]`);
+          for (const c of campos) {
+            if (c instanceof HTMLInputElement && c.type === 'radio') c.checked = c.value === v;
+            else c.value = v;
+          }
+        }
+        const fecha = form.elements.namedItem('fecha') as HTMLInputElement;
+        if (!fecha.value) fecha.value = new Date().toLocaleDateString('en-CA');
+        actualizar();
+      }
+
+      form.addEventListener('input', guardar);
+      form.addEventListener('change', guardar);
+
+      // Validación antes de entregar
+      const faltan = document.getElementById('faltan') as HTMLParagraphElement;
+      const estado = document.getElementById('estado') as HTMLParagraphElement;
+
+      function validar() {
+        const datos = serializar();
+        const sinDatos = ['nombre', 'cargo', 'fecha'].filter((k) => !datos[k]);
+        const sinMarcar = items.filter((li) => !li.querySelector('input[type=radio]:checked'));
+        const sinMotivo = items.filter((li) => {
+          const v = li.querySelector<HTMLInputElement>('input[type=radio]:checked')?.value;
+          return v && v !== 'aprobado' && !li.querySelector<HTMLTextAreaElement>('textarea')!.value.trim();
+        });
+        const partes: string[] = [];
+        if (sinDatos.length) partes.push('completa los datos de quien aprueba');
+        if (sinMarcar.length) partes.push(`faltan ${sinMarcar.length} puntos por marcar`);
+        if (sinMotivo.length) partes.push(`${sinMotivo.length} puntos con condiciones o rechazo no tienen el motivo`);
+        if (!partes.length) { faltan.textContent = ''; return true; }
+        faltan.textContent = `Antes de entregar: ${partes.join('; ')}.`;
+        const primero = sinDatos.length
+          ? (form.elements.namedItem(sinDatos[0]) as HTMLInputElement)
+          : (sinMarcar[0] ?? sinMotivo[0])?.querySelector<HTMLElement>(sinMarcar.length ? 'input[type=radio]' : 'textarea');
+        primero?.focus();
+        return false;
+      }
+
+      function resumen() {
+        const d = serializar();
+        const lineas = [titulo, '', `Responsable: ${d.nombre ?? ''}`, `Cargo: ${d.cargo ?? ''}`];
+        if (d.correo) lineas.push(`Correo: ${d.correo}`);
+        lineas.push(`Fecha: ${d.fecha ?? ''}`);
+        for (const sec of form.querySelectorAll<HTMLElement>('section.seccion')) {
+          const h = sec.querySelector('h2')!;
+          const puntos = sec.querySelectorAll<HTMLLIElement>('[data-punto]');
+          const num = h.querySelector('.num')!.textContent!;
+          const nombre = h.textContent!.slice(num.length).trim();
+          lineas.push('', (/^\d+$/.test(num) ? `${num}. ${nombre}` : nombre).toUpperCase());
+          if (!puntos.length) { lineas.push(d.observaciones || 'Sin observaciones'); continue; }
+          for (const li of puntos) {
+            const id = li.dataset.punto!;
+            const texto = li.querySelector('.punto-t')!.textContent!.replace(/^\s*[\d.]+/, '').trim();
+            const num = li.querySelector('.punto-num')!.textContent;
+            lineas.push(`${num} ${texto}`, `    ${ETIQUETAS[d[id]] ?? 'Sin marcar'}`);
+            if (d[`${id}-nota`]) lineas.push(`    Nota: ${d[`${id}-nota`]}`);
+          }
+        }
+        return lineas.join('\n');
+      }
+
+      form.addEventListener('click', async (e) => {
+        const boton = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-accion]');
+        if (!boton) return;
+        const accion = boton.dataset.accion;
+        estado.textContent = '';
+        if (accion === 'limpiar') {
+          borrar(localStorage, DATOS);
+          form.reset();
+          restaurar();
+          estado.textContent = 'Respuestas borradas de este navegador.';
+          return;
+        }
+        if (!validar()) return;
+        if (accion === 'pdf') window.print();
+        else if (accion === 'correo') {
+          const asunto = encodeURIComponent(titulo);
+          location.href = `mailto:${correo}?subject=${asunto}&body=${encodeURIComponent(resumen())}`;
+        } else if (accion === 'descargar') {
+          const url = URL.createObjectURL(new Blob([resumen()], { type: 'text/plain;charset=utf-8' }));
+          const a = Object.assign(document.createElement('a'), { href: url, download: 'checklist-aprobacion-sst.txt' });
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        } else if (accion === 'copiar') {
+          try { await navigator.clipboard.writeText(resumen()); estado.textContent = 'Resumen copiado.'; }
+          catch { estado.textContent = 'No se pudo copiar. Usa "Descargar resumen".'; }
+        }
+      });
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  body { background: var(--color-paper); color: var(--color-ink); font-family: var(--font-sans); margin: 0; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+  .cab { border-bottom: 1px solid var(--color-line-soft); }
+  .cab-in { max-width: 920px; margin-inline: auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .marca { font-family: var(--font-display); font-size: 22px; }
+  .etiqueta { font: 600 12px/1 var(--font-sans); letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-slate); }
+
+  .marco { max-width: 920px; margin-inline: auto; padding: 40px 24px 96px; }
+  h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(30px, 4.4vw, 46px); line-height: 1.08; margin: 0 0 16px; text-wrap: balance; }
+  .lead { font-size: 18px; color: var(--color-slate); max-width: 64ch; margin: 0 0 28px; }
+  .ayuda { font-size: 14px; color: var(--color-slate); margin: 6px 0 0; }
+  .ayuda a { color: var(--color-deep); }
+  .error { color: #b3261e; font-size: 15px; font-weight: 500; margin: 10px 0 0; min-height: 1em; }
+  .aviso { background: var(--color-mist); border-radius: 14px; padding: 16px 18px; }
+
+  input, textarea { font: inherit; color: inherit; background: var(--color-paper); border: 1px solid var(--color-line-input); border-radius: 10px; padding: 10px 12px; min-height: 44px; width: 100%; box-sizing: border-box; }
+  textarea { resize: vertical; }
+  input:focus-visible, textarea:focus-visible, button:focus-visible, .opcion:has(input:focus-visible) { outline: 3px solid var(--color-mid); outline-offset: 2px; }
+
+  .boton-p, .boton-s { font: 600 15px/1 var(--font-sans); min-height: 48px; padding: 0 22px; border-radius: 999px; cursor: pointer; border: 1px solid transparent; }
+  .boton-p { background: var(--color-ink); color: var(--color-paper); }
+  .boton-p:hover { background: var(--color-deep); }
+  .boton-s { background: var(--color-paper); color: var(--color-ink); border-color: var(--color-line-input); }
+  .boton-s:hover { background: var(--color-mist); }
+  .enlace { background: none; border: 0; padding: 0; min-height: 44px; font: inherit; font-size: 14px; color: var(--color-slate); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+  /* Acceso */
+  .acceso { background: var(--color-mist); border-radius: 20px; padding: 28px; max-width: 560px; }
+  .acceso .lead { font-size: 17px; margin-bottom: 20px; }
+  .campo-t { font-weight: 600; }
+  .acceso-fila { display: flex; gap: 10px; margin-top: 12px; }
+  .acceso-fila input { font-family: var(--font-mono); font-size: 18px; letter-spacing: 0.06em; }
+
+  /* Progreso */
+  .progreso { position: sticky; top: 0; z-index: 5; background: rgb(255 255 255 / 0.94); backdrop-filter: blur(6px); padding: 14px 0 12px; margin-bottom: 8px; border-bottom: 1px solid var(--color-line-soft); display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
+  .progreso p { margin: 0; font-size: 15px; }
+  .barra { flex: 1 0 100%; height: 6px; border-radius: 999px; background: var(--color-line-soft); overflow: hidden; }
+  .barra span { display: block; height: 100%; background: var(--color-antidote); transform: scaleX(0); transform-origin: left; transition: transform var(--t-base) var(--ease-out); }
+  .conteos { display: flex; flex-wrap: wrap; gap: 4px 16px; list-style: none; margin: 0; padding: 0; font-size: 14px; color: var(--color-slate); }
+  .conteos li { display: inline-flex; align-items: center; gap: 6px; }
+
+  .punto { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .punto.aprobado { background: #1f9d55; }
+  .punto.condiciones { background: #e0a21a; }
+  .punto.rechazado { background: #d64545; }
+
+  /* Secciones */
+  .seccion { border: 0; margin: 40px 0 0; padding: 0; min-width: 0; }
+  .seccion h2, .seccion > legend { font-family: var(--font-display); font-weight: 400; font-size: clamp(22px, 2.6vw, 28px); line-height: 1.2; margin: 0 0 14px; padding: 0; display: flex; align-items: baseline; gap: 12px; }
+  .num { font: 600 13px/1 var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-deep); background: rgb(59 200 243 / 0.16); border-radius: 999px; padding: 6px 10px; flex: none; transform: translateY(-3px); }
+  .rejilla { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .rejilla label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; }
+
+  .puntos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .punto-item { background: var(--color-mist); border-radius: 16px; padding: 18px 20px; transition: background-color var(--t-fast) ease; }
+  .punto-item fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+  .punto-t { display: flex; gap: 10px; font-size: 16px; font-weight: 500; line-height: 1.45; padding: 0; margin-bottom: 14px; }
+  .punto-num { font-family: var(--font-mono); font-size: 13px; color: var(--color-slate); padding-top: 3px; flex: none; min-width: 2.6em; }
+  .punto-item[data-estado='aprobado'] { background: #e9f6ee; }
+  .punto-item[data-estado='condiciones'] { background: #fcf4e2; }
+  .punto-item[data-estado='rechazado'] { background: #fcebea; }
+
+  .opciones { display: flex; flex-wrap: wrap; gap: 8px; }
+  .opcion { position: relative; cursor: pointer; }
+  .opcion input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .opcion span { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; background: var(--color-paper); border: 1px solid var(--color-line-input); font-size: 15px; font-weight: 500; transition: background-color var(--t-fast) ease, border-color var(--t-fast) ease; }
+  .opcion:hover span { border-color: var(--color-dash); }
+  .opcion .punto { opacity: 0.35; }
+  .opcion input:checked + span { border-color: var(--color-ink); box-shadow: 0 0 0 1px var(--color-ink); font-weight: 600; }
+  .opcion input:checked + span .punto { opacity: 1; }
+
+  .nota { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
+  .nota[hidden] { display: none; }
+  .nota-t { font-size: 14px; font-weight: 600; }
+
+  .acciones { margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--color-line-soft); }
+  .botones { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+
+  @media (max-width: 640px) {
+    .cab-in, .marco { padding-inline: 16px; }
+    .marco { padding-top: 28px; }
+    .acceso { padding: 20px; }
+    .acceso-fila { flex-direction: column; }
+    .rejilla { grid-template-columns: 1fr; }
+    .punto-item { padding: 16px; }
+    .opcion, .opcion span { width: 100%; }
+    .botones > button { width: 100%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .barra span, .punto-item, .opcion span { transition: none; }
+  }
+
+  @media print {
+    @page { margin: 16mm; }
+    .cab, .acceso, .progreso .barra, .botones, .enlace, .acciones .ayuda, #faltan, #estado { display: none !important; }
+    .marco { padding: 0; max-width: none; }
+    h1 { font-size: 24px; }
+    .lead { display: none; }
+    .progreso { position: static; border: 0; padding: 0 0 8px; }
+    .seccion { margin-top: 18px; break-inside: auto; }
+    .seccion h2, .seccion > legend { font-size: 18px; margin-bottom: 8px; }
+    .punto-item { break-inside: avoid; padding: 8px 10px; border: 1px solid #ccc; background: none !important; }
+    .punto-t { margin-bottom: 6px; font-size: 13px; }
+    .opcion:not(:has(input:checked)) { display: none; }
+    .opcion span { min-height: 0; padding: 3px 10px; font-size: 12px; box-shadow: none !important; }
+    .nota textarea, #observaciones { border: 0; padding: 0; min-height: 0; font-size: 12px; resize: none; }
+    input { border: 0; padding: 0; min-height: 0; }
+    .num { background: none; padding: 0; }
+  }
+</style>

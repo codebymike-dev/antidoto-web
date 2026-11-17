@@ -14,6 +14,7 @@ const FUERA_DEL_SITEMAP = [
   '/novedades/preferencias/', '/en/news/preferences/', '/pt/novidades/preferencias/',
   '/terminos-y-condiciones/', '/en/terms/', '/pt/termos-e-condicoes/',
   '/cookies/', '/en/cookies/', '/pt/cookies/',
+  '/form-jv/',
 ];
 
 export default defineConfig({
