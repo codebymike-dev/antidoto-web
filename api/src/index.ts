@@ -3,6 +3,7 @@
 //   POST /v1/suscripciones          público (solo orígenes del sitio): suscripción a novedades
 //   GET|POST /v1/asesor             público (solo orígenes del sitio): chat con IA (src/asesor/)
 //   POST /v1/asesor/borrar          público (solo orígenes del sitio): el visitante borra su conversación
+//   POST /v1/aprobaciones          público (solo orígenes del sitio): formulario de aprobación de un cliente (src/aprobaciones.ts)
 //   POST /v1/clic                   público (solo orígenes del sitio): cuenta un clic, sin cookies (src/clics.ts)
 //   GET|POST /v1/suscripcion/confirmar|baja|preferencias?t=   por token: el GET lleva a la página
 //                                   del sitio y el POST hace la acción (la baja de un clic, también)
@@ -24,6 +25,8 @@ import type { Env } from './env';
 import { conectar } from './db/conexion';
 import { crearLead } from './leads';
 import { registrarClic } from './clics';
+import { crearAprobacion } from './aprobaciones';
+import { rutasAprobaciones } from './rutas/aprobaciones';
 import { origenPermitido, cabecerasCors } from './cors';
 import { pedirEnlace, paginaEntrar, entrar, sesionActual, mismoOrigen } from './auth';
 import { crearSuscripcion, confirmar, baja, preferencias, datosPreferencias } from './marketing/suscripciones';
@@ -51,7 +54,7 @@ import { githubConfigurado, irAGithub, volverDeGithub } from './github';
 import { json } from './util';
 
 // Rutas del panel por módulo (src/rutas/), todas con sesión. Cada una exige su permiso.
-const MODULOS: Modulo[] = [rutasEquipo, rutasInicio, rutasLeads, rutasMarketing, rutasConversaciones, rutasContenido, rutasMisiones, rutasProyectos, rutasAccesos, rutasSistema, rutasExportar];
+const MODULOS: Modulo[] = [rutasEquipo, rutasInicio, rutasLeads, rutasMarketing, rutasConversaciones, rutasContenido, rutasMisiones, rutasProyectos, rutasAprobaciones, rutasAccesos, rutasSistema, rutasExportar];
 
 export async function manejar(req: Request, env: Env, diferir: (p: Promise<unknown>) => void): Promise<Response> {
   const url = new URL(req.url);
@@ -67,6 +70,15 @@ export async function manejar(req: Request, env: Env, diferir: (p: Promise<unkno
     if (metodo === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
     if (metodo !== 'POST') return json({ ok: false }, 405, cors);
     return ruta === '/v1/leads' ? crearLead(req, env, db, appUrl, diferir, cors) : crearSuscripcion(req, env, db, appUrl, cors, diferir);
+  }
+
+  if (ruta === '/v1/aprobaciones') {
+    const origen = req.headers.get('origin');
+    if (!origenPermitido(origen, env, env.ENTORNO === 'local')) return json({ ok: false, error: 'origen' }, 403);
+    const cors = cabecerasCors(origen!);
+    if (metodo === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
+    if (metodo !== 'POST') return json({ ok: false }, 405, cors);
+    return crearAprobacion(req, env, db, appUrl, diferir, cors);
   }
 
   if (ruta === '/v1/clic') {

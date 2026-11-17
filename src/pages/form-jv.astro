@@ -7,11 +7,17 @@
 // En el HTML solo van sus SHA-256. Es un candado ligero, no seguridad: el sitio es estático y un NIT
 // es un dato público, así que el contenido del checklist no es secreto.
 //
-// Las respuestas no salen a ningún servidor: se guardan en el navegador (localStorage) mientras se
-// llenan y se entregan como PDF (imprimir), texto descargado, copiado o por correo.
+// Los puntos salen de src/data/aprobacion-sst.json, que también lee la API para validar. Mientras se
+// llena, todo se guarda en el navegador (localStorage). "Enviar aprobación" lo manda a la API
+// (POST /v1/aprobaciones, que vuelve a comprobar el NIT), queda en la base y se ve en el panel en
+// /admin/aprobaciones. Sin PUBLIC_API_URL ese botón no aparece. El PDF, el correo y el resumen
+// quedan como respaldo.
 import { createHash } from 'node:crypto';
 import '../styles/global.css';
 import { EMPRESA, SITE } from '../data/site';
+import FORMULARIO from '../data/aprobacion-sst.json';
+
+const API = String(import.meta.env.PUBLIC_API_URL ?? '').replace(/\/$/, '');
 
 const sha = (s: string) => createHash('sha256').update(s).digest('hex');
 const nitSinDv = (nit: string) => nit.split('-')[0].replace(/\D/g, '');
@@ -22,99 +28,8 @@ const HASHES = [
   sha(nitSinDv(EMPRESA.nit)),
 ];
 
-const TITULO = 'Checklist de aprobación: plataforma de inspecciones SST';
-
-const SECCIONES: { titulo: string; puntos: string[] }[] = [
-  {
-    titulo: 'Plataforma',
-    puntos: [
-      'Google Cloud Platform como nube autorizada para este desarrollo',
-      'Creación de un proyecto dentro de la organización, con ambientes separados (desarrollo, pruebas, producción)',
-      'Región autorizada para alojar los datos',
-    ],
-  },
-  {
-    titulo: 'Servicios a aprobar',
-    puntos: [
-      'Cloud Run / Cloud Functions (lógica y alertas)',
-      'Firestore o Cloud SQL (base de datos)',
-      'Firebase Auth o Identity Platform (usuarios y roles)',
-      'Cloud Storage (fotos y evidencias)',
-      'Pub/Sub y Cloud Scheduler (eventos y tareas programadas)',
-      'BigQuery y Looker Studio (dashboard)',
-      'Firebase Cloud Messaging (notificaciones push)',
-      'Vertex AI con Gemini (módulo de análisis)',
-      'Secret Manager, Cloud Logging y Monitoring',
-    ],
-  },
-  {
-    titulo: 'Identidad y acceso',
-    puntos: [
-      'Integración con el SSO corporativo y MFA obligatorio',
-      'Roles de mínimo privilegio (auditor, supervisor, administrador)',
-      'Permisos del desarrollador durante el proyecto, duración y revocación al entregar',
-      'Manejo de cuentas de servicio y credenciales',
-    ],
-  },
-  {
-    titulo: 'Datos y privacidad',
-    puntos: [
-      'Clasificación de los datos que manejará la plataforma (¿incluye datos personales o de salud de trabajadores?)',
-      'Política de retención y borrado',
-      'Cifrado en tránsito y en reposo',
-      'Backups y plan de restauración',
-    ],
-  },
-  {
-    titulo: 'Inteligencia artificial',
-    puntos: [
-      'Autorización para enviar datos a un modelo de IA alojado en Google Cloud',
-      'Qué campos deben anonimizarse antes del envío (nombres, cédulas)',
-      'Registro de consultas y respuestas de la IA para auditoría',
-      'Revisión humana obligatoria antes de convertir una sugerencia en acción formal',
-      'Tope de gasto en el consumo del modelo',
-    ],
-  },
-  {
-    titulo: 'Red y seguridad',
-    puntos: [
-      'Dominio o subdominio y certificados TLS',
-      'Tipo de acceso permitido (público, VPN, IAP o lista de IPs)',
-      'Pruebas de seguridad requeridas antes de salir a producción',
-      'Revisión de dependencias y manejo de secretos en el código',
-    ],
-  },
-  {
-    titulo: 'Alertas y notificaciones',
-    puntos: [
-      'Canales aprobados (correo, push, Teams, Slack, WhatsApp)',
-      'Cuenta o dominio remitente de los correos (SPF/DKIM)',
-    ],
-  },
-  {
-    titulo: 'Operación y continuidad',
-    puntos: [
-      'Responsable del soporte posterior a la entrega y tiempos de respuesta esperados',
-      'Monitoreo técnico y destinatarios de las alertas de infraestructura',
-      'Repositorio de código dentro de su cuenta',
-      'Proceso de documentación y traspaso de accesos',
-    ],
-  },
-  {
-    titulo: 'Costos',
-    puntos: [
-      'Alertas de presupuesto configuradas en el proyecto',
-      'Estimado mensual de infraestructura aprobado',
-    ],
-  },
-  {
-    titulo: 'Legal',
-    puntos: [
-      'NDA y acuerdo de tratamiento de datos',
-      'Revisión de los términos de servicio de Google Cloud por su área legal',
-    ],
-  },
-];
+const TITULO = FORMULARIO.titulo;
+const SECCIONES = FORMULARIO.secciones;
 
 const OPCIONES = [
   { valor: 'aprobado', texto: 'Aprobado' },
@@ -137,7 +52,7 @@ const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
     <link rel="preload" href="/fonts/cal-sans-400.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/poppins-400.woff2" as="font" type="font/woff2" crossorigin />
   </head>
-  <body data-hashes={HASHES.join(',')} data-correo={SITE.email} data-titulo={TITULO}>
+  <body data-hashes={HASHES.join(',')} data-correo={SITE.email} data-titulo={TITULO} data-api={API} data-formulario={FORMULARIO.formulario}>
     <header class="cab">
       <div class="cab-in">
         <span class="marca">Antídoto</span>
@@ -196,11 +111,11 @@ const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
               <h2 id={`s${i + 1}`}><span class="num">{i + 1}</span>{s.titulo}</h2>
               <ol class="puntos">
                 {s.puntos.map((p, j) => {
-                  const id = `p${i + 1}-${j + 1}`;
+                  const id = p.id;
                   return (
                     <li class="punto-item" data-punto={id}>
                       <fieldset>
-                        <legend class="punto-t"><span class="punto-num">{i + 1}.{j + 1}</span>{p}</legend>
+                        <legend class="punto-t"><span class="punto-num">{i + 1}.{j + 1}</span>{p.texto}</legend>
                         <div class="opciones">
                           {OPCIONES.map((o) => (
                             <label class:list={['opcion', o.valor]}>
@@ -230,15 +145,17 @@ const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
           <div class="acciones">
             <p id="faltan" class="error" role="alert" aria-live="polite"></p>
             <div class="botones">
-              <button type="button" class="boton-p" data-accion="pdf">Imprimir o guardar PDF</button>
+              {API && <button type="button" class="boton-p" data-accion="enviar">Enviar aprobación</button>}
+              <button type="button" class:list={[API ? 'boton-s' : 'boton-p']} data-accion="pdf">Imprimir o guardar PDF</button>
               <button type="button" class="boton-s" data-accion="correo">Enviar por correo</button>
               <button type="button" class="boton-s" data-accion="descargar">Descargar resumen</button>
               <button type="button" class="boton-s" data-accion="copiar">Copiar resumen</button>
             </div>
-            <p id="estado" class="ayuda" aria-live="polite"></p>
+            <p id="estado" class="estado" aria-live="polite"></p>
             <p class="ayuda">
-              Envía el PDF o el resumen a <a href={`mailto:${SITE.email}`}>{SITE.email}</a>. Las respuestas no se envían a
-              ningún servidor desde esta página.
+              {API
+                ? 'Al enviar, las respuestas le llegan al equipo de Antídoto. Si corriges algo, puedes enviarlas de nuevo: queda la versión más reciente junto a las anteriores. Guarda también el PDF para tu archivo.'
+                : <>Envía el PDF o el resumen a <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.</>}
             </p>
             <button type="button" class="enlace" data-accion="limpiar">Borrar respuestas de este navegador</button>
           </div>
@@ -251,6 +168,8 @@ const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
       const hashes = (cuerpo.dataset.hashes ?? '').split(',');
       const correo = cuerpo.dataset.correo ?? '';
       const titulo = cuerpo.dataset.titulo ?? '';
+      const api = cuerpo.dataset.api ?? '';
+      const clave = cuerpo.dataset.formulario ?? '';
       const ACCESO = 'form-jv:acceso';
       const DATOS = 'form-jv:respuestas';
       const ETIQUETAS: Record<string, string> = { aprobado: 'Aprobado', condiciones: 'Aprobado con condiciones', rechazado: 'Rechazado' };
@@ -288,7 +207,7 @@ const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
           nit.select();
           return;
         }
-        escribir(sessionStorage, ACCESO, h);
+        escribir(sessionStorage, ACCESO, limpio);
         abrir();
         document.querySelector('h1')?.scrollIntoView();
       });
@@ -388,11 +307,55 @@ const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
         return lineas.join('\n');
       }
 
+      async function enviar(boton: HTMLButtonElement) {
+        const d = serializar();
+        const respuestas: Record<string, { estado: string; nota?: string }> = {};
+        for (const li of items) {
+          const id = li.dataset.punto!;
+          respuestas[id] = { estado: d[id], ...(d[`${id}-nota`] ? { nota: d[`${id}-nota`] } : {}) };
+        }
+        const cuerpoEnvio = {
+          formulario: clave,
+          nit: leer(sessionStorage, ACCESO) ?? '',
+          nombre: d.nombre, cargo: d.cargo, correo: d.correo ?? '', fecha: d.fecha,
+          observaciones: d.observaciones ?? '',
+          respuestas,
+        };
+        boton.disabled = true;
+        boton.textContent = 'Enviando...';
+        estado.className = 'estado';
+        try {
+          // text/plain: sin preflight, como el cotizador.
+          const res = await fetch(`${api}/v1/aprobaciones`, { method: 'POST', headers: { 'content-type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(cuerpoEnvio) });
+          if (res.status === 201) {
+            const hora = new Date().toLocaleString('es-CO', { dateStyle: 'long', timeStyle: 'short' });
+            estado.textContent = `Listo: el equipo de Antídoto ya tiene tu aprobación (enviada el ${hora}). Te recomendamos guardar también el PDF.`;
+            estado.className = 'estado ok';
+          } else if (res.status === 403) {
+            estado.textContent = 'No se pudo comprobar el NIT. Recarga la página, ingresa de nuevo y vuelve a enviar.';
+            estado.className = 'estado mal';
+          } else if (res.status === 429) {
+            estado.textContent = 'Demasiados envíos seguidos. Espera unos minutos y vuelve a intentar.';
+            estado.className = 'estado mal';
+          } else {
+            estado.textContent = 'No se pudo enviar. Revisa que todo esté completo o usa "Imprimir o guardar PDF" y envíalo por correo.';
+            estado.className = 'estado mal';
+          }
+        } catch {
+          estado.textContent = 'No hubo conexión con el servidor. Intenta de nuevo o usa "Imprimir o guardar PDF" y envíalo por correo.';
+          estado.className = 'estado mal';
+        } finally {
+          boton.disabled = false;
+          boton.textContent = 'Enviar aprobación';
+        }
+      }
+
       form.addEventListener('click', async (e) => {
         const boton = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-accion]');
         if (!boton) return;
         const accion = boton.dataset.accion;
         estado.textContent = '';
+        estado.className = 'estado';
         if (accion === 'limpiar') {
           borrar(localStorage, DATOS);
           form.reset();
@@ -401,7 +364,8 @@ const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
           return;
         }
         if (!validar()) return;
-        if (accion === 'pdf') window.print();
+        if (accion === 'enviar') await enviar(boton);
+        else if (accion === 'pdf') window.print();
         else if (accion === 'correo') {
           const asunto = encodeURIComponent(titulo);
           location.href = `mailto:${correo}?subject=${asunto}&body=${encodeURIComponent(resumen())}`;
@@ -416,8 +380,9 @@ const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
         }
       });
 
-      // Al final: abrir() usa todo lo de arriba.
-      if (hashes.includes(leer(sessionStorage, ACCESO) ?? '')) abrir();
+      // Al final: abrir() usa todo lo de arriba. Se guarda el NIT (no el hash) porque la API lo vuelve a comprobar.
+      const guardado = leer(sessionStorage, ACCESO);
+      if (guardado) sha256(guardado).then((h) => { if (hashes.includes(h)) abrir(); });
     </script>
   </body>
 </html>
@@ -499,6 +464,12 @@ const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
   .nota[hidden] { display: none; }
   .nota-t { font-size: 14px; font-weight: 600; }
 
+  .estado { font-size: 15px; margin: 14px 0 0; }
+  .estado:empty { display: none; }
+  .estado.ok, .estado.mal { padding: 14px 16px; border-radius: 12px; font-weight: 500; }
+  .estado.ok { background: #e9f6ee; color: #14532d; }
+  .estado.mal { background: #fcebea; color: #8a1c14; }
+  .boton-p:disabled { opacity: 0.6; cursor: progress; }
   .acciones { margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--color-line-soft); }
   .botones { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
 

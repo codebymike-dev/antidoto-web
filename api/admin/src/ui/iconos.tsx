@@ -13,6 +13,7 @@ const TRAZOS: Record<string, string> = {
   grafica: 'M3 17h14M6 14V9M10 14V5M14 14v-3',
   equipo: 'M10 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM4 17c.5-3 3-5 6-5s5.5 2 6 5',
   ajustes: 'M10 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M4.7 15.3l1.4-1.4M13.9 6.1l1.4-1.4',
+  aprobacion: 'M6 3h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM7.5 10.5l2 2 3.5-4',
   auditoria: 'M6 3h8a1 1 0 0 1 1 1v13l-5-3-5 3V4a1 1 0 0 1 1-1zM8 7h4M8 10h4',
   sistema: 'M3 4h14v9H3zM7 17h6M10 13v4M6 9l2-2 2 3 2-2 2 2',
   buscar: 'M9 15A6 6 0 1 0 9 3a6 6 0 0 0 0 12zM14 14l4 4',

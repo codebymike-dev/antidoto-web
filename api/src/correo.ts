@@ -267,3 +267,34 @@ export function correoRespuestaCliente(d: { accion: 'aprobado' | 'cambios' | 'co
     texto: `${textoPlano([['Proyecto', d.proyecto], ['Quién', d.quien], ['Qué', `el cliente ${que}`], ['Comentario', d.texto ?? null]])}\n\n${d.enlace}`,
   };
 }
+
+/** Aviso interno: un cliente envió un formulario de aprobación (src/aprobaciones.ts). */
+export function correoAprobacionEquipo(d: {
+  id: string;
+  titulo: string;
+  nit: string;
+  nombre: string;
+  cargo: string;
+  correo: string | null;
+  aprobados: number;
+  condiciones: number;
+  rechazados: number;
+  appUrl: string;
+}): Omit<Correo, 'para'> {
+  const pares: [string, string | number | null][] = [
+    ['Responsable', d.nombre],
+    ['Cargo', d.cargo],
+    ['Correo', d.correo],
+    ['NIT', d.nit],
+    ['Aprobados', d.aprobados],
+    ['Con condiciones', d.condiciones],
+    ['Rechazados', d.rechazados],
+  ];
+  const enlace = `${d.appUrl}/admin/aprobaciones/${d.id}`;
+  return {
+    asunto: `Formulario de aprobación respondido: ${d.titulo}`,
+    responderA: d.correo ?? undefined,
+    html: marco(d.titulo, `${filas(pares)}${boton(enlace, 'Ver las respuestas en el panel')}`),
+    texto: `${d.titulo}\n\n${textoPlano(pares)}\n\nVer las respuestas: ${enlace}`,
+  };
+}
