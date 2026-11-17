@@ -293,8 +293,6 @@ const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
         document.querySelector('h1')?.scrollIntoView();
       });
 
-      if (hashes.includes(leer(sessionStorage, ACCESO) ?? '')) abrir();
-
       // Respuestas
       const items = [...form.querySelectorAll<HTMLLIElement>('[data-punto]')];
 
@@ -417,6 +415,9 @@ const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
           catch { estado.textContent = 'No se pudo copiar. Usa "Descargar resumen".'; }
         }
       });
+
+      // Al final: abrir() usa todo lo de arriba.
+      if (hashes.includes(leer(sessionStorage, ACCESO) ?? '')) abrir();
     </script>
   </body>
 </html>
