@@ -91,9 +91,9 @@ const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
           <div class="barra" aria-hidden="true"><span id="barra"></span></div>
           <p><b id="contador">0</b> de {total} puntos respondidos</p>
           <ul class="conteos">
-            <li><i class="punto aprobado"></i><span id="n-aprobado">0</span> aprobados</li>
-            <li><i class="punto condiciones"></i><span id="n-condiciones">0</span> con condiciones</li>
-            <li><i class="punto rechazado"></i><span id="n-rechazado">0</span> rechazados</li>
+            <li><i class="punto aprobado"></i><span id="n-aprobado">0 aprobados</span></li>
+            <li><i class="punto condiciones"></i><span id="n-condiciones">0 con condiciones</span></li>
+            <li><i class="punto rechazado"></i><span id="n-rechazado">0 rechazados</span></li>
           </ul>
         </div>
 
@@ -235,7 +235,8 @@ const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
         }
         document.getElementById('contador')!.textContent = String(hechos);
         (document.getElementById('barra') as HTMLSpanElement).style.transform = `scaleX(${hechos / items.length})`;
-        for (const k of Object.keys(conteo)) document.getElementById(`n-${k}`)!.textContent = String(conteo[k]);
+        const palabras: Record<string, [string, string]> = { aprobado: ['aprobado', 'aprobados'], condiciones: ['con condiciones', 'con condiciones'], rechazado: ['rechazado', 'rechazados'] };
+        for (const k of Object.keys(conteo)) document.getElementById(`n-${k}`)!.textContent = `${conteo[k]} ${palabras[k][conteo[k] === 1 ? 0 : 1]}`;
       }
 
       function guardar() {
@@ -405,12 +406,16 @@ const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
   .lead { font-size: 18px; color: var(--color-slate); max-width: 64ch; margin: 0 0 28px; }
   .ayuda { font-size: 14px; color: var(--color-slate); margin: 6px 0 0; }
   .ayuda a { color: var(--color-deep); }
-  .error { color: #b3261e; font-size: 15px; font-weight: 500; margin: 10px 0 0; min-height: 1em; }
+  /* Estados solo con la paleta (marca/README.md): aprobado es el cian del frasco lleno, con condiciones
+     es el frasco a medias y rechazado usa el único acento cálido permitido (--color-reto) para problemas.
+     El texto siempre va en tinta: ni el cian ni el reto alcanzan contraste como texto sobre blanco. */
+  .error { color: var(--color-ink); font-size: 15px; font-weight: 600; margin: 10px 0 0; }
+  .error:not(:empty)::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--color-reto); margin-right: 8px; }
   .aviso { background: var(--color-mist); border-radius: 14px; padding: 16px 18px; }
 
   input, textarea { font: inherit; color: inherit; background: var(--color-paper); border: 1px solid var(--color-line-input); border-radius: 10px; padding: 10px 12px; min-height: 44px; width: 100%; box-sizing: border-box; }
   textarea { resize: vertical; }
-  input:focus-visible, textarea:focus-visible, button:focus-visible, .opcion:has(input:focus-visible) { outline: 3px solid var(--color-mid); outline-offset: 2px; }
+  a:focus-visible, input:focus-visible, textarea:focus-visible, button:focus-visible, .opcion:has(input:focus-visible) { outline: 3px solid var(--color-mid); outline-offset: 2px; }
 
   .boton-p, .boton-s { font: 600 15px/1 var(--font-sans); min-height: 48px; padding: 0 22px; border-radius: 999px; cursor: pointer; border: 1px solid transparent; }
   .boton-p { background: var(--color-ink); color: var(--color-paper); }
@@ -435,9 +440,10 @@ const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
   .conteos li { display: inline-flex; align-items: center; gap: 6px; }
 
   .punto { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex: none; }
-  .punto.aprobado { background: #1f9d55; }
-  .punto.condiciones { background: #e0a21a; }
-  .punto.rechazado { background: #d64545; }
+  .punto { box-shadow: inset 0 0 0 1.5px var(--color-deep); }
+  .punto.aprobado { background: var(--color-antidote); }
+  .punto.condiciones { background: linear-gradient(to top, var(--color-antidote) 50%, var(--color-paper) 50%); }
+  .punto.rechazado { background: var(--color-reto); box-shadow: none; }
 
   /* Secciones */
   .seccion { border: 0; margin: 40px 0 0; padding: 0; min-width: 0; }
@@ -447,20 +453,20 @@ const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
   .rejilla label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; }
 
   .puntos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
-  .punto-item { background: var(--color-mist); border-radius: 16px; padding: 18px 20px; transition: background-color var(--t-fast) ease; }
+  .punto-item { background: var(--color-mist); border: 1px solid transparent; border-radius: 16px; padding: 18px 20px; }
   .punto-item fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
   .punto-t { display: flex; gap: 10px; font-size: 16px; font-weight: 500; line-height: 1.45; padding: 0; margin-bottom: 14px; }
   .punto-num { font-family: var(--font-mono); font-size: 13px; color: var(--color-slate); padding-top: 3px; flex: none; min-width: 2.6em; }
-  .punto-item[data-estado='aprobado'] { background: #e9f6ee; }
-  .punto-item[data-estado='condiciones'] { background: #fcf4e2; }
-  .punto-item[data-estado='rechazado'] { background: #fcebea; }
+  .punto-item[data-estado='aprobado'] { background: color-mix(in srgb, var(--color-antidote) 14%, var(--color-paper)); }
+  .punto-item[data-estado='condiciones'] { background: var(--color-paper); border: 1px dashed var(--color-mid); }
+  .punto-item[data-estado='rechazado'] { background: color-mix(in srgb, var(--color-reto) 12%, var(--color-paper)); }
 
   .opciones { display: flex; flex-wrap: wrap; gap: 8px; }
   .opcion { position: relative; cursor: pointer; }
   .opcion input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
-  .opcion span { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; background: var(--color-paper); border: 1px solid var(--color-line-input); font-size: 15px; font-weight: 500; transition: background-color var(--t-fast) ease, border-color var(--t-fast) ease; }
+  .opcion span { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; background: var(--color-paper); border: 1px solid var(--color-line-input); font-size: 15px; font-weight: 500; }
   .opcion:hover span { border-color: var(--color-dash); }
-  .opcion .punto { opacity: 0.35; }
+  .opcion .punto { opacity: 0.4; transition: opacity var(--t-fast) var(--ease-out); }
   .opcion input:checked + span { border-color: var(--color-ink); box-shadow: 0 0 0 1px var(--color-ink); font-weight: 600; }
   .opcion input:checked + span .punto { opacity: 1; }
 
@@ -471,8 +477,9 @@ const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
   .estado { font-size: 15px; margin: 14px 0 0; }
   .estado:empty { display: none; }
   .estado.ok, .estado.mal { padding: 14px 16px; border-radius: 12px; font-weight: 500; }
-  .estado.ok { background: #e9f6ee; color: #14532d; }
-  .estado.mal { background: #fcebea; color: #8a1c14; }
+  .estado.ok, .estado.mal { color: var(--color-ink); }
+  .estado.ok { background: color-mix(in srgb, var(--color-antidote) 18%, var(--color-paper)); }
+  .estado.mal { background: color-mix(in srgb, var(--color-reto) 14%, var(--color-paper)); }
   .boton-p:disabled { opacity: 0.6; cursor: progress; }
   .acciones { margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--color-line-soft); }
   .botones { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
@@ -490,24 +497,28 @@ const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .barra span, .punto-item, .opcion span { transition: none; }
+    .barra span, .opcion .punto { transition: none; }
   }
 
   @media print {
     @page { margin: 16mm; }
-    .cab, .acceso, .progreso .barra, .botones, .enlace, .acciones .ayuda, #faltan, #estado { display: none !important; }
+    .acceso, .progreso .barra, .botones, .enlace, .acciones .ayuda, #faltan, #estado { display: none !important; }
+    .cab { border: 0; }
+    .cab-in { padding: 0 0 12px; max-width: none; }
+    .home .logo { height: 26px; }
     .marco { padding: 0; max-width: none; }
     h1 { font-size: 24px; }
     .lead { display: none; }
     .progreso { position: static; border: 0; padding: 0 0 8px; }
     .seccion { margin-top: 18px; break-inside: auto; }
     .seccion h2, .seccion > legend { font-size: 18px; margin-bottom: 8px; }
-    .punto-item { break-inside: avoid; padding: 8px 10px; border: 1px solid #ccc; background: none !important; }
+    .punto-item { break-inside: avoid; padding: 8px 10px; border: 1px solid var(--color-line-input) !important; background: none !important; }
     .punto-t { margin-bottom: 6px; font-size: 13px; }
     .opcion:not(:has(input:checked)) { display: none; }
     .opcion span { min-height: 0; padding: 3px 10px; font-size: 12px; box-shadow: none !important; }
     .nota textarea, #observaciones { border: 0; padding: 0; min-height: 0; font-size: 12px; resize: none; }
     input { border: 0; padding: 0; min-height: 0; }
+    input, textarea { outline: none !important; }
     .num { background: none; padding: 0; }
   }
 </style>
