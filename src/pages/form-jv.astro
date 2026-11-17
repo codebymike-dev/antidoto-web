@@ -16,6 +16,8 @@ import { createHash } from 'node:crypto';
 import '../styles/global.css';
 import { EMPRESA, SITE } from '../data/site';
 import FORMULARIO from '../data/aprobacion-sst.json';
+import Logo from '../components/Logo.astro';
+import { t } from '../i18n/ui';
 
 const API = String(import.meta.env.PUBLIC_API_URL ?? '').replace(/\/$/, '');
 
@@ -55,7 +57,7 @@ const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
   <body data-hashes={HASHES.join(',')} data-correo={SITE.email} data-titulo={TITULO} data-api={API} data-formulario={FORMULARIO.formulario}>
     <header class="cab">
       <div class="cab-in">
-        <span class="marca">Antídoto</span>
+        <a href="/" class="home" aria-label={t('es').homeLabel}><Logo class="logo" /></a>
         <span class="etiqueta">Aprobación de IT</span>
       </div>
     </header>
@@ -393,7 +395,9 @@ const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
 
   .cab { border-bottom: 1px solid var(--color-line-soft); }
   .cab-in { max-width: 920px; margin-inline: auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-  .marca { font-family: var(--font-display); font-size: 22px; }
+  /* Mismo logo y medidas que la nav (Nav.astro). */
+  .home { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-ink); }
+  .home .logo { display: block; height: 34px; width: auto; }
   .etiqueta { font: 600 12px/1 var(--font-sans); letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-slate); }
 
   .marco { max-width: 920px; margin-inline: auto; padding: 40px 24px 96px; }
@@ -475,6 +479,7 @@ const total = SECCIONES.reduce((n, s) => n + s.puntos.length, 0);
 
   @media (max-width: 640px) {
     .cab-in, .marco { padding-inline: 16px; }
+    .home .logo { height: 28px; }
     .marco { padding-top: 28px; }
     .acceso { padding: 20px; }
     .acceso-fila { flex-direction: column; }
