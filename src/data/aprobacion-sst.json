@@ -1,0 +1,222 @@
+{
+  "formulario": "form-jv",
+  "titulo": "Checklist de aprobación: plataforma de inspecciones SST",
+  "secciones": [
+    {
+      "id": "1",
+      "titulo": "Plataforma",
+      "puntos": [
+        {
+          "id": "p1-1",
+          "texto": "Google Cloud Platform como nube autorizada para este desarrollo"
+        },
+        {
+          "id": "p1-2",
+          "texto": "Creación de un proyecto dentro de la organización, con ambientes separados (desarrollo, pruebas, producción)"
+        },
+        {
+          "id": "p1-3",
+          "texto": "Región autorizada para alojar los datos"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "titulo": "Servicios a aprobar",
+      "puntos": [
+        {
+          "id": "p2-1",
+          "texto": "Cloud Run / Cloud Functions (lógica y alertas)"
+        },
+        {
+          "id": "p2-2",
+          "texto": "Firestore o Cloud SQL (base de datos)"
+        },
+        {
+          "id": "p2-3",
+          "texto": "Firebase Auth o Identity Platform (usuarios y roles)"
+        },
+        {
+          "id": "p2-4",
+          "texto": "Cloud Storage (fotos y evidencias)"
+        },
+        {
+          "id": "p2-5",
+          "texto": "Pub/Sub y Cloud Scheduler (eventos y tareas programadas)"
+        },
+        {
+          "id": "p2-6",
+          "texto": "BigQuery y Looker Studio (dashboard)"
+        },
+        {
+          "id": "p2-7",
+          "texto": "Firebase Cloud Messaging (notificaciones push)"
+        },
+        {
+          "id": "p2-8",
+          "texto": "Vertex AI con Gemini (módulo de análisis)"
+        },
+        {
+          "id": "p2-9",
+          "texto": "Secret Manager, Cloud Logging y Monitoring"
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "titulo": "Identidad y acceso",
+      "puntos": [
+        {
+          "id": "p3-1",
+          "texto": "Integración con el SSO corporativo y MFA obligatorio"
+        },
+        {
+          "id": "p3-2",
+          "texto": "Roles de mínimo privilegio (auditor, supervisor, administrador)"
+        },
+        {
+          "id": "p3-3",
+          "texto": "Permisos del desarrollador durante el proyecto, duración y revocación al entregar"
+        },
+        {
+          "id": "p3-4",
+          "texto": "Manejo de cuentas de servicio y credenciales"
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "titulo": "Datos y privacidad",
+      "puntos": [
+        {
+          "id": "p4-1",
+          "texto": "Clasificación de los datos que manejará la plataforma (¿incluye datos personales o de salud de trabajadores?)"
+        },
+        {
+          "id": "p4-2",
+          "texto": "Política de retención y borrado"
+        },
+        {
+          "id": "p4-3",
+          "texto": "Cifrado en tránsito y en reposo"
+        },
+        {
+          "id": "p4-4",
+          "texto": "Backups y plan de restauración"
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "titulo": "Inteligencia artificial",
+      "puntos": [
+        {
+          "id": "p5-1",
+          "texto": "Autorización para enviar datos a un modelo de IA alojado en Google Cloud"
+        },
+        {
+          "id": "p5-2",
+          "texto": "Qué campos deben anonimizarse antes del envío (nombres, cédulas)"
+        },
+        {
+          "id": "p5-3",
+          "texto": "Registro de consultas y respuestas de la IA para auditoría"
+        },
+        {
+          "id": "p5-4",
+          "texto": "Revisión humana obligatoria antes de convertir una sugerencia en acción formal"
+        },
+        {
+          "id": "p5-5",
+          "texto": "Tope de gasto en el consumo del modelo"
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "titulo": "Red y seguridad",
+      "puntos": [
+        {
+          "id": "p6-1",
+          "texto": "Dominio o subdominio y certificados TLS"
+        },
+        {
+          "id": "p6-2",
+          "texto": "Tipo de acceso permitido (público, VPN, IAP o lista de IPs)"
+        },
+        {
+          "id": "p6-3",
+          "texto": "Pruebas de seguridad requeridas antes de salir a producción"
+        },
+        {
+          "id": "p6-4",
+          "texto": "Revisión de dependencias y manejo de secretos en el código"
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "titulo": "Alertas y notificaciones",
+      "puntos": [
+        {
+          "id": "p7-1",
+          "texto": "Canales aprobados (correo, push, Teams, Slack, WhatsApp)"
+        },
+        {
+          "id": "p7-2",
+          "texto": "Cuenta o dominio remitente de los correos (SPF/DKIM)"
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "titulo": "Operación y continuidad",
+      "puntos": [
+        {
+          "id": "p8-1",
+          "texto": "Responsable del soporte posterior a la entrega y tiempos de respuesta esperados"
+        },
+        {
+          "id": "p8-2",
+          "texto": "Monitoreo técnico y destinatarios de las alertas de infraestructura"
+        },
+        {
+          "id": "p8-3",
+          "texto": "Repositorio de código dentro de su cuenta"
+        },
+        {
+          "id": "p8-4",
+          "texto": "Proceso de documentación y traspaso de accesos"
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "titulo": "Costos",
+      "puntos": [
+        {
+          "id": "p9-1",
+          "texto": "Alertas de presupuesto configuradas en el proyecto"
+        },
+        {
+          "id": "p9-2",
+          "texto": "Estimado mensual de infraestructura aprobado"
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "titulo": "Legal",
+      "puntos": [
+        {
+          "id": "p10-1",
+          "texto": "NDA y acuerdo de tratamiento de datos"
+        },
+        {
+          "id": "p10-2",
+          "texto": "Revisión de los términos de servicio de Google Cloud por su área legal"
+        }
+      ]
+    }
+  ]
+}

@@ -714,3 +714,33 @@ export const sesionesCliente = sqliteTable(
   (t) => [index('sesiones_cliente_usuario').on(t.usuarioId)],
 );
 export type UsuarioCliente = typeof usuariosCliente.$inferSelect;
+
+// Formularios de aprobación que llena un cliente desde una página del sitio protegida por NIT
+// (por ahora /form-jv/: checklist de IT de la plataforma de inspecciones SST). Cada envío es una
+// fila nueva: si la persona corrige y vuelve a enviar, quedan las dos versiones.
+export const aprobaciones = sqliteTable(
+  'aprobaciones',
+  {
+    id: text('id').primaryKey(),
+    creado: integer('creado').notNull(),
+    /** Clave del formulario (src/data/aprobacion-sst.json). */
+    formulario: text('formulario').notNull(),
+    /** NIT con el que se abrió, sin puntos ni dígito de verificación. */
+    nit: text('nit').notNull(),
+    nombre: text('nombre').notNull(),
+    cargo: text('cargo').notNull(),
+    correo: text('correo'),
+    /** AAAA-MM-DD que escribió la persona. */
+    fecha: text('fecha').notNull(),
+    /** JSON: [{ id, seccion, texto, estado, nota }], con el texto de cada punto tal como lo vio. */
+    respuestas: text('respuestas').notNull(),
+    observaciones: text('observaciones'),
+    aprobados: integer('aprobados').notNull(),
+    condiciones: integer('condiciones').notNull(),
+    rechazados: integer('rechazados').notNull(),
+    ipHash: text('ip_hash'),
+    userAgent: text('user_agent'),
+  },
+  (t) => [index('aprobaciones_creado').on(t.creado)],
+);
+export type Aprobacion = typeof aprobaciones.$inferSelect;
