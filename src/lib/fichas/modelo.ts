@@ -70,7 +70,7 @@ export const COLORES = {
 export type Color = keyof typeof COLORES;
 
 /** Color de la base: la bruma de la marca, un punto más oscura para que se lean sus studs. */
-export const COLOR_BASE = '#DCE7EC';
+export const COLOR_BASE = '#CFDDE4';
 
 export interface Ficha {
   pieza: ClavePieza;
@@ -89,7 +89,7 @@ export interface Ficha {
 export const OBRA: readonly Ficha[] = [
   // Primera ronda: cada quien empieza su parte.
   { pieza: 'ladrillo-2x6', color: 'rojo', x: 2, y: 0, z: 3 },
-  { pieza: 'redondo-2x2', color: 'marron', x: 9, y: 0, z: 8 },
+  { pieza: 'redondo-2x2', color: 'marron', x: 9, y: 0, z: 3 },
   { pieza: 'ladrillo-1x6', color: 'rojo', x: 2, y: 0, z: 5 },
   { pieza: 'ladrillo-2x2', color: 'cian', x: 0, y: 0, z: 9 },
   { pieza: 'ventana-1x2x3', color: 'blanco', x: 2, y: 0, z: 6 },
@@ -99,31 +99,31 @@ export const OBRA: readonly Ficha[] = [
   { pieza: 'teja-2x2', color: 'beige', x: 4, y: 0, z: 9 },
   { pieza: 'teja-1x2', color: 'beige', x: 4, y: 0, z: 11 },
   { pieza: 'redondo-1x1', color: 'verde', x: 7, y: 0, z: 9 },
-  { pieza: 'redondo-1x1', color: 'verde', x: 1, y: 0, z: 6 },
+  { pieza: 'redondo-1x1', color: 'verde', x: 10, y: 0, z: 8 },
   // Segunda ronda: los muros suben y la torre crece.
   { pieza: 'ladrillo-2x6', color: 'blanco', x: 2, y: 3, z: 3 },
-  { pieza: 'redondo-2x2', color: 'marron', x: 9, y: 3, z: 8 },
+  { pieza: 'redondo-2x2', color: 'marron', x: 9, y: 3, z: 3 },
   { pieza: 'ladrillo-2x2', color: 'amarillo', x: 0, y: 3, z: 9 },
   { pieza: 'ladrillo-1x6', color: 'blanco', x: 2, y: 3, z: 5 },
   { pieza: 'ladrillo-1x2', color: 'blanco', x: 4, y: 3, z: 6 },
   { pieza: 'placa-redonda-1x1', color: 'coral', x: 7, y: 3, z: 9 },
-  { pieza: 'placa-redonda-1x1', color: 'amarillo', x: 1, y: 3, z: 6 },
+  { pieza: 'placa-redonda-1x1', color: 'amarillo', x: 10, y: 3, z: 8 },
   { pieza: 'ladrillo-2x6', color: 'rojo', x: 2, y: 6, z: 3 },
-  { pieza: 'redondo-2x2', color: 'marron', x: 9, y: 6, z: 8 },
+  { pieza: 'redondo-2x2', color: 'marron', x: 9, y: 6, z: 3 },
   { pieza: 'ladrillo-2x2', color: 'cian', x: 0, y: 6, z: 9 },
   { pieza: 'ladrillo-1x6', color: 'rojo', x: 2, y: 6, z: 5 },
   { pieza: 'ladrillo-1x2', color: 'rojo', x: 4, y: 6, z: 6 },
   // Tercera ronda: techo, copa del árbol y remate de la torre.
   { pieza: 'inclinada-4x2', color: 'azulOscuro', x: 2, y: 9, z: 3, giro: true },
-  { pieza: 'placa-4x4', color: 'verde', x: 8, y: 9, z: 7 },
+  { pieza: 'placa-4x4', color: 'verde', x: 8, y: 9, z: 2 },
   { pieza: 'inclinada-4x2', color: 'azulOscuro', x: 2, y: 9, z: 5 },
   { pieza: 'ladrillo-2x2', color: 'naranja', x: 0, y: 9, z: 9 },
   { pieza: 'inclinada-2x2', color: 'azulOscuro', x: 6, y: 9, z: 3, giro: true },
   { pieza: 'inclinada-2x2', color: 'azulOscuro', x: 6, y: 9, z: 5 },
-  { pieza: 'ladrillo-2x2', color: 'verde', x: 9, y: 10, z: 8 },
+  { pieza: 'ladrillo-2x2', color: 'verde', x: 9, y: 10, z: 3 },
   { pieza: 'ladrillo-2x2', color: 'cian', x: 0, y: 12, z: 9 },
   { pieza: 'ladrillo-1x1', color: 'grisOscuro', x: 6, y: 12, z: 5 },
-  { pieza: 'redondo-2x2', color: 'lima', x: 9, y: 13, z: 8 },
+  { pieza: 'redondo-2x2', color: 'lima', x: 9, y: 13, z: 3 },
 ];
 
 /** Si la celda (i, k) de la huella de la ficha tiene stud arriba. */

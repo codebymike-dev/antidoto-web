@@ -174,7 +174,7 @@ export class EscenaObra {
     this.renderer.setClearColor(0x000000, 0);
     this.renderer.toneMapping = THREE.NeutralToneMapping;
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
 
     // Entorno de estudio procedural: el plástico refleja algo y los colores se ven vivos.
     const pmrem = new THREE.PMREMGenerator(this.renderer);
@@ -184,7 +184,7 @@ export class EscenaObra {
     this.escena.environmentIntensity = 0.5;
     this.desechables.push(entorno);
 
-    this.centro = new THREE.Vector3(BASE / 2, altoObra() * PLACA * 0.32, BASE / 2);
+    this.centro = new THREE.Vector3(BASE / 2, altoObra() * PLACA * 0.18, BASE / 2);
 
     const span = BASE * 1.2;
     this.luz.position.set(this.centro.x + span * 0.35, span * 1.1, this.centro.z + span * 0.55);
@@ -300,7 +300,7 @@ export class EscenaObra {
     const elev = 0.62;
     const vMedio = THREE.MathUtils.degToRad(this.camara.fov / 2);
     const hMedio = Math.atan(Math.tan(vMedio) * this.camara.aspect);
-    const radio = BASE * 0.78;
+    const radio = BASE * 0.7;
     const dist = radio / Math.sin(Math.min(vMedio, hMedio));
     this.camara.position.set(
       this.centro.x + Math.sin(angulo) * Math.cos(elev) * dist,
