@@ -12,6 +12,7 @@ import { odometro } from './cifras';
 import { llenar } from './llenar';
 import { iniciarEstudio, type ControlEstudio } from './estudio';
 import { iniciarSala, type ControlSala } from './sala';
+import { iniciarFichas } from './fichas';
 import { iniciarPaseo } from './paseo';
 import { hablanteQuieto, iniciarPregunta } from './pregunta';
 import { alAsomar, dosis } from './efectos';
@@ -334,6 +335,8 @@ export function iniciarInicio() {
   if (estudio) iniciarEstudio(estudio, (c) => (ctrlEstudio = c));
   const sala = document.querySelector<HTMLElement>('[data-sala]');
   if (sala) iniciarSala(sala, (c) => (ctrlSala = c));
+  const fichas = document.querySelector<HTMLElement>('[data-fichas]');
+  if (fichas) iniciarFichas(fichas);
   const paseo = document.querySelector<HTMLAnchorElement>('[data-paseo]');
   if (paseo) iniciarPaseo(paseo, () => ctrlEstudio, () => ctrlSala);
   // Preguntarle al facilitador (solo con PUBLIC_API_URL). Sin escena animada responde la burbuja quieta.
