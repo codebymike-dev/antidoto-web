@@ -4,8 +4,8 @@
 // extruidas, redondas torneadas y ventanas con el vidrio aparte. Sin postproceso ni oclusión
 // ambiental (pesan y aquí no se mira de cerca): luz de estudio, sombras y entorno procedural.
 //
-// Este módulo trae three (con la escena, unos 146 KB gzip): se importa solo después de `load` y cuando la
-// sección se acerca a la pantalla (src/lib/motion/fichas.ts), nunca en la carga inicial.
+// Este módulo trae three (con la escena, unos 146 KB gzip): se importa solo después de `load` y
+// cuando la sección se acerca a la pantalla (src/lib/motion/fichas.ts), nunca en la carga inicial.
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
