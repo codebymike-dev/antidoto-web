@@ -8,6 +8,7 @@ import BloqueCta from '../BloqueCta.astro';
 import { t, rutas, type Locale } from '../../i18n/ui';
 import { tp } from '../../i18n/paginas';
 import SelloLicencia from '../SelloLicencia.astro';
+import tarjetas from '../../assets/fotos/marca-tarjetas.jpg';
 import { SITE, EMPRESA, LICENCIA } from '../../data/site';
 import { obtenerCasos, obtenerClientes } from '../../data/contenido';
 import { grafo, migasSchema } from '../../data/schema';
@@ -41,7 +42,7 @@ const seguir: Array<[string, string, string]> = [
 ];
 ---
 <Base locale={locale} pagina="nosotros" title={title} description={description} alternates={rutas.nosotros} jsonLd={grafo(migasSchema(migas))} scroll="suave">
-  <CabeceraPagina locale={locale} migas={migas} titulo={p.nosotros.empresa} lead={s.nosotrosLead} />
+  <CabeceraPagina locale={locale} migas={migas} titulo={p.nosotros.empresa} lead={s.nosotrosLead} imagen={tarjetas} alt={p.nosotros.fotoAlt} />
 
   <section class="bloque" aria-labelledby="fundadora-nombre">
     <div class="wrap bento">

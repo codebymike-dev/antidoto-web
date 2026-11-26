@@ -16,6 +16,8 @@ import bandera from '../../assets/fotos/formacion-bandera.jpg';
 import grabacion from '../../assets/fotos/grabacion.jpg';
 import catering from '../../assets/fotos/catering-buffet.jpg';
 import grupo from '../../assets/fotos/grupo-aire-libre.jpg';
+import desayuno from '../../assets/fotos/catering-desayuno-fruta.jpg';
+import terraza from '../../assets/fotos/catering-terraza.jpg';
 import { t, rutas, type Locale } from '../../i18n/ui';
 import { obtenerAjustes } from '../../data/contenido';
 
@@ -32,9 +34,11 @@ const VIDEO = (await obtenerAjustes()).videoHero;
 // Encuadre de cada foto en la pantalla ancha.
 const FOTOS = [
   { src: bandera, pos: 'center 30%' },
+  { src: desayuno, pos: 'center 60%' },
   { src: grabacion, pos: 'center 35%' },
   { src: catering, pos: '60% center' },
   { src: grupo, pos: 'center 55%' },
+  { src: terraza, pos: 'center 55%' },
 ];
 const ANCHOS = [640, 960, 1280];
 const resto = await Promise.all(

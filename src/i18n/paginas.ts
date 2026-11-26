@@ -92,6 +92,7 @@ export const paginas = {
 
     nosotros: {
       empresa: ['Un estudio creativo con ', 'criterio de ingeniería'],
+      fotoAlt: 'Tarjetas de presentación de Antídoto, azul oscuro con el logo en blanco',
       datosTitulo: 'Antídoto en datos',
       equipo: ['Nuestro ', 'equipo'],
       seguir: ['Conoce ', 'más'],
@@ -294,6 +295,7 @@ export const paginas = {
 
     nosotros: {
       empresa: ['A creative studio with ', 'an engineering mindset'],
+      fotoAlt: 'Antídoto business cards, dark blue with the logo in white',
       datosTitulo: 'Antídoto at a glance',
       equipo: ['Our ', 'team'],
       seguir: ['Learn ', 'more'],
@@ -496,6 +498,7 @@ export const paginas = {
 
     nosotros: {
       empresa: ['Um estúdio criativo com ', 'critério de engenharia'],
+      fotoAlt: 'Cartões de visita da Antídoto, azul-escuro com o logo em branco',
       datosTitulo: 'Antídoto em números',
       equipo: ['Nossa ', 'equipe'],
       seguir: ['Conheça ', 'mais'],

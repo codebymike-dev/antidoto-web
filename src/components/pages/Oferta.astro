@@ -69,7 +69,7 @@ const descripcion = txt.lead.length < 90 && conContexto.length <= 160 ? conConte
   og={{ ruta: ogRuta('oferta', oferta.id, locale), alt: `${txt.title}, ${lineaTxt.title} | Antídoto` }}
   scroll="suave"
 >
-  <CabeceraPagina locale={locale} migas={migas} kicker={lineaTxt.title} titulo={txt.title} lead={txt.lead} imagen={linea.image} alt={lineaTxt.alt} vt={`oferta-${oferta.id}-title`}>
+  <CabeceraPagina locale={locale} migas={migas} kicker={lineaTxt.title} titulo={txt.title} lead={txt.lead} imagen={oferta.image ?? linea.image} alt={oferta.image ? txt.alt : lineaTxt.alt} vt={`oferta-${oferta.id}-title`}>
     <a class="boton boton-cian boton-grande" href={`${rutas.contacto[locale]}?servicio=${linea.id}&oferta=${oferta.id}`} data-magnetico>{p.oferta.cotizarEsta}</a>
     <a class="boton boton-borde boton-grande" href={waLink(msg)} target="_blank" rel="noopener"><WhatsappIcon />WhatsApp</a>
     {txt.para.length > 0 && (

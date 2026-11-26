@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { ImageMetadata } from 'astro';
 import { emparejarPorClave, type EntradaBase } from '../src/lib/contenido';
 import type { Locale } from '../src/i18n/ui';
 import { emparejarOfertas, ofertaPath, type EntradaOferta } from '../src/lib/ofertas';
@@ -76,6 +77,20 @@ describe('emparejarOfertas', () => {
     expect(
       emparejarOfertas([...parOferta('a', { slug: 'mismo' }), ...parOferta('b', { slug: 'mismo', linea: 'formaciones' })], { borradores: false, servicios, lineasConocidas }),
     ).toHaveLength(2);
+  });
+
+  it('lleva la foto propia con su alt por idioma y falla si la foto cambia o le falta un alt', () => {
+    const foto = { src: '/dron.jpg' } as ImageMetadata;
+    const conFoto = (idioma: Locale) => oferta('dron', idioma, { imagen: foto, alt: `alt ${idioma}` });
+    const [o] = emparejarOfertas([conFoto('es'), conFoto('en'), conFoto('pt')], { borradores: false, servicios, lineasConocidas });
+    expect(o.image).toBe(foto);
+    expect(o.pt.alt).toBe('alt pt');
+    // Sin foto no hay `image`: la página usa la de su línea.
+    expect(emparejarOfertas(parOferta('dron'), { borradores: false, servicios, lineasConocidas })[0].image).toBeUndefined();
+    expect(() =>
+      emparejarOfertas([conFoto('es'), conFoto('en'), oferta('dron', 'pt', { imagen: { src: '/otra.jpg' } as ImageMetadata, alt: 'x' })], { borradores: false, servicios, lineasConocidas }),
+    ).toThrow(/foto distinta/);
+    expect(() => emparejarOfertas([conFoto('es'), conFoto('en'), oferta('dron', 'pt', { imagen: foto })], { borradores: false, servicios, lineasConocidas })).toThrow(/alt en pt/);
   });
 });
 

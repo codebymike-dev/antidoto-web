@@ -1,5 +1,6 @@
 // Imágenes para compartir (og:image) de líneas, ofertas y soluciones, en los dos idiomas. Una
-// solución usa la foto de la línea de su primera oferta recomendada. Ver src/lib/og.ts.
+// oferta usa su foto propia si la tiene y si no la de su línea; una solución, la de la línea de su
+// primera oferta recomendada. Ver src/lib/og.ts.
 import type { APIRoute, GetStaticPaths, ImageMetadata } from 'astro';
 import { join } from 'node:path';
 import { imagenOg } from '../../../lib/og';
@@ -35,7 +36,7 @@ export const getStaticPaths = (async () => {
     }
     for (const o of ofertas) {
       const linea = servicios.find((sv) => sv.id === o.linea)!;
-      paginas.push({ tipo: 'oferta', clave: o.id, locale, props: { kicker: linea[locale].title, titulo: o[locale].title, foto: archivoDe(linea.image) } });
+      paginas.push({ tipo: 'oferta', clave: o.id, locale, props: { kicker: linea[locale].title, titulo: o[locale].title, foto: archivoDe(o.image ?? linea.image) } });
     }
     for (const sol of SOLUCIONES) {
       const linea = servicios.find((sv) => ofertas.find((o) => o.id === sol.ofertas[0])?.linea === sv.id) ?? servicios[0];

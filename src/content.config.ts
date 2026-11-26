@@ -41,18 +41,22 @@ const servicios = defineCollection({
 // Ofertas: subpáginas de cada línea, en src/content/ofertas/<linea>/<clave>.<idioma>.md.
 const ofertas = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/ofertas', generateId: idPorArchivo }),
-  schema: z.object({
-    clave: z.string().regex(/^[a-z][a-z0-9-]*$/, 'La clave va en minúsculas, sin espacios ni puntos'),
-    idioma: z.enum(LOCALES),
-    linea: z.string().min(1),
-    orden: z.number().int().positive(),
-    borrador: z.boolean().default(false),
-    slug: z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'El slug va en minúsculas y con guiones'),
-    title: z.string().min(1),
-    lead: z.string().min(1),
-    para: z.array(z.string().min(1)).default([]),
-    incluye: z.array(z.string().min(1)).default([]),
-  }),
+  schema: ({ image }) =>
+    z.object({
+      clave: z.string().regex(/^[a-z][a-z0-9-]*$/, 'La clave va en minúsculas, sin espacios ni puntos'),
+      idioma: z.enum(LOCALES),
+      linea: z.string().min(1),
+      orden: z.number().int().positive(),
+      borrador: z.boolean().default(false),
+      slug: z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'El slug va en minúsculas y con guiones'),
+      title: z.string().min(1),
+      lead: z.string().min(1),
+      para: z.array(z.string().min(1)).default([]),
+      incluye: z.array(z.string().min(1)).default([]),
+      /** Foto propia de la oferta (la misma en los tres idiomas, con su alt). Sin ella, la de la línea. */
+      imagen: image().optional(),
+      alt: z.string().min(1).optional(),
+    }),
 });
 
 // Casos del portafolio y artículos del blog: un Markdown por idioma. Los archivos que empiezan
