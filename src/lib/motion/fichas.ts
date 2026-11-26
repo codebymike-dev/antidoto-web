@@ -40,9 +40,10 @@ export function iniciarFichas(raiz: HTMLElement) {
           const r = lienzo.getBoundingClientRect();
           escena.ajustar(r.width, r.height);
         };
-        ajustar();
 
-        let t = 0;
+        // El bucle arranca en el instante de la foto (obra completa, misma cámara): el cambio de la
+        // foto al lienzo no se nota, y desde ahí la obra se desarma y se vuelve a armar.
+        let t = escena.instantePoster();
         let previo = 0;
         let raf = 0;
         let pausado = false;
@@ -86,9 +87,10 @@ export function iniciarFichas(raiz: HTMLElement) {
           liberar = null;
         };
 
-        // Primer cuadro con la base vacía; desde aquí manda el lienzo.
-        escena.pintar(0);
+        // El lienzo se muestra antes de medirlo (oculto mide 0) y se pinta antes de soltar la foto.
         lienzo.hidden = false;
+        ajustar();
+        escena.pintar(t);
         poster.style.opacity = '0';
         if (contador) contador.hidden = false;
 

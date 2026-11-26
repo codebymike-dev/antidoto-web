@@ -4,7 +4,7 @@
 // extruidas, redondas torneadas y ventanas con el vidrio aparte. Sin postproceso ni oclusión
 // ambiental (pesan y aquí no se mira de cerca): luz de estudio, sombras y entorno procedural.
 //
-// Este módulo trae three (unos 130 KB gzip): se importa solo después de `load` y cuando la
+// Este módulo trae three (con la escena, unos 146 KB gzip): se importa solo después de `load` y cuando la
 // sección se acerca a la pantalla (src/lib/motion/fichas.ts), nunca en la carga inicial.
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
@@ -286,9 +286,14 @@ export class EscenaObra {
     this.renderer.render(this.escena, this.camara);
   }
 
+  /** El instante del bucle que muestra la foto quieta: la obra completa. */
+  instantePoster() {
+    return instanteCompleto(this.vivas.length);
+  }
+
   /** La obra completa y quieta: el cuadro del póster. */
   pintarCompleta() {
-    this.pintar(instanteCompleto(this.vivas.length));
+    this.pintar(this.instantePoster());
   }
 
   /**
